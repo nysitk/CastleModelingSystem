@@ -17,7 +17,7 @@ import { OBJExporter, OBJExporterWithMtl } from './controls/OBJExporter.js';
             mode: "orbit"
         }
 
-        this.initClickMode();
+        this.initCursorMode();
 
         this.view = sceneManager.renderer.domElement;
 
@@ -27,21 +27,28 @@ import { OBJExporter, OBJExporterWithMtl } from './controls/OBJExporter.js';
         this.view.addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
     }
 
-    initClickMode() {
+    initCursorMode() {
         $("#modeButton > li").each(function(i, button) {
             button.addEventListener('click', (e) => { this.clickCursorModeButton(e) }, false)
         }.bind(this));
 
-        this.changeClickMode("orbit");
+        this.changeCursorMode("orbit");
     }
 
     clickCursorModeButton(e){
-        $('#modeButton > li').removeClass('is-active')
-        $(e.target).addClass('is-active');
-        this.changeClickMode($(e.target).data("mode"));
+        // $('#modeButton > li').removeClass('is-active')
+        // $(e.target).addClass('is-active');
+        const mode = $(e.target).attr('id')
+        this.changeCursorMode(mode);
     };
 
-    changeClickMode(mode) {
+    changeCursorModeButtonColor(mode) {
+        $('#modeButton > li').removeClass('is-active')
+        $("#modeButton > #" + mode).addClass('is-active');
+    }
+
+    changeCursorMode(mode) {
+        this.changeCursorModeButtonColor(mode)
         console.log(mode)
         switch (mode) {
             case "orbit":
@@ -122,7 +129,7 @@ import { OBJExporter, OBJExporterWithMtl } from './controls/OBJExporter.js';
                     this.modelingManager.createYaguraPolygon();
                     this.modelingManager.createYanePolygon();
                     this.cursorInfo.count++;
-                    this.changeClickMode("orbit")
+                    this.changeCursorMode("orbit")
                     break;
             }
         } else if (this.cursorInfo.mode == "edit") {

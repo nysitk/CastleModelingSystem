@@ -2,9 +2,9 @@ import * as THREE from '/build/three.module.js';
 
 import { PARAMS } from './Params.js';
 
-import { Ishigaki } from './model/Ishigaki.js'
-import { Yagura } from './model/Yagura.js'
-import { Yane } from './model/Yane.js'
+import { Ishigaki } from './models/Ishigaki.js'
+import { Yagura } from './models/Yagura.js'
+import { Yane } from './models/Yane.js'
 
 /**
  * 城郭モデル関連のモデルクラス

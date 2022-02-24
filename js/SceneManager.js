@@ -34,11 +34,6 @@ export class SceneManager {
         this.addOrbit();
         this.addControl();
 
-        const oc = new THREE.OctahedronGeometry( 50);
-        const sphereMat = new THREE.MeshPhongMaterial({color: '#CA8'});
-        const mesh = new THREE.Mesh(oc, sphereMat);
-        // this.scene.add(mesh);
-
         this.addGUI();
     }
 
@@ -47,20 +42,15 @@ export class SceneManager {
     }
 
     addCamera() {
-        this.aspect = 800 / 600;
-        // this.aspect = window.innerWidth / window.innerHeight;
+        // this.aspect = 800 / 600;
+        this.aspect = window.innerWidth / window.innerHeight;
 
         this.cameraPersp = new THREE.PerspectiveCamera( 30, this.aspect, 0.01, 30000 );
         this.cameraOrtho = new THREE.OrthographicCamera( - 600 * this.aspect, 600 * this.aspect, 600, - 600, 0.01, 30000 );
         
         this.currentCamera = this.cameraPersp;
         // this.currentCamera.position.set( 136, 300, 226 );
-        this.currentCamera.position.set( 335, 240, 335 );
-        // this.currentCamera.position.set(8.087405011139255, 5.850093081453902, 4.798730430005799)
-        // this.currentCamera.matrix.set(-0.8375326424136753, 0.3863541593483669, -0.3863541593483669, 8.087405011139255,
-        //     -0.3863541593483669, 0.08123367879316212, 0.9187663212068374, 5.850093081453902,
-        //     0.3863541593483669, 0.9187663212068374, 0.08123367879316212, 4.798730430005799,
-        //     0,0,0,1)
+        this.currentCamera.position.set( 300, 240, 600 );
     }
 
     addSky() {
@@ -103,8 +93,8 @@ export class SceneManager {
 
     adjustSize() {
         this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setSize( 800, 600 );
-        // this.renderer.setSize( window.innerWidth, window.innerHeight );
+        // this.renderer.setSize( 800, 600 );
+        this.renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( this.renderer.domElement );
 
         $('#background-Image').on( 'change', (e) => { this.changeBackground(e) } );
@@ -187,7 +177,6 @@ export class SceneManager {
     changeGUI() {
         this.changeGUICamera();
         this.changeGUISky();
-        this.changeGUILight();
         this.renderer.render( this.scene, this.currentCamera );
     }
 
@@ -223,10 +212,6 @@ export class SceneManager {
         this.renderer.toneMappingExposure = this.effectController.exposure;
     }
 
-    changeGUILight() {
-
-    }
-
     addSphere(x,y,z) {
         const sphereRadius = 3;
         const sphereWidthDivisions = 32;
@@ -260,8 +245,8 @@ export class SceneManager {
     }
 
     onWindowResize() {
-        // this.aspect = window.innerWidth / window.innerHeight;
-        this.aspect = 800 / 600;
+        this.aspect = window.innerWidth / window.innerHeight;
+        // this.aspect = 800 / 600;
     
         this.cameraPersp.aspect = this.aspect;
         this.cameraPersp.updateProjectionMatrix();
@@ -271,8 +256,8 @@ export class SceneManager {
         this.cameraOrtho.updateProjectionMatrix();
     
         this.renderer.setPixelRatio(window.devicePixelRatio)
-        this.renderer.setSize( 800, 600 );
-        // this.renderer.setSize( window.innerWidth, window.innerHeight );
+        // this.renderer.setSize( 800, 600 );
+        this.renderer.setSize( window.innerWidth, window.innerHeight );
     
         this.render();
     

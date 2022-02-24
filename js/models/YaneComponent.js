@@ -161,7 +161,6 @@ export class YaneComponent extends THREE.Group {
 		const chidoriHafu = new ChidoriHafu(width, height, depth);
         
 		chidoriHafu.create(MODE);
-        console.log(lowerCenter)
 		chidoriHafu.position.set(lowerCenter.x, lowerCenter.y, lowerCenter.z + depth)
 
 		this.add(chidoriHafu)

@@ -137,7 +137,7 @@ class Polygon extends Yagura {
                 const chang = this.changeLevel.x * 1.5;
                 // var chang = (d%2==0) ? this.changeLevel.x : this.changeLevel.z
                 const windowNum = Math.abs(Math.ceil(this.getYaguraVertices(i).lower[direction].distanceTo(this.getYaguraVertices(i).lower[(direction+1)%4])/chang));
-                // eachLayerPolygon.wall[direction].generateMultipleWindow(windowNum, 2, chang/3, this.changeLevel.y/4);
+                eachLayerPolygon.wall[direction].generateMultipleWindow(windowNum, 2, chang/3, this.changeLevel.y/4);
 				// eachLayerPolygon.wall[direction].generateShitamiitabari(this.changeLevel.x);
             }
 
