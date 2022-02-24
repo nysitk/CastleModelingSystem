@@ -2,17 +2,29 @@
 研究で開発している、「日本城郭のインタラクティブモデリングシステム」のアプリケーションです。
 
 ## 起動方法
-JavaScript APIであるWebGLをベースに、Three.jsと呼ばれるライブラリを用いています。  
-そのため、Webブラウザ上で簡単に実行できます。
+Three.jsと呼ばれるライブラリを用いて、JavaScript APIであるWebGLで動作しています。  
+そのため、Webブラウザ上で実行できます。
 
-このレポジトリをCloneしたら、以下のコマンドを入力することにより起動できます。
+**事前準備**
+
+npmを用いて、http-serverをインストールします。
+
+```bash
+npm install -g http-server
+```
+
+**実行**
+
+このレポジトリをCloneしたら、ホームディレクトリで以下のコマンドを入力することにより起動できます。
+
 ```bash
 http-server
 ```
 
 コマンドにアドレスが出力されるので、このアドレスをWebブラウザで開くことにより実行できます。
 
-**出力例:**
+**出力例**
+
 ```bash
 Starting up http-server, serving ./
 Available on:
