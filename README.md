@@ -22,3 +22,9 @@ Hit CTRL-C to stop the server
 ```
 
 この `http://`で始まるアドレスをWebブラウザで開きます。
+
+## 動作デモ
+
+
+https://user-images.githubusercontent.com/61293057/155493486-1874d91c-b8da-46ac-ab56-82020cd19578.mp4
+
