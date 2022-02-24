@@ -1,11 +1,11 @@
 import * as THREE from '/build/three.module.js';
 
-import { GUI } from './controls/dat.gui.module.js';
-import { Sky } from './controls/Sky.js';
-import { OBJExporter, OBJExporterWithMtl } from './controls/OBJExporter.js';
+import { GUI } from '../controls/dat.gui.module.js';
+import { Sky } from '../controls/Sky.js';
+import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 
-import { OrbitControls } from './controls/OrbitControls.js';
-import { TransformControls } from './controls/TransformControls.js';
+import { OrbitControls } from '../controls/OrbitControls.js';
+import { TransformControls } from '../controls/TransformControls.js';
 
 export class SceneManager {
     constructor() {

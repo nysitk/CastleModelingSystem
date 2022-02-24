@@ -1,5 +1,5 @@
-import { OperationManager } from './OperationManager.js';
-import { SceneManager } from './SceneManager.js'
+import { OperationManager } from './managers/OperationManager.js';
+import { SceneManager } from './managers/SceneManager.js'
 
 /**
  * entry point

@@ -1,8 +1,8 @@
 import * as THREE from '/build/three.module.js';
 
-import { PARAMS } from '../Params.js';
+import { PARAMS } from '../managers/Params.js';
 
-import { ModelingSupporter } from '../ModelingSupporter.js'
+import { ModelingSupporter } from '../managers/ModelingSupporter.js'
 
 /**
  * 櫓モデル関連のモデルクラス

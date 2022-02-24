@@ -1,8 +1,8 @@
 import * as THREE from '/build/three.module.js';
 
-import { LINE, POLYGON, PARAMS } from '../Params.js'
+import { LINE, POLYGON, PARAMS } from '../managers/Params.js'
 
-import { ModelingSupporter } from '../ModelingSupporter.js'
+import { ModelingSupporter } from '../managers/ModelingSupporter.js'
 import { TransformControls } from '../controls/TransformControls.js';
 import { Yane, SurroundingYane } from './Yane.js'
 

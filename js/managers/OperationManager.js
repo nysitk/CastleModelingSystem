@@ -2,7 +2,7 @@ import * as THREE from '/build/three.module.js';
 
 import { ModelingManager } from './ModelingManager.js';
 
-import { OBJExporter, OBJExporterWithMtl } from './controls/OBJExporter.js';
+import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 
 /**
  * 城郭モデル生成関連のモデルクラス

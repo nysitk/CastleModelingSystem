@@ -1,8 +1,7 @@
 import * as THREE from '/build/three.module.js';
 
-import { LINE, POLYGON, PARAMS } from '../Params.js'
+import { LINE, POLYGON, PARAMS } from '../managers/Params.js'
 
-import { ModelingSupporter } from '../ModelingSupporter.js'
 import { Yagura } from './Yagura.js'
 import { YaneComponent } from './YaneComponent.js'
 import { ChidoriHafu, IrimoyaHafu } from './Hafu.js'
