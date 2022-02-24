@@ -1,0 +1,47 @@
+body {
+	margin: 0;
+	overflow: hidden;
+	background-color: #000;
+	background-size: cover;
+	background-position: center;
+	color: #fff;
+	font-family: Monospace;
+	font-size: 13px;
+	line-height: 24px;
+	overscroll-behavior: none;
+}
+
+canvas {
+	display: block;
+}
+
+#controlPanel {
+	position: fixed;
+    bottom: 0;
+    right: 0;
+    z-index: 0;
+	box-sizing: border-box;
+	text-align: center;
+	z-index: 1; /* TODO Solve this in HTML */
+}
+
+#modeButton {
+	margin: 0;
+	padding: 8px;
+	list-style: none;
+}
+
+#modeButton > li {
+	margin: 0;
+	padding: 2px;
+	background-color: rgba(0, 0, 0, 0.8);
+}
+
+#modeButton > li.is-active {
+	background-color: rgba(150, 90, 0, 0.8);
+}
+
+#modeButton > li:hover {
+	background-color: rgba(0, 0, 0, 0.5);
+	cursor: pointer;
+}
