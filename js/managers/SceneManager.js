@@ -15,7 +15,8 @@ export class SceneManager {
         this.init();
 
         this.renderer.domElement.addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
-        window.addEventListener( 'resize', (e) => { this.onWindowResize() }, false );
+        this.onWindowResizeEvent = this.onWindowResize.bind(this);
+        this.addOnWindowResize();
     }
 
     init() {
@@ -45,12 +46,11 @@ export class SceneManager {
         // this.aspect = 800 / 600;
         this.aspect = window.innerWidth / window.innerHeight;
 
-        this.cameraPersp = new THREE.PerspectiveCamera( 30, this.aspect, 0.01, 30000 );
+        this.cameraPersp = new THREE.PerspectiveCamera( 30, this.aspect, 1, 5000 );
         this.cameraOrtho = new THREE.OrthographicCamera( - 600 * this.aspect, 600 * this.aspect, 600, - 600, 0.01, 30000 );
         
         this.currentCamera = this.cameraPersp;
-        // this.currentCamera.position.set( 136, 300, 226 );
-        this.currentCamera.position.set( 300, 240, 600 );
+        this.currentCamera.position.set( 335, 240, 335 );
     }
 
     addSky() {
@@ -93,7 +93,6 @@ export class SceneManager {
 
     adjustSize() {
         this.renderer.setPixelRatio( window.devicePixelRatio );
-        // this.renderer.setSize( 800, 600 );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( this.renderer.domElement );
 
@@ -111,7 +110,7 @@ export class SceneManager {
 
     addOrbit() {
         this.orbit = new OrbitControls( this.currentCamera, this.renderer.domElement );
-        this.orbit.target.set(0, 75, 0)
+        this.orbit.target.set(0.92, 104.4, 1.0)
         this.orbit.update();
         this.orbit.addEventListener( 'change', () => { this.render() } );
     }
@@ -244,9 +243,8 @@ export class SceneManager {
 
     }
 
-    onWindowResize() {
-        this.aspect = window.innerWidth / window.innerHeight;
-        // this.aspect = 800 / 600;
+    changeRendererSize(width, height) {
+        this.aspect = width / height;
     
         this.cameraPersp.aspect = this.aspect;
         this.cameraPersp.updateProjectionMatrix();
@@ -256,10 +254,20 @@ export class SceneManager {
         this.cameraOrtho.updateProjectionMatrix();
     
         this.renderer.setPixelRatio(window.devicePixelRatio)
-        // this.renderer.setSize( 800, 600 );
-        this.renderer.setSize( window.innerWidth, window.innerHeight );
+        this.renderer.setSize( width, height );
     
         this.render();
-    
+    }
+
+    addOnWindowResize() {
+        window.addEventListener( 'resize', this.onWindowResizeEvent, false );
+    }
+
+    removeOnWindowResize() {
+        window.removeEventListener( 'resize', this.onWindowResizeEvent, false );
+    }
+
+    onWindowResize() {
+        this.changeRendererSize( window.innerWidth, window.innerHeight );    
     }
 }

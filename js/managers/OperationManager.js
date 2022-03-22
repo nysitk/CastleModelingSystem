@@ -5,7 +5,7 @@ import { ModelingManager } from './ModelingManager.js';
 import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 
 /**
- * 城郭モデル生成関連のモデルクラス
+ * ユーザー操作関連のモデルクラス
  */
  export class OperationManager {
     constructor(sceneManager) {
@@ -17,7 +17,7 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
             mode: "orbit"
         }
 
-        this.initCursorMode();
+        this.initCursorMode(this.cursorInfo.mode);
 
         this.view = sceneManager.renderer.domElement;
 
@@ -27,17 +27,15 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
         this.view.addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
     }
 
-    initCursorMode() {
+    initCursorMode(mode) {
         $("#modeButton > li").each(function(i, button) {
             button.addEventListener('click', (e) => { this.clickCursorModeButton(e) }, false)
         }.bind(this));
 
-        this.changeCursorMode("orbit");
+        this.changeCursorMode(mode);
     }
 
     clickCursorModeButton(e){
-        // $('#modeButton > li').removeClass('is-active')
-        // $(e.target).addClass('is-active');
         const mode = $(e.target).attr('id')
         this.changeCursorMode(mode);
     };
@@ -49,20 +47,20 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 
     changeCursorMode(mode) {
         this.changeCursorModeButtonColor(mode)
+        this.cursorInfo.mode = mode
         console.log(mode)
         switch (mode) {
             case "orbit":
-                this.cursorInfo.mode = "orbit"
                 this.sceneManager.orbit.enabled = true;
                 $('html,body').css('cursor', 'grab');
                 break;
+
             case "construction":
-                this.cursorInfo.mode = "construction"
                 this.sceneManager.orbit.enabled = false;
                 $('html,body').css('cursor', 'crosshair');
                 break;
+
             case "edit":
-                this.cursorInfo.mode = "edit"
                 this.sceneManager.orbit.enabled = false;
                 $('html,body').css('cursor', 'default');
                 break;
@@ -93,6 +91,7 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 this.modelingManager.createIshigakiLine(mousePos);
                 break;
             case 3:
+                // this.modelingManager.createYaguraPolygon(mousePos);
                 this.modelingManager.createYaguraLine(mousePos);
                 this.modelingManager.createYaneLine(mousePos);
                 break;
@@ -130,6 +129,7 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                     this.modelingManager.createYanePolygon();
                     this.cursorInfo.count++;
                     this.changeCursorMode("orbit")
+                    this.modelingManager.displayClickPosition();
                     break;
             }
         } else if (this.cursorInfo.mode == "edit") {
@@ -145,8 +145,8 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 		switch ( e.code ) {
             
 			case 'KeyA': // A
-                this.modelingManager.createAllModel();
-                this.cursorInfo.count = 10;
+                let createAllModel = this.modelingManager.createPresetModel();
+                if (createAllModel) this.cursorInfo.count = 10;
                 break;
 
             case 'KeyB': // B
@@ -187,12 +187,15 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 break;
 
             case 'KeyP':
-                console.log(this.sceneManager.currentCamera);
-                console.log(this.sceneManager.currentCamera.getFocalLength());
-                console.log(this.sceneManager.renderer.getSize());
+                console.log("camera info:", this.sceneManager.currentCamera);
+                console.log("camera pos:", this.sceneManager.currentCamera.position);
+                console.log("camera rot:", this.sceneManager.currentCamera.rotation);
+                console.log("focal length:", this.sceneManager.currentCamera.getFocalLength());
+                console.log("display size:", this.sceneManager.renderer.getSize(new THREE.Vector2()));
+                console.log("target:", this.sceneManager.orbit.target);
                 
-                this.modelingManager.createAutoFloor();
-                console.log(this.modelingManager.referencePoint.ishigakiBottom)
+                // this.modelingManager.createAutoFloor();
+                console.log(this.modelingManager.clickPosition)
                 break;
         }
 

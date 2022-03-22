@@ -100,6 +100,13 @@ class Line extends Ishigaki {
         }
         return this;
     }
+
+    dispose() {
+        this.children.forEach(child => {
+            child.material.dispose();
+            child.geometry.dispose();
+        })
+    }
 }
 
 class Polygon extends Ishigaki {
@@ -127,6 +134,7 @@ class Polygon extends Ishigaki {
             // var material = new THREE.MeshLambertMaterial({color: 0xb4a294})
 
             const mesh = new THREE.Mesh(geometry, material);
+            mesh.receiveShadow = true;
 
             this.add(mesh);
         }
@@ -156,7 +164,10 @@ class Polygon extends Ishigaki {
 
         const textureLoader = new THREE.TextureLoader()
         const texture = textureLoader.load('texture/ishigaki.png');
-        return new THREE.MeshStandardMaterial({map:texture})
+
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+        return new THREE.MeshLambertMaterial({map:texture})
     }
 
 }

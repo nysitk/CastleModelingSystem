@@ -102,7 +102,7 @@ export class Yane extends Yagura {
             this.createSurroundingYane(i, MODE)
 		},this)
 
-        this.createHafuPreset(MODE)
+        // this.createHafuPreset(MODE)
         this.createTopYane(MODE)
 
         return this;
@@ -129,10 +129,12 @@ export class Yane extends Yagura {
         return surroundingYane;
     }
 
-    createHafuPreset(MODE) {
-        for (const param of HafuPresets.osaka) {
-            this.createSimpleChidoriHafu(param, MODE)
-        }
+    createHafuPreset(MODE, name) {
+		if (HafuPresets[name]) {
+			for (const param of HafuPresets[name]) {
+				this.createSimpleChidoriHafu(param, MODE)
+			}
+		}
     }
 
     getAllSurroundingYane() {
@@ -272,5 +274,10 @@ export class SurroundingYane extends THREE.Group {
 
     createSimpleChidoriHafu(param, MODE) {
         this.getYaneComponent(param.dir).createSimpleChidoriHafu(param, MODE);
+
+		if (param.symmetric) {
+			let symmetricDir = (param.dir + 2) % 4;
+			this.getYaneComponent(symmetricDir).createSimpleChidoriHafu(param, MODE);
+		}
     }
 }

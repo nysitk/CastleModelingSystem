@@ -1,6 +1,6 @@
 import * as THREE from '/build/three.module.js';
 
-import { PARAMS } from './Params.js';
+import { PARAMS, POLYGON } from './Params.js';
 
 import { Ishigaki } from '../models/Ishigaki.js'
 import { Yagura } from '../models/Yagura.js'
@@ -54,8 +54,14 @@ export class CastleModelManager {
     }
 
     removeIshigakiLine() {
-        if (this.model.ishigaki.line) {
-            this.sceneManager.scene.remove(this.model.ishigaki.line)
+        const line = this.model.ishigaki.line
+
+        if (line) {
+            this.sceneManager.scene.remove(line)
+            
+            line.dispose();
+
+            this.model.ishigaki.line = null;
         }
     }
 
@@ -80,8 +86,14 @@ export class CastleModelManager {
     }
 
     removeYaguraLine() {
-        if (this.model.yagura.line) {
-            this.sceneManager.scene.remove(this.model.yagura.line)
+        const line = this.model.yagura.line
+
+        if (line) {
+            this.sceneManager.scene.remove(line)
+            
+            line.dispose();
+
+            this.model.yagura.line = null;
         }
     }
 
@@ -93,8 +105,14 @@ export class CastleModelManager {
     }
 
     removeYaguraPolygon() {
-        if (this.model.yagura.polygon) {
-            this.sceneManager.scene.remove(this.model.yagura.polygon)
+        const polygon = this.model.yagura.polygon
+
+        if (polygon) {
+            this.sceneManager.scene.remove(polygon)
+            
+            polygon.dispose();
+
+            this.model.yagura.polygon = null;
         }
     }
 
@@ -126,6 +144,12 @@ export class CastleModelManager {
         }
     }
 
+    createHafuPreset(name) {
+        if (this.model.yane.polygon) {
+            this.model.yane.polygon.createHafuPreset(POLYGON, name);
+        }
+    }
+
     removeAllLine() {
         this.removeIshigakiLine();
         this.removeYaguraLine();
@@ -139,16 +163,19 @@ export class CastleModelManager {
     }
 
     getAllSurroundingYane() {
+        if (this.model.yane.polygon)
         return this.model.yane.polygon.getAllSurroundingYane();
     }
 
     getAllYaneComponent() {
         const allYaneComponent = []
-        this.getAllSurroundingYane().forEach(surroundingYane => {
-            surroundingYane.getAllYaneComponent().forEach(yaneComponent => {
-                allYaneComponent.push(yaneComponent);
-            })
-        });
+        if (this.getAllSurroundingYane()) {
+            this.getAllSurroundingYane().forEach(surroundingYane => {
+                surroundingYane.getAllYaneComponent().forEach(yaneComponent => {
+                    allYaneComponent.push(yaneComponent);
+                })
+            });
+        }
         return allYaneComponent;
     }
 

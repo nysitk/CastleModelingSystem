@@ -253,7 +253,7 @@ class YaneBody extends THREE.Group {
         this.add(this.body);
         
         const wire = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true});
-        const wireMesh = new THREE.Mesh(geometry, wire);
+        // const wireMesh = new THREE.Mesh(geometry, wire);
         // this.add(wireMesh);
 
         return this;

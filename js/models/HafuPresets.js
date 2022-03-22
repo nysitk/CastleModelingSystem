@@ -16,7 +16,8 @@ export const HafuPresets = {
 			center: 1/4,
 			widthrate: 1/4,
 			heightrate: 3/2,
-			depthrate: 1
+			depthrate: 1,
+			symmetric: true
 		},
 		{
 			layer: 0,
@@ -24,7 +25,8 @@ export const HafuPresets = {
 			center: 3/4,
 			widthrate: 1/4,
 			heightrate: 3/2,
-			depthrate: 1
+			depthrate: 1,
+			symmetric: true
 		},
 		{
 			layer: 1,
@@ -32,7 +34,8 @@ export const HafuPresets = {
 			center: 1/2,
 			widthrate: 1/2,
 			heightrate: 7/3,
-			depthrate: 1
+			depthrate: 1,
+			symmetric: true
 		},
 		{
 			layer: 3,
@@ -40,7 +43,8 @@ export const HafuPresets = {
 			center: 1/2,
 			widthrate: 1/2,
 			heightrate: 3/2,
-			depthrate: 1
+			depthrate: 1,
+			symmetric: true
 		},
 		{
 			layer: 0,
@@ -48,7 +52,8 @@ export const HafuPresets = {
 			center: 1/2,
 			widthrate: 1,
 			heightrate: 8/3,
-			depthrate: 1
+			depthrate: 1,
+			symmetric: true
 		},
 		{
 			layer: 2,
@@ -56,55 +61,28 @@ export const HafuPresets = {
 			center: 1/2,
 			widthrate: 1,
 			heightrate: 8/3,
-			depthrate: 1
+			depthrate: 1,
+			symmetric: true
 		},
-		{
-			layer: 0,
-			dir: 2,
-			center: 1/4,
-			widthrate: 1/4,
-			heightrate: 3/2,
-			depthrate: 1
-		},
-		{
-			layer: 0,
-			dir: 2,
-			center: 3/4,
-			widthrate: 1/4,
-			heightrate: 3/2,
-			depthrate: 1
-		},
+	],
+	matsumoto: [
 		{
 			layer: 1,
-			dir: 2,
-			center: 1/2,
-			widthrate: 1/2,
-			heightrate: 7/3,
-			depthrate: 1
-		},
-		{
-			layer: 3,
-			dir: 2,
+			dir: 1,
 			center: 1/2,
 			widthrate: 1/2,
 			heightrate: 3/2,
-			depthrate: 1
-		},
-		{
-			layer: 0,
-			dir: 3,
-			center: 1/2,
-			widthrate: 1,
-			heightrate: 8/3,
-			depthrate: 1
+			depthrate: 1,
+			symmetric: true
 		},
 		{
 			layer: 2,
-			dir: 3,
+			dir: 0,
 			center: 1/2,
-			widthrate: 1,
-			heightrate: 8/3,
-			depthrate: 1
+			widthrate: 1/2,
+			heightrate: 3/2,
+			depthrate: 1,
+			symmetric: true
 		},
 	]
 }

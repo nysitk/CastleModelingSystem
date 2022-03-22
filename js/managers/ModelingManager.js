@@ -3,6 +3,9 @@ import * as THREE from '/build/three.module.js';
 import { CastleModelManager } from './CastleModelManager.js';
 import { ModelingSupporter } from './ModelingSupporter.js'
 
+import { ModelPresets } from '../models/ModelPresets.js'
+import { PARAMS } from './Params.js';
+
 /**
  * 城郭モデル生成関連のモデルクラス
  */
@@ -32,6 +35,7 @@ import { ModelingSupporter } from './ModelingSupporter.js'
      */
     calcCameraToMouceRayVec(mouseX, mouseY) {
         const currentCamera = this.sceneManager.currentCamera;
+        const rendererSize = this.sceneManager.renderer.getSize(new THREE.Vector2());
         const orbit = this.sceneManager.orbit;
 
 		// 上向きベクトル算出
@@ -47,8 +51,8 @@ import { ModelingSupporter } from './ModelingSupporter.js'
 		// 視点座標系の軸ベクトル
 		const axisVec = new THREE.Vector3(u, v, w);
 
-        const xs = ((mouseX + 0) - window.innerWidth / 2.0) / window.innerHeight;
-        const ys = ((mouseY + 0) - window.innerHeight / 2.0) / window.innerHeight;
+        const xs = ((mouseX + 0) - rendererSize.x / 2.0) / rendererSize.y;
+        const ys = ((mouseY + 0) - rendererSize.y / 2.0) / rendererSize.y;
         const delta_y = 2 * Math.tan(currentCamera.fov / 2 * Math.PI / 180);
 
         const xs_dy_u = new THREE.Vector3().copy(u).multiplyScalar(xs * delta_y);
@@ -285,11 +289,20 @@ import { ModelingSupporter } from './ModelingSupporter.js'
         this.castle.removeYaguraLine();
     }
 
-    createYaguraPolygon() {
+    createYaguraPolygon(mousePos) {
+        let p = undefined;
+        if (this.referencePoint.yaguraTop[1]) p = this.referencePoint.yaguraTop[1].clone();
+        if (mousePos) p = this.adjustUpperPoint(
+            this.calcPointOnNormalPlane(mousePos).clone(),
+            this.referencePoint.ishigakiTop
+        );
+
+        if (!p) return;
+
         this.castle.createYaguraPolygon(
             this.referencePoint.ishigakiTop[0].clone(),
             this.referencePoint.ishigakiTop[1].clone(),
-            this.referencePoint.yaguraTop[1].clone()
+            p
         );
     }
  
@@ -314,7 +327,6 @@ import { ModelingSupporter } from './ModelingSupporter.js'
             this.referencePoint.ishigakiTop[1].clone(),
             this.referencePoint.yaguraTop[1].clone()
         );
-        console.log(this.clickPosition)
     }
 
     selectYaneComponent(mousePos) {
@@ -351,16 +363,78 @@ import { ModelingSupporter } from './ModelingSupporter.js'
         })
     }
 
-    createAllModel() {
-        // this.clickPosition[0] = new THREE.Vector3(-200, 0, 150)
-        // this.clickPosition[1] = new THREE.Vector3(200, 0, -150)
-        // this.clickPosition[2] = new THREE.Vector3(150, 70, -125)
-        // this.clickPosition[3] = new THREE.Vector3(40, 300, -30)
-        this.clickPosition[0] = new THREE.Vector3(-75, 0, 70)
-        this.clickPosition[1] = new THREE.Vector3(75, 0, -70)
-        this.clickPosition[2] = new THREE.Vector3(62, 45, -60)
-        this.clickPosition[3] = new THREE.Vector3(21, 164, -23)
+    createPresetModel() {
+        let name = "matsumae"
+        let modelPreset = ModelPresets[name];
+        let camera = this.sceneManager.cameraPersp;
+
+        // 画面(canvas)のサイズ変更
+        if (modelPreset.rendererSize) {
+            this.sceneManager.changeRendererSize(
+                modelPreset.rendererSize.x,
+                modelPreset.rendererSize.y
+            );
+            this.sceneManager.removeOnWindowResize();
+        } else {
+            this.sceneManager.addOnWindowResize();
+        }
+
+        // カメラの視野角の変更
+        if (modelPreset.fov) camera.fov = modelPreset.fov
+
+        // カメラ位置の変更
+        if (modelPreset.cameraPos) {
+            camera.position.set(
+                modelPreset.cameraPos.x,
+                modelPreset.cameraPos.y,
+                modelPreset.cameraPos.z
+            );
+        }
+
+        // カメラの回転の変更
+        if (modelPreset.cameraRot) {
+            camera.rotation.set(
+                modelPreset.cameraRot._x,
+                modelPreset.cameraRot._y,
+                modelPreset.cameraRot._z
+            );
+        }
+
+        // orbitの注視点の変更
+        if (modelPreset.orbitTarget) {
+            this.sceneManager.orbit.target.set(
+                modelPreset.orbitTarget.x,
+                modelPreset.orbitTarget.y,
+                modelPreset.orbitTarget.z
+            );
+        }
         
+        camera.updateProjectionMatrix();
+        this.sceneManager.orbit.update();
+
+        // 城モデルのクリック座標情報がない場合は終了
+        if (!modelPreset.clickPosition) {
+            this.sceneManager.render();
+            return false;
+        }
+
+        // クリック座標情報を登録
+        modelPreset.clickPosition.forEach((e, i) => {
+            this.clickPosition[i] = new THREE.Vector3(e.x, e.y, e.z);
+        });
+
+        if (modelPreset.yaguraSteps) 
+            PARAMS.yaguraSteps = modelPreset.yaguraSteps;
+
+        this.registerReferencePoint();
+        this.createAllModel();
+
+        this.sceneManager.render();
+
+        return true;
+    }
+
+    registerReferencePoint() {
         const p = this.referencePoint;
         p.ishigakiBottom[0] = this.clickPosition[0].clone();
         p.ishigakiBottom[1] = this.clickPosition[1].clone();
@@ -368,10 +442,13 @@ import { ModelingSupporter } from './ModelingSupporter.js'
         p.ishigakiTop[0] = this.calcDiagonalPoint(p.ishigakiTop, p.ishigakiBottom);
         p.yaguraTop[1] = this.adjustUpperPoint(this.clickPosition[3], p.ishigakiTop);
         p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
+    }
 
+    createAllModel(name) {
         this.createIshigakiPolygon()
         this.createYaguraPolygon()
         this.createYanePolygon();
+        this.castle.createHafuPreset(name);
     }
 
     createAutoFloor() {
@@ -383,5 +460,9 @@ import { ModelingSupporter } from './ModelingSupporter.js'
         p.ishigakiBottom[1] = this.clickPosition[1].clone();
 
         this.createFloorLine();
+    }
+
+    displayClickPosition() {
+        console.log(this.clickPosition);
     }
 }

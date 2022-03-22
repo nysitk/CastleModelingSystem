@@ -211,7 +211,8 @@ export class ChidoriHafu extends THREE.Group {
 			heightrate: this.height / this.getYaneComponent().getYaneSize().height,
 			depthrate: this.depth / this.getYaneComponent().getYaneSize().depth,
 		}
-        this.chidoriHafuGUIFolder = sceneManager.gui.addFolder('ChidoriHafu' + PARAMS.hafu.length);
+		console.log(PARAMS.hafu)
+        this.chidoriHafuGUIFolder = sceneManager.gui.addFolder('ChidoriHafu-' + PARAMS.hafu.length);
         this.chidoriHafuGUIFolder.add(this.params, 'alpha', 0, 1).onChange(() => {this.changeGUI(sceneManager)});
         this.chidoriHafuGUIFolder.add(this.params, 'centerrate', 0, 1).step(0.05).onChange(() => {this.changeGUI(sceneManager)});
         this.chidoriHafuGUIFolder.add(this.params, 'widthrate', 0, 1).step(0.05).onChange(() => {this.changeGUI(sceneManager)});

@@ -115,6 +115,13 @@ class Line extends Yagura {
 		}
         return this;
     }
+
+	dispose() {
+        this.children.forEach(child => {
+            child.material.dispose();
+            child.geometry.dispose();
+        })
+	}
 }
 
 class Polygon extends Yagura {
@@ -149,6 +156,12 @@ class Polygon extends Yagura {
 		}, this)
         return this;
     }
+
+	dispose() {
+        this.children.forEach(child => {
+			child.dispose();
+        })
+	}
 }
 
 class EachLayerPolygon extends THREE.Group {
@@ -206,6 +219,12 @@ class EachLayerPolygon extends THREE.Group {
 
         return wallPolygon;
     }
+
+	dispose() {
+        this.children.forEach(child => {
+			child.dispose();
+        })
+	}
 }
 
 class WallPolygon extends THREE.Group {
@@ -342,6 +361,13 @@ class WallPolygon extends THREE.Group {
 			}
 		}
 	}
+
+	dispose() {
+        this.children.forEach(child => {
+			child.material.dispose();
+			child.geometry.dispose();
+        })
+	}
 }
 
 class FloorPolygon extends THREE.Group {
@@ -377,5 +403,12 @@ class FloorPolygon extends THREE.Group {
 		this.add(mesh);
 
         return this;
+	}
+
+	dispose() {
+        this.children.forEach(child => {
+			child.material.dispose();
+			child.geometry.dispose();
+        })
 	}
 }
