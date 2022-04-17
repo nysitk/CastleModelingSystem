@@ -125,7 +125,7 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 case 3:
                     this.modelingManager.removeYaguraLine();
                     this.modelingManager.removeYaneLine();
-                    // this.modelingManager.createYaguraPolygon();
+                    this.modelingManager.createYaguraPolygon();
                     this.modelingManager.createYanePolygon();
                     this.cursorInfo.count++;
                     this.changeCursorMode("orbit")
