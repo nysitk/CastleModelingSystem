@@ -1,6 +1,8 @@
 # 日本城郭のインタラクティブモデリングシステム
 研究で開発している、「日本城郭のインタラクティブモデリングシステム」のアプリケーションです。
 
+GitHub → https://github.com/nysitk/CastleModelingSystem
+
 ## 起動方法
 Three.jsと呼ばれるライブラリを用いて、JavaScript APIであるWebGLで動作しています。  
 そのため、Webブラウザ上で実行できます。
