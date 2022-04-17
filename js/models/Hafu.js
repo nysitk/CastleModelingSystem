@@ -116,6 +116,7 @@ export class ChidoriHafu extends THREE.Group {
 			const mesh = new THREE.Mesh(geometry, material);
 			mesh.castShadow = true;
 			mesh.receiveShadow = true;
+			mesh.name = "side"
 			return mesh
 		}
 	}
@@ -172,7 +173,9 @@ export class ChidoriHafu extends THREE.Group {
 
 			const material = new THREE.MeshLambertMaterial({color: 0x222227, side: THREE.DoubleSide});
 
-			return new THREE.Mesh(geometry, material);
+			const mesh = new THREE.Mesh(geometry, material);
+			mesh.name = "top";
+			return mesh;
 
 		}
 	}
@@ -236,6 +239,18 @@ export class ChidoriHafu extends THREE.Group {
 
 		sceneManager.render();
 	}
+
+	getTop() {
+		return this.children.filter(function(child) {
+			return child.name == "top"
+		})
+	}
+
+	setColor(color) {
+		this.getTop().forEach( function (mesh) {
+			mesh.material.color.setHex(color);
+		})
+	}
 }
 
 export class IrimoyaHafu extends THREE.Group {
@@ -273,5 +288,10 @@ export class IrimoyaHafu extends THREE.Group {
 		this.upper.rotation.y = Math.PI / 2;
 		this.upper.position.set(this.C.x, this.C.y, (this.C.z + this.D.z)/2)
 		this.add(this.upper)
+	}
+
+	setColor(color) {
+		this.lower.setBodyColor(color)
+		this.upper.setColor(color)
 	}
 }

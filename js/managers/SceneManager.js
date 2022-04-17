@@ -50,7 +50,7 @@ export class SceneManager {
         this.cameraOrtho = new THREE.OrthographicCamera( - 600 * this.aspect, 600 * this.aspect, 600, - 600, 0.01, 30000 );
         
         this.currentCamera = this.cameraPersp;
-        this.currentCamera.position.set( 335, 240, 335 );
+        this.currentCamera.position.set( 253, 187, 614 );
     }
 
     addSky() {
@@ -188,7 +188,7 @@ export class SceneManager {
         this.control.camera = this.currentCamera;
 
         this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
-        this.onWindowResize();
+        // this.onWindowResize();
     }
     
     changeGUISky() {

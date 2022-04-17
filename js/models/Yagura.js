@@ -135,18 +135,11 @@ class Polygon extends Yagura {
                 vertices.A,
                 vertices.B,
                 vertices.C,
-                vertices.D
+                vertices.D,
+				this.changeLevel
             );
 
             eachLayerPolygon.generate();
-
-            for (let direction = 0; direction < 4; direction++) {
-                const chang = this.changeLevel.x * 1.5;
-                // var chang = (d%2==0) ? this.changeLevel.x : this.changeLevel.z
-                const windowNum = Math.abs(Math.ceil(this.getYaguraVertices(i).lower[direction].distanceTo(this.getYaguraVertices(i).lower[(direction+1)%4])/chang));
-                eachLayerPolygon.wall[direction].generateMultipleWindow(windowNum, 2, chang/3, this.changeLevel.y/4);
-				// eachLayerPolygon.wall[direction].generateShitamiitabari(this.changeLevel.x);
-            }
 
             // 場所に応じて屋根を移動・回転
             eachLayerPolygon.position.set(vertices.A.x, vertices.A.y, vertices.A.z);
@@ -157,6 +150,30 @@ class Polygon extends Yagura {
         return this;
     }
 
+	setTexture(name) {
+		let eachLayerPolygon = this.getEachLayerPolygon();
+		eachLayerPolygon.forEach( function(surroundWall, layer) {
+			surroundWall.getWall().forEach(function(wall) {
+				wall.setTexture(name, layer)
+			});
+		})
+	}
+
+	removeTexture() {
+		let eachLayerPolygon = this.getEachLayerPolygon();
+		eachLayerPolygon.forEach( function(surroundWall) {
+			surroundWall.getWall().forEach(function(wall) {
+				wall.removeAllTexture()
+			});
+		})
+	}
+
+	getEachLayerPolygon() {
+		return this.children.filter(
+			function(e) {return e.name == "eachLayerPolygon"} 
+		);
+	}
+
 	dispose() {
         this.children.forEach(child => {
 			child.dispose();
@@ -165,7 +182,7 @@ class Polygon extends Yagura {
 }
 
 class EachLayerPolygon extends THREE.Group {
-	constructor(A, B, C, D) {
+	constructor(A, B, C, D, changeLevel) {
 		super();
 
 		// 点Aを原点として考える
@@ -189,6 +206,8 @@ class EachLayerPolygon extends THREE.Group {
 		]
 
 		this.wall = new Array(4);
+
+		this.changeLevel = changeLevel;
 	}
 
 	generate() {
@@ -210,7 +229,14 @@ class EachLayerPolygon extends THREE.Group {
     generateWall(direction) {
         const dd = (direction+1)%4;
 
-        const wallPolygon = new WallPolygon(this.lower[direction], this.lower[dd], this.upper[direction], this.upper[dd], direction);
+        const wallPolygon = new WallPolygon(
+			this.lower[direction],
+			this.lower[dd],
+			this.upper[direction],
+			this.upper[dd],
+			direction,
+			this.changeLevel
+		);
         wallPolygon.generate();
 
         wallPolygon.rotation.y = Math.PI / 2 * direction;
@@ -220,6 +246,12 @@ class EachLayerPolygon extends THREE.Group {
         return wallPolygon;
     }
 
+	getWall() {
+		return this.children.filter(
+			function(e) {return e.name == "WallPolygon"} 
+		);
+	}
+
 	dispose() {
         this.children.forEach(child => {
 			child.dispose();
@@ -228,7 +260,7 @@ class EachLayerPolygon extends THREE.Group {
 }
 
 class WallPolygon extends THREE.Group {
-	constructor(A, B, C, D, d) {
+	constructor(A, B, C, D, d, changeLevel) {
 		super();
 		// 入力は4点と方向
 		//   C---D
@@ -247,6 +279,9 @@ class WallPolygon extends THREE.Group {
 		this.B = new THREE.Vector3().subVectors(B, A).applyAxisAngle( axis, angle );
 		this.C = new THREE.Vector3().subVectors(C, A).applyAxisAngle( axis, angle );
 		this.D = new THREE.Vector3().subVectors(D, A).applyAxisAngle( axis, angle );
+
+		this.dir = d;
+		this.changeLevel = changeLevel;
 	}
 
 	generate() {
@@ -263,7 +298,7 @@ class WallPolygon extends THREE.Group {
         return this;
 	}
 
-	generateShitamiitabari(changeLevel) {
+	generateShitamiitabari() {
         const material1 = new THREE.MeshLambertMaterial({color: 0x252529, side: THREE.DoubleSide});
         const material2 = new THREE.MeshLambertMaterial({color: 0x222227, side: THREE.DoubleSide});
 
@@ -272,7 +307,7 @@ class WallPolygon extends THREE.Group {
 		const width = this.B.x - this.A.x + thick / 5
 		const origin_pos = new THREE.Vector3(-thick / 10, 0, 0);
 
-		const verticalInterval = Math.abs(changeLevel / 2);
+		const verticalInterval = Math.abs(this.changeLevel.x / 2);
 		const verticalNum = Math.ceil(width / verticalInterval)
 		// 土台
 		const geometry = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
@@ -280,6 +315,7 @@ class WallPolygon extends THREE.Group {
 		)
 		const back = new THREE.Mesh(geometry, material1);
 		back.position.set(origin_pos.x, origin_pos.y, origin_pos.z)
+		back.name = "shitamiitabari"
 		this.add(back);
 		
 		// 上下の横に長い棒を生成
@@ -288,9 +324,11 @@ class WallPolygon extends THREE.Group {
 		)
 		const horizontal11 = new THREE.Mesh(horizontalGeometry1, material2);
 		horizontal11.position.set(origin_pos.x, origin_pos.y, origin_pos.z + thick/10)
+		horizontal11.name = "shitamiitabari"
 		this.add(horizontal11);
 		const horizontal12 = new THREE.Mesh(horizontalGeometry1, material2);
 		horizontal12.position.set(origin_pos.x, origin_pos.y + height - thick ,  origin_pos.z + thick/10)
+		horizontal12.name = "shitamiitabari"
 		this.add(horizontal12);
 
 		// 縦棒を生成
@@ -302,6 +340,7 @@ class WallPolygon extends THREE.Group {
 			let vertical = new THREE.Mesh(verticalGeometry, material2);
 			let x = origin_pos.x + width * i / verticalNum;
 			vertical.position.set(x, origin_pos.y, origin_pos.z + thick/10);
+			vertical.name = "shitamiitabari"
 			this.add(vertical)
 		}
 
@@ -315,11 +354,18 @@ class WallPolygon extends THREE.Group {
 			let horizontal = new THREE.Mesh(horizontalGeometry2, material2);
 			let y = height * i / horizontalNum + thick / 2;
 			horizontal.position.set(origin_pos.x, y, origin_pos.z + thick/10);
+			horizontal.name = "shitamiitabari"
 			this.add(horizontal)
 		}
 	}
 
-	generateMultipleWindow(num, type, width, height) {
+	generateMultipleWindow(i) {
+		const chang = this.changeLevel.x * 1.5;
+		// var chang = (d%2==0) ? this.changeLevel.x : this.changeLevel.z
+		const windowNum = Math.abs(Math.ceil(this.getYaguraVertices(i).lower[this.dir].distanceTo(this.getYaguraVertices(i).lower[(this.dir+1)%4])/chang));
+
+		const num = windowNum, type = 2, width = chang/3, height = this.changeLevel.y/4;
+
 		const windowInterval = this.B.x / (num+1);
 		const wallCenter = new THREE.Vector3().addVectors(this.A, this.D).multiplyScalar(0.5);
 
@@ -336,6 +382,7 @@ class WallPolygon extends THREE.Group {
 					new THREE.Vector3(center.x + width/2, center.y + height/2, center.z)
 				);
 				const mesh = new THREE.Mesh(geometry, material);
+				mesh.name = "window"
 				this.add(mesh);
 
 			} else if (type == 2) {
@@ -347,6 +394,7 @@ class WallPolygon extends THREE.Group {
 					new THREE.Vector3(center.x - width/10, center.y + height/2, center.z)
 				);
 				const meshLeft = new THREE.Mesh(geometryLeft, material);
+				meshLeft.name = "window"
 				this.add(meshLeft);
 
 				const geometryRight = new ModelingSupporter().generateBoxPolygonGeometry(
@@ -356,10 +404,48 @@ class WallPolygon extends THREE.Group {
 					new THREE.Vector3(center.x + width/2, center.y + height/2, center.z)
 				);
 				const meshRight = new THREE.Mesh(geometryRight, material);
+				meshRight.name = "window"
 				this.add(meshRight);
 
 			}
 		}
+	}
+
+	getYaguraVertices(layer) {
+		return this.parent.parent.getYaguraVertices(layer);
+	}
+
+	setTexture(name, layer) {
+		switch (name) {
+			case "shitamiitabari":
+				this.generateShitamiitabari();
+				break;
+			case "window":
+				this.generateMultipleWindow(layer);
+				break;
+			case "none":
+				this.removeAllTexture();
+				break;
+		}
+	}
+
+	removeTexture(name) {
+        this.getTexture(name).forEach(mesh => {
+            this.remove(mesh)
+			mesh.material.dispose();
+			mesh.geometry.dispose();
+        })
+	}
+
+	removeAllTexture() {
+		this.removeTexture("shitamiitabari");
+		this.removeTexture("window");
+	}
+
+	getTexture(name) {
+		return this.children.filter(
+			function(e) {return e.name == name} 
+		);
 	}
 
 	dispose() {

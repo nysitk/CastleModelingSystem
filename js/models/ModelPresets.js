@@ -1,5 +1,6 @@
 export const ModelPresets = {
     "marugame": {
+        "hafuName": "marugame",
         "cameraPos": {
             "x": 228.3057640004455,
             "y": -19.681678151875985,
@@ -46,6 +47,7 @@ export const ModelPresets = {
     },
 
     "shimabara": {
+        "hafuName": "shimabara",
         "cameraPos": {
             "x": 241.72459748046273,
             "y": 72.8499912883189,
@@ -88,6 +90,7 @@ export const ModelPresets = {
     },
 
     "osakaSimple": {
+        "hafuName": "osaka",
         "cameraPos": {
             "x": 335,
             "y": 240,
@@ -136,6 +139,7 @@ export const ModelPresets = {
     },
 
     "osaka": {
+        "hafuName": "osaka",
         "cameraPos": {
             "x": -152.03928241583512,
             "y": 29.635680391821353,
@@ -159,6 +163,7 @@ export const ModelPresets = {
             "y": 600
         },
         "yaguraSteps": 5,
+        "yaneColor": 0x638A72,
         clickPosition: [
             {
                 "x": -75,
@@ -184,6 +189,7 @@ export const ModelPresets = {
     },
 
     "matsumoto": {
+        "hafuName": "matsumoto",
         "cameraPos": {
             "x": 621.2505904372094,
             "y": 14.760841260295479,
@@ -207,6 +213,7 @@ export const ModelPresets = {
             "y": 600
         },
         "yaguraSteps": 5,
+        "wallTexture": "shitamiitabari",
         clickPosition: [
             {
                 "x": -113.427359722092,
@@ -232,6 +239,7 @@ export const ModelPresets = {
     },
 
     "matsumae": {
+        "hafuName": "matsumae",
         "cameraPos": {
             "x": 60.43505119027169,
             "y": 8.558218205756361,

@@ -197,6 +197,9 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 // this.modelingManager.createAutoFloor();
                 console.log(this.modelingManager.clickPosition)
                 break;
+
+            case 'KeyS':
+                this.modelingManager.removeWallTexture();
         }
 
     }

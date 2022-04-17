@@ -99,10 +99,10 @@ export class Yane extends Yagura {
     
     createAll(MODE) {
         this.allSurroundingYaneVertices.forEach(function (surroundingYaneVertices, i){
-            this.createSurroundingYane(i, MODE)
+            if (i+1 == this.allSurroundingYaneVertices.length) return false;
+			this.createSurroundingYane(i, MODE)
 		},this)
 
-        // this.createHafuPreset(MODE)
         this.createTopYane(MODE)
 
         return this;
@@ -136,6 +136,36 @@ export class Yane extends Yagura {
 			}
 		}
     }
+
+	setAllColor(color) {
+		this.setBodyColor(color);
+		this.setChidoriHafuColor(color);
+		this.setIrimoyaHafuColor(color);
+	}
+
+	setBodyColor(color) {
+		this.getAllSurroundingYane().forEach(function(surroundingYane, layer) {
+			surroundingYane.setBodyColor(color);
+		})
+	}
+
+	setChidoriHafuColor(color) {
+		this.getAllSurroundingYane().forEach(function(surroundingYane, layer) {
+			surroundingYane.setHafuColor(color);
+		})
+	}
+
+	setIrimoyaHafuColor(color) {
+		this.getIrimoyaHafu().forEach(function(irimoyaHafu) {
+			irimoyaHafu.setColor(color);
+		})
+	}
+
+	getIrimoyaHafu() {
+		return this.children.filter( function (child) {
+			return child.name == "irimoyaHafu"
+		})
+	}
 
     getAllSurroundingYane() {
         return this.allSurroundingYane;
@@ -177,6 +207,7 @@ export class Yane extends Yagura {
 		);
 		this.topYane.generate(MODE);
 		this.topYane.position.set(this.topYaneVertices.A.x, this.topYaneVertices.A.y, this.topYaneVertices.A.z);
+		this.topYane.name = "irimoyaHafu"
 		this.add(this.topYane);
     }
 
@@ -280,4 +311,16 @@ export class SurroundingYane extends THREE.Group {
 			this.getYaneComponent(symmetricDir).createSimpleChidoriHafu(param, MODE);
 		}
     }
+
+	setBodyColor(color) {
+		this.getAllYaneComponent().forEach(function(yaneComponent, dir) {
+			yaneComponent.setBodyColor(color);
+		})
+	}
+
+	setHafuColor(color) {
+		this.getAllYaneComponent().forEach(function(yaneComponent, dir) {
+			yaneComponent.setHafuColor(color);
+		})
+	}
 }

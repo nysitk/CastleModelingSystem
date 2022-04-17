@@ -101,6 +101,7 @@ export class CastleModelManager {
         this.removeYaguraPolygon();
 
         this.model.yagura.polygon = new Yagura(R3, R4, R6).createPolygon();
+        this.model.yagura.polygon.setTexture("window")
         this.sceneManager.scene.add(this.model.yagura.polygon)
     }
 
@@ -113,6 +114,18 @@ export class CastleModelManager {
             polygon.dispose();
 
             this.model.yagura.polygon = null;
+        }
+    }
+
+    setWallTexture(name) {
+        if (this.model.yagura.polygon) {
+            this.model.yagura.polygon.removeTexture();
+
+            if (name) {
+                this.model.yagura.polygon.setTexture(name);
+            } else {
+                this.model.yagura.polygon.setTexture("window");
+            }
         }
     }
 
@@ -136,6 +149,13 @@ export class CastleModelManager {
         this.sceneManager.scene.add(this.model.yane.polygon)
 
         if (!this.castleGUIFolder) this.addGUICastle();
+    }
+
+    setYaneColor(color) {
+        if (this.model.yane.polygon) {
+            if (color)
+                this.model.yane.polygon.setAllColor(color)
+        }
     }
 
     removeYanePolygon() {

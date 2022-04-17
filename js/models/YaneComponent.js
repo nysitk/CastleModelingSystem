@@ -163,6 +163,7 @@ export class YaneComponent extends THREE.Group {
 		chidoriHafu.create(MODE);
 		chidoriHafu.position.set(lowerCenter.x, lowerCenter.y, lowerCenter.z + depth)
 
+        chidoriHafu.name = "chidoriHafu";
 		this.add(chidoriHafu)
         PARAMS.hafu.push(chidoriHafu)
 
@@ -178,17 +179,25 @@ export class YaneComponent extends THREE.Group {
 			MODE
 		)
 	}
-
-    getBodyMesh() {
-        return this.body.getMesh();
+    
+    setBodyColor(color) {
+        this.body.getMesh().material.color.setHex(color);
     }
     
-    changeBodyColor(color) {
-        this.body.material.color.setHex(color);
+    setHafuColor(color) {
+        this.getChidoriHafu().forEach(function(chidoriHafu) {
+            chidoriHafu.setColor(color);
+        })
     }
 
     getSurroundingYane() {
         return this.parent;
+    }
+
+    getChidoriHafu() {
+        return this.children.filter(function (child) {
+            return child.name == "chidoriHafu"
+        })
     }
 }
 

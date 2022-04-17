@@ -423,11 +423,8 @@ import { PARAMS } from './Params.js';
             this.clickPosition[i] = new THREE.Vector3(e.x, e.y, e.z);
         });
 
-        if (modelPreset.yaguraSteps) 
-            PARAMS.yaguraSteps = modelPreset.yaguraSteps;
-
         this.registerReferencePoint();
-        this.createAllModel();
+        this.createAllModel(modelPreset);
 
         this.sceneManager.render();
 
@@ -444,11 +441,16 @@ import { PARAMS } from './Params.js';
         p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
     }
 
-    createAllModel(name) {
+    createAllModel(modelPreset) {
+        if (modelPreset.yaguraSteps) 
+            PARAMS.yaguraSteps = modelPreset.yaguraSteps;
+
         this.createIshigakiPolygon()
         this.createYaguraPolygon()
         this.createYanePolygon();
-        this.castle.createHafuPreset(name);
+        this.castle.createHafuPreset(modelPreset.hafuName);
+        this.castle.setWallTexture(modelPreset.wallTexture);
+        this.castle.setYaneColor(modelPreset.yaneColor);
     }
 
     createAutoFloor() {
