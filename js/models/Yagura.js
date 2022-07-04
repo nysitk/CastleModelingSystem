@@ -1,15 +1,15 @@
 import * as THREE from '/build/three.module.js';
 
-import { PARAMS } from '../managers/Params.js';
-
 import { ModelingSupporter } from '../managers/ModelingSupporter.js'
 
 /**
  * 櫓モデル関連のモデルクラス
  */
 export class Yagura extends THREE.Group {
-	constructor(R3, R4, R6) {
+	constructor(PARAMS, R3, R4, R6) {
 		super();
+
+		this.PARAMS = PARAMS;
 
 		this.A = R3.clone();
 		this.B = R4.clone();
@@ -66,12 +66,12 @@ export class Yagura extends THREE.Group {
     }
 
     createLine() {
-        this.line = new Line(this.A, this.B, this.D).create()
+        this.line = new Line(this.PARAMS, this.A, this.B, this.D).create()
         return this.line;
     }
 
-    createPolygon() {
-        this.polygon = new Polygon(this.A, this.B, this.D).create()
+    createPolygon(type = "whole") {
+        this.polygon = new Polygon(this.PARAMS, this.A, this.B, this.D).create(type)
         return this.polygon;
     }
 
@@ -95,8 +95,8 @@ export class Yagura extends THREE.Group {
 }
 
 class Line extends Yagura {
-    constructor(R3, R4, R6) {
-        super(R3, R4, R6);
+    constructor(PARAMS, R3, R4, R6) {
+        super(PARAMS, R3, R4, R6);
     }
     
     create() {
@@ -125,21 +125,22 @@ class Line extends Yagura {
 }
 
 class Polygon extends Yagura {
-    constructor(R3, R4, R6) {
-        super(R3, R4, R6);
+    constructor(PARAMS, R3, R4, R6) {
+        super(PARAMS, R3, R4, R6);
     }
     
-    create() {
+    create(type = "whole") {
 		this.allVertices.forEach(function(vertices, i) {
             const eachLayerPolygon = new EachLayerPolygon(
+				this.PARAMS,
                 vertices.A,
                 vertices.B,
                 vertices.C,
                 vertices.D,
-				this.changeLevel
+				this.changeLevel,
             );
 
-            eachLayerPolygon.generate();
+            eachLayerPolygon.generate(type);
 
             // 場所に応じて屋根を移動・回転
             eachLayerPolygon.position.set(vertices.A.x, vertices.A.y, vertices.A.z);
@@ -182,8 +183,10 @@ class Polygon extends Yagura {
 }
 
 class EachLayerPolygon extends THREE.Group {
-	constructor(A, B, C, D, changeLevel) {
+	constructor(PARAMS, A, B, C, D, changeLevel) {
 		super();
+
+		this.PARAMS = PARAMS;
 
 		// 点Aを原点として考える
 		this.A = new THREE.Vector3(0, 0, 0);
@@ -210,26 +213,28 @@ class EachLayerPolygon extends THREE.Group {
 		this.changeLevel = changeLevel;
 	}
 
-	generate() {
+	generate(type = "whole") {
+
 		// 4方向分壁を生成
 		for (let direction=0; direction<4; direction++) {
-            this.wall[direction] = this.generateWall(direction);
+            this.wall[direction] = this.generateWall(direction, type);
 			this.add(this.wall[direction]);
 		}
 
-		const topFloorPolygon = new FloorPolygon(this.upper).generate();
+		const topFloorPolygon = new FloorPolygon(this.upper).generate(type);
 		topFloorPolygon.position.set(this.lower[0].x, this.lower[0].y, this.lower[0].z)
 		this.add(topFloorPolygon);
 
-		const bottomFloorPolygon = new FloorPolygon(this.lower).generate();
+		const bottomFloorPolygon = new FloorPolygon(this.lower).generate(type);
 		bottomFloorPolygon.position.set(this.upper[0].x, this.upper[0].y, this.upper[0].z)
 		this.add(bottomFloorPolygon);
 	}
 
-    generateWall(direction) {
+    generateWall(direction, type="whole") {
         const dd = (direction+1)%4;
 
         const wallPolygon = new WallPolygon(
+			this.PARAMS,
 			this.lower[direction],
 			this.lower[dd],
 			this.upper[direction],
@@ -237,7 +242,7 @@ class EachLayerPolygon extends THREE.Group {
 			direction,
 			this.changeLevel
 		);
-        wallPolygon.generate();
+        wallPolygon.generate(type);
 
         wallPolygon.rotation.y = Math.PI / 2 * direction;
         wallPolygon.position.set(this.lower[direction].x, this.lower[direction].y, this.lower[direction].z)
@@ -260,7 +265,7 @@ class EachLayerPolygon extends THREE.Group {
 }
 
 class WallPolygon extends THREE.Group {
-	constructor(A, B, C, D, d, changeLevel) {
+	constructor(PARAMS, A, B, C, D, d, changeLevel) {
 		super();
 		// 入力は4点と方向
 		//   C---D
@@ -270,6 +275,8 @@ class WallPolygon extends THREE.Group {
 		// ^ z      2
 		// |--> x  3 1 d:direction
 		//          0
+
+		this.PARAMS = PARAMS;
 
 		var axis = new THREE.Vector3( 0, 1, 0 );
 		var angle = Math.PI / 2 * -d;
@@ -284,16 +291,24 @@ class WallPolygon extends THREE.Group {
 		this.changeLevel = changeLevel;
 	}
 
-	generate() {
-		const material = new THREE.MeshLambertMaterial({color: 0xCBC9D4, side: THREE.DoubleSide});
+	generate(type = "whole") {
+
+		let material;
+
+		if (type == "whole") {
+			material = new THREE.MeshLambertMaterial({color: 0xCBC9D4, side: THREE.DoubleSide});
+		} else if (type == "black") {
+			material = new THREE.MeshBasicMaterial( { color: 0x000000 } )
+		}
+
 		const geometry = new ModelingSupporter().generateRectangleGeometry(this.A, this.B, this.C, this.D);
 		// const geometry = new THREE.PlaneGeometry(this.A.distanceTo(this.B), this.A.distanceTo(this.C))
-		const mesh = new THREE.Mesh(geometry, material);
+		this.body = new THREE.Mesh(geometry, material);
 		        
-        mesh.receiveShadow = true;
+        this.body.receiveShadow = true;
         // mesh.castShadow = true;
 
-		this.add(mesh);
+		this.add(this.body);
 
         return this;
 	}
@@ -305,109 +320,182 @@ class WallPolygon extends THREE.Group {
 		const height = (this.C.y - this.A.y) / 3 * 2
 		const thick = height / 8;
 		const width = this.B.x - this.A.x + thick / 5
-		const origin_pos = new THREE.Vector3(-thick / 10, 0, 0);
+		const originPos = new THREE.Vector3(-thick / 10, 0, 0);
 
 		const verticalInterval = Math.abs(this.changeLevel.x / 2);
 		const verticalNum = Math.ceil(width / verticalInterval)
-		// 土台
-		const geometry = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
-			width, thick / 10, height
-		)
-		const back = new THREE.Mesh(geometry, material1);
-		back.position.set(origin_pos.x, origin_pos.y, origin_pos.z)
-		back.name = "shitamiitabari"
-		this.add(back);
-		
-		// 上下の横に長い棒を生成
-		const horizontalGeometry1 = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
-			width, thick/10, thick
-		)
-		const horizontal11 = new THREE.Mesh(horizontalGeometry1, material2);
-		horizontal11.position.set(origin_pos.x, origin_pos.y, origin_pos.z + thick/10)
-		horizontal11.name = "shitamiitabari"
-		this.add(horizontal11);
-		const horizontal12 = new THREE.Mesh(horizontalGeometry1, material2);
-		horizontal12.position.set(origin_pos.x, origin_pos.y + height - thick ,  origin_pos.z + thick/10)
-		horizontal12.name = "shitamiitabari"
-		this.add(horizontal12);
 
-		// 縦棒を生成
-		const verticalGeometry = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
-			thick / 4, thick / 20, height
-		)
-		// const verticalNum = 15
-		for (let i = 0; i < verticalNum; i++) {
-			let vertical = new THREE.Mesh(verticalGeometry, material2);
-			let x = origin_pos.x + width * i / verticalNum;
-			vertical.position.set(x, origin_pos.y, origin_pos.z + thick/10);
-			vertical.name = "shitamiitabari"
-			this.add(vertical)
+		this.shitamiitabari = new THREE.Group();
+
+		this.shitamiitabari.add(generateFoundation());	// 土台
+		this.shitamiitabari.add(generateMainHorizontalBar("top"));	// 上にある横棒
+		this.shitamiitabari.add(generateMainHorizontalBar("bottom"));	// 下にある横棒
+		this.shitamiitabari.add(generateThinVerticalBar());	// 細い縦棒群
+		this.shitamiitabari.add(generateThinHorizontalBar());	// 細い横棒群
+
+		this.add(this.shitamiitabari);
+
+
+		function generateFoundation() {
+
+			const geometry = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
+				width, thick / 10, height
+			)
+
+			const foundation = new THREE.Mesh(geometry, material1);
+			foundation.position.set(originPos.x, originPos.y, originPos.z)
+
+			return foundation;
+
 		}
 
-		// 横棒を生成
-		const horizontalGeometry2 = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
-			width, thick / 20, thick / 6
-		)
-		const horizontalNum = 5
-		for (let i = 0; i < horizontalNum; i++) {
-			if (i == 0 || i == horizontalNum - 1) continue; 
-			let horizontal = new THREE.Mesh(horizontalGeometry2, material2);
-			let y = height * i / horizontalNum + thick / 2;
-			horizontal.position.set(origin_pos.x, y, origin_pos.z + thick/10);
-			horizontal.name = "shitamiitabari"
-			this.add(horizontal)
+		function generateMainHorizontalBar(pos) {
+
+			const horizontalGeometry1 = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
+				width, thick/10, thick
+			)
+
+			const horizontal = new THREE.Mesh(horizontalGeometry1, material2);
+			const offset = (pos == "bottom") ? height - thick : 0; 
+			horizontal.position.set(originPos.x, originPos.y + offset, originPos.z + thick/10)
+
+			return horizontal;
+
+		}
+
+		function generateThinVerticalBar() {
+
+			const verticalGeometry = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
+				thick / 4, thick / 20, height
+			)
+
+			const verticalBars = new THREE.Group();
+
+			for (let i = 0; i < verticalNum; i++) {
+
+				let vertical = new THREE.Mesh(verticalGeometry, material2);
+				let x = originPos.x + width * i / verticalNum;
+				vertical.position.set(x, originPos.y, originPos.z + thick/10);
+
+				verticalBars.add(vertical);
+
+			}
+
+			return verticalBars;
+
+		}
+
+		function generateThinHorizontalBar() {
+
+			const horizontalGeometry2 = new ModelingSupporter().generateSimpleBoxPolygonGeometry(
+				width, thick / 20, thick / 6
+			)
+
+			const horizontalNum = 5
+			const horizontalBars = new THREE.Group();
+
+			for (let i = 0; i < horizontalNum; i++) {
+
+				if (i == 0 || i == horizontalNum - 1) continue;
+
+				let horizontal = new THREE.Mesh(horizontalGeometry2, material2);
+				let y = height * i / horizontalNum + thick / 2;
+				horizontal.position.set(originPos.x, y, originPos.z + thick/10);
+
+				horizontalBars.add(horizontal);
+
+			}
+
+			return horizontalBars;
 		}
 	}
 
 	generateMultipleWindow(i) {
-		const chang = this.changeLevel.x * 1.5;
-		// var chang = (d%2==0) ? this.changeLevel.x : this.changeLevel.z
-		const windowNum = Math.abs(Math.ceil(this.getYaguraVertices(i).lower[this.dir].distanceTo(this.getYaguraVertices(i).lower[(this.dir+1)%4])/chang));
 
-		const num = windowNum, type = 2, width = chang/3, height = this.changeLevel.y/4;
+		const chang = this.changeLevel.x * 1.5 / this.PARAMS.windowNum;
+		// var chang = (d%2==0) ? this.changeLevel.x : this.changeLevel.z
+
+		const windowNum = Math.abs(
+			Math.ceil(
+				this.getYaguraVertices(i).lower[this.dir].distanceTo(
+					this.getYaguraVertices(i).lower[(this.dir+1)%4]
+				) / chang
+			)
+		);
+
+		const num = windowNum;
+		const type = 2;
+		const width = chang / 3 * this.PARAMS.windowWidth;
+		const height = this.changeLevel.y / 4;
 
 		const windowInterval = this.B.x / (num+1);
 		const wallCenter = new THREE.Vector3().addVectors(this.A, this.D).multiplyScalar(0.5);
 
+		this.windows = new THREE.Group();
+		this.add(this.windows);
+
+
 		for (let i = 0; i < num; i++) {
+
 			const center = new THREE.Vector3(windowInterval*(i+1), wallCenter.y, wallCenter.z);
 			const material = new THREE.MeshLambertMaterial({color: 0x333333, side: THREE.DoubleSide});
 			
 			if (type == 1) {
 
-				const geometry = new ModelingSupporter().generateBoxPolygonGeometry(
-					new THREE.Vector3(center.x - width/2, center.y - height/2, center.z + 0.1),
-					new THREE.Vector3(center.x + width/2, center.y - height/2, center.z),
-					new THREE.Vector3(center.x - width/2, center.y + height/2, center.z + 0.1),
-					new THREE.Vector3(center.x + width/2, center.y + height/2, center.z)
-				);
-				const mesh = new THREE.Mesh(geometry, material);
-				mesh.name = "window"
-				this.add(mesh);
+				const geometry = generateSingleWindowGeometry(center, width, height)
+
+				const window = new THREE.Mesh(geometry, material);
+				this.windows.add(window);
 
 			} else if (type == 2) {
 
-				const geometryLeft = new ModelingSupporter().generateBoxPolygonGeometry(
+				const geometryLeft = generateTwinWindowGeometry(center, width, height, "left")
+
+				const windowLeft = new THREE.Mesh(geometryLeft, material);
+				this.windows.add(windowLeft);
+				
+
+				const geometryRight = generateTwinWindowGeometry(center, width, height, "right");
+
+				const windowRight = new THREE.Mesh(geometryRight, material);
+				this.windows.add(windowRight);
+
+			}
+		}
+
+		function generateSingleWindowGeometry(center, width, height) {
+
+			return new ModelingSupporter().generateBoxPolygonGeometry(
+				new THREE.Vector3(center.x - width/2, center.y - height/2, center.z + 0.1),
+				new THREE.Vector3(center.x + width/2, center.y - height/2, center.z),
+				new THREE.Vector3(center.x - width/2, center.y + height/2, center.z + 0.1),
+				new THREE.Vector3(center.x + width/2, center.y + height/2, center.z)
+			);
+
+		}
+
+		function generateTwinWindowGeometry(center, width, height, side) {
+
+			if (side == "left") {
+
+				return new ModelingSupporter().generateBoxPolygonGeometry(
 					new THREE.Vector3(center.x - width/2, center.y - height/2, center.z + 1),
 					new THREE.Vector3(center.x - width/10, center.y - height/2, center.z),
 					new THREE.Vector3(center.x - width/2, center.y + height/2, center.z + 1),
 					new THREE.Vector3(center.x - width/10, center.y + height/2, center.z)
 				);
-				const meshLeft = new THREE.Mesh(geometryLeft, material);
-				meshLeft.name = "window"
-				this.add(meshLeft);
 
-				const geometryRight = new ModelingSupporter().generateBoxPolygonGeometry(
+			} else if (side == "right") {
+
+				return new ModelingSupporter().generateBoxPolygonGeometry(
 					new THREE.Vector3(center.x + width/10, center.y - height/2, center.z + 1),
 					new THREE.Vector3(center.x + width/2, center.y - height/2, center.z),
 					new THREE.Vector3(center.x + width/10, center.y + height/2, center.z + 1),
 					new THREE.Vector3(center.x + width/2, center.y + height/2, center.z)
 				);
-				const meshRight = new THREE.Mesh(geometryRight, material);
-				meshRight.name = "window"
-				this.add(meshRight);
 
 			}
+
 		}
 	}
 
@@ -416,25 +504,35 @@ class WallPolygon extends THREE.Group {
 	}
 
 	setTexture(name, layer) {
+
 		switch (name) {
+
 			case "shitamiitabari":
 				this.generateShitamiitabari();
 				break;
+
 			case "window":
 				this.generateMultipleWindow(layer);
 				break;
+
 			case "none":
 				this.removeAllTexture();
 				break;
+
 		}
+
 	}
 
 	removeTexture(name) {
+
         this.getTexture(name).forEach(mesh => {
-            this.remove(mesh)
+
+			this.remove(mesh)
 			mesh.material.dispose();
 			mesh.geometry.dispose();
+
         })
+
 	}
 
 	removeAllTexture() {
@@ -450,8 +548,10 @@ class WallPolygon extends THREE.Group {
 
 	dispose() {
         this.children.forEach(child => {
-			child.material.dispose();
-			child.geometry.dispose();
+			if (child.isMesh) {
+				child.material.dispose();
+				child.geometry.dispose();
+			}
         })
 	}
 }

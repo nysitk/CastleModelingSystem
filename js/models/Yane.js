@@ -1,6 +1,6 @@
 import * as THREE from '/build/three.module.js';
 
-import { LINE, POLYGON, PARAMS } from '../managers/Params.js'
+import { LINE, POLYGON } from '../managers/Params.js'
 
 import { Yagura } from './Yagura.js'
 import { YaneComponent } from './YaneComponent.js'
@@ -11,8 +11,10 @@ import { HafuPresets } from './HafuPresets.js'
  * 屋根モデル関連のモデルクラス
  */
 export class Yane extends Yagura {
-	constructor(R3, R4, R6) {
-		super(R3, R4, R6);
+	constructor(PARAMS, R3, R4, R6) {
+		super(PARAMS, R3, R4, R6);
+
+		this.PARAMS = PARAMS;
 
         this.calcParameters();
 
@@ -25,10 +27,10 @@ export class Yane extends Yagura {
 
     calcParameters() {
         // 屋根の大きさの比率
-        this.yaneSizeRatio = PARAMS.yaneSizeRatio;
+        this.yaneSizeRatio = this.PARAMS.yaneSizeRatio;
         // 屋根の上側/下側の位置
-        this.yaneUpperPosition = PARAMS.yaneUpperPosition;
-        this.yaneLowerPosition = PARAMS.yaneLowerPosition;
+        this.yaneUpperPosition = this.PARAMS.yaneUpperPosition;
+        this.yaneLowerPosition = this.PARAMS.yaneLowerPosition;
     }
 
     calcAllSurroundingYaneVertices() {
@@ -92,31 +94,32 @@ export class Yane extends Yagura {
         return this.line;
     }
 
-    createPolygon() {
-        this.polygon = this.createAll(POLYGON)
+    createPolygon(type = "whole") {
+        this.polygon = this.createAll(POLYGON, type)
         return this.polygon;
     }
     
-    createAll(MODE) {
+    createAll(MODE, type = "whole") {
         this.allSurroundingYaneVertices.forEach(function (surroundingYaneVertices, i){
             if (i+1 == this.allSurroundingYaneVertices.length) return false;
-			this.createSurroundingYane(i, MODE)
+			this.createSurroundingYane(i, MODE, type)
 		},this)
 
-        this.createTopYane(MODE)
+        this.createTopYane(MODE, type)
 
         return this;
     }
 
-    createSurroundingYane(layer, MODE) {
+    createSurroundingYane(layer, MODE, type = "whole") {
         const surroundingYane = new SurroundingYane(
+			this.PARAMS,
             this.allSurroundingYaneVertices[layer].A,
             this.allSurroundingYaneVertices[layer].B,
             this.allSurroundingYaneVertices[layer].C,
             this.allSurroundingYaneVertices[layer].D
         );
 
-        surroundingYane.create(MODE);
+        surroundingYane.create(MODE, type);
 
         // 場所に応じて屋根を移動・回転
         surroundingYane.position.set(this.allSurroundingYaneVertices[layer].A.x, this.allSurroundingYaneVertices[layer].A.y, this.allSurroundingYaneVertices[layer].A.z);
@@ -198,14 +201,15 @@ export class Yane extends Yagura {
 		}
 	}
 
-    createTopYane(MODE) {
+    createTopYane(MODE, type = "whole") {
 		this.topYane = new IrimoyaHafu(
+			this.PARAMS,
 			this.topYaneVertices.A,
 			this.topYaneVertices.B,
 			this.topYaneVertices.C,
 			this.topYaneVertices.D
 		);
-		this.topYane.generate(MODE);
+		this.topYane.generate(MODE, type);
 		this.topYane.position.set(this.topYaneVertices.A.x, this.topYaneVertices.A.y, this.topYaneVertices.A.z);
 		this.topYane.name = "irimoyaHafu"
 		this.add(this.topYane);
@@ -217,13 +221,15 @@ export class Yane extends Yagura {
 }
 
 export class SurroundingYane extends THREE.Group {
-	constructor(A, B, C, D) {
+	constructor(PARAMS, A, B, C, D) {
 		// 入力は4点
 		//    -------B
 		//   /    D /
 		//  / C    /
 		// A-------
 		super();
+
+		this.PARAMS = PARAMS;
 
 		// 点Aを原点として考える
 		this.A = new THREE.Vector3(0, 0, 0);
@@ -255,13 +261,14 @@ export class SurroundingYane extends THREE.Group {
 		if (this.tarukiInterval == 0.0) this.tarukiInterval = 0.1;
 	}
 
-	create(MODE) {
+	create(MODE, type = "whole") {
 		// 4方向分の屋根を生成
 		for (let direction=0; direction<4; direction++) {
 			var dd = direction == 3 ? 0 : direction + 1;
 			// if (d != 2) continue;
 
 			const eachYaneComponent = new YaneComponent(
+				this.PARAMS,
 				this.lower[direction],
 				this.lower[dd],
 				this.upper[direction],
@@ -270,9 +277,11 @@ export class SurroundingYane extends THREE.Group {
 				this.tarukiInterval
 			);
 
-			eachYaneComponent.generateBody(MODE);
+			eachYaneComponent.generateBody(MODE, type);
 			// eachYaneComponent.generateKawara(MODE);
-			eachYaneComponent.generateKayaoi(MODE);
+
+			if (type == "whole")
+				eachYaneComponent.generateKayaoi(MODE);
 
 			eachYaneComponent.rotation.y = Math.PI / 2 * direction;
 			eachYaneComponent.position.set(this.lower[direction].x, this.lower[direction].y, this.lower[direction].z)

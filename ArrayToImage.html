@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Display image array using HTML img tag</title>  
+  </head>
+  <body>
+    <script>
+        fetch("./imageData.json")
+        .then(response => {
+        return response.json();
+        })
+        .then(jsondata => dataToImage(jsondata));
+      // 画像の幅、高さ
+      const width = 1004;
+      const height = 656;
+
+      function dataToImage(data) {
+        const array = new Array();
+        for (let i = 0; i < width * height; i++) {
+            array.push(data[i].r)
+            array.push(data[i].g)
+            array.push(data[i].b)
+            array.push(data[i].a)
+        }
+        console.log(array)
+
+        // 配列をImageDataに変換する
+        const image = new ImageData(new Uint8ClampedArray(array), width, height);
+
+        // canvasにImageDataを描画する
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d');
+        context.putImageData(image, 0, 0);
+        // document.body.appendChild(canvas); // 確認用
+
+        // canvasからBlobを作成する
+        canvas.toBlob((blob) => {
+        // BlobのURLを作成してimgタグのsrc属性に設定する
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(blob);
+        document.body.appendChild(img);
+        }, 'image/png');
+      }
+
+      // 一次元配列に各ピクセルのRGBA値を格納する
+      const array = new Array(width * height * 4); // 4 = RGBA
+      for (let y = 0; y < height; ++y) {
+        for (let x = 0; x < width; ++x) {
+          const index = (x + (y * width)) * 4;
+          array[index] = x; // Red
+          array[index + 1] = y; // Green
+          array[index + 2] = 0; // Blue
+          array[index + 3] = 255; // Alpha
+        }
+      }
+    </script>
+  </body>
+</html>

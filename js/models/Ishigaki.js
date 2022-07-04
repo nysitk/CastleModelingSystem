@@ -1,16 +1,15 @@
 import * as THREE from '/build/three.module.js';
 
-import { PARAMS } from '../managers/Params.js';
-
 import { ModelingSupporter } from '../managers/ModelingSupporter.js'
 
 /**
  * 石垣モデル関連のモデルクラス
  */
 export class Ishigaki extends THREE.Group {
-    constructor(P1, P2, P3) {
+    constructor(PARAMS, P1, P2, P3) {
         super(); 
 
+        this.PARAMS = PARAMS;
         this.ishigakiSteps = PARAMS.ishigakiSteps;
 
 		this.A = P1.clone();
@@ -40,12 +39,12 @@ export class Ishigaki extends THREE.Group {
     }
 
     createLine() {
-        this.line = new Line(this.A, this.B, this.D).create()
+        this.line = new Line(this.PARAMS, this.A, this.B, this.D).create()
         return this.line;
     }
 
-    createPolygon() {
-        this.polygon = new Polygon(this.A, this.B, this.D).create()
+    createPolygon(type = "whole") {
+        this.polygon = new Polygon(this.PARAMS, this.A, this.B, this.D).create(type)
         return this.polygon;
     }
 
@@ -75,8 +74,8 @@ export class Ishigaki extends THREE.Group {
 }
 
 class Line extends Ishigaki {
-    constructor(P1, P2, P3) {
-        super(P1, P2, P3);
+    constructor(PARAMS, P1, P2, P3) {
+        super(PARAMS, P1, P2, P3);
     }
 
     create() {
@@ -110,11 +109,11 @@ class Line extends Ishigaki {
 }
 
 class Polygon extends Ishigaki {
-    constructor(P1, P2, P3) {
-        super(P1, P2, P3);
+    constructor(PARAMS, P1, P2, P3) {
+        super(PARAMS, P1, P2, P3);
     }
 
-    create() {
+    create(type = "whole") {
 		var tmpA = this.A.clone(), tmpB = this.B.clone(), tmpC = this.A.clone(), tmpD = this.B.clone();
 
 		for (let i = 0; i < this.ishigakiSteps; i++) {
@@ -130,11 +129,16 @@ class Polygon extends Ishigaki {
 
             const geometry = new ModelingSupporter().generateBoxPolygonGeometry(tmpA, tmpB, tmpC, tmpD);
 
-            const material = this.addTexture(geometry, i);
+            let material;
+            if (type == "whole") {
+                material = this.addTexture(geometry, i);
+            } else if (type == "black") {
+                material = new THREE.MeshBasicMaterial({color: 0x000000})
+            }
             // var material = new THREE.MeshLambertMaterial({color: 0xb4a294})
 
             const mesh = new THREE.Mesh(geometry, material);
-            mesh.receiveShadow = true;
+            if (type == "whole") mesh.receiveShadow = true;
 
             this.add(mesh);
         }

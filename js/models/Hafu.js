@@ -1,14 +1,16 @@
 import * as THREE from '/build/three.module.js';
 
-import { LINE, POLYGON, PARAMS } from '../managers/Params.js'
+import { LINE, POLYGON } from '../managers/Params.js'
 
 import { ModelingSupporter } from '../managers/ModelingSupporter.js'
 import { TransformControls } from '../controls/TransformControls.js';
 import { Yane, SurroundingYane } from './Yane.js'
 
 export class ChidoriHafu extends THREE.Group {
-	constructor(width, height, depth) {
+	constructor(PARAMS, width, height, depth) {
 		super();
+
+		this.PARAMS = PARAMS;
 
 
 		//       /\
@@ -46,7 +48,7 @@ export class ChidoriHafu extends THREE.Group {
 		}
 	}
 
-	create(MODE) {
+	create(MODE, type = "whole") {
 		if (MODE==LINE) {
 			this.lineA = this.generate_side(MODE);
 			this.lineA.position.set(-1 * (this.width) / 2, 0, 0);
@@ -59,34 +61,37 @@ export class ChidoriHafu extends THREE.Group {
 			this.lineTop.position.set(-this.width/2, 0, 0);
 			this.add(this.lineTop)
 		} else if (MODE==POLYGON) {
-			this.sideA = this.generate_side(MODE);
+
+			this.sideA = this.generate_side(MODE, type);
 			this.sideA.position.set(-1 * (this.width) / 2, 0, 0 + this.B.z/50);
 			this.add(this.sideA);
 
-			for (let i = 0; i < 3; i++) {
-				const sideA2 = this.generate_side_inner(i);
-				sideA2.position.set(-1 * (this.width) / 2, 0, 0 + this.B.z/50 * i / 3);
-				this.add(sideA2);
-			}
-
-			this.sideB = this.generate_side(MODE);
+			this.sideB = this.generate_side(MODE, type);
 			this.sideB.position.set(-this.width/2, 0, this.B.z - this.B.z/50);
 			this.add(this.sideB);
 
-			for (let i = 0; i < 3; i++) {
-				const sideA2 = this.generate_side_inner(i);
-				sideA2.position.set(-1 * (this.width) / 2, 0, this.B.z - this.B.z/50 * i / 3);
-				this.add(sideA2);
-			}
-
-			this.top = this.generate_top(MODE);
+			this.top = this.generate_top(MODE, type);
 			this.top.position.set(-this.width/2, 0, 0);
 			this.add(this.top)
+
+			if (type == "whole") {
+				for (let i = 0; i < 3; i++) {
+					const sideA2 = this.generate_side_inner(i);
+					sideA2.position.set(-1 * (this.width) / 2, 0, 0 + this.B.z/50 * i / 3);
+					this.add(sideA2);
+				}
+
+				for (let i = 0; i < 3; i++) {
+					const sideA2 = this.generate_side_inner(i);
+					sideA2.position.set(-1 * (this.width) / 2, 0, this.B.z - this.B.z/50 * i / 3);
+					this.add(sideA2);
+				}
+			}
 		}
 
 	}
 
-	generate_side(MODE) {
+	generate_side(MODE, type = "whole") {
 		if (MODE==LINE) {
 			const material = new THREE.LineBasicMaterial({color: 0xCCFFCC});
 
@@ -111,11 +116,20 @@ export class ChidoriHafu extends THREE.Group {
 			geometry.computeFaceNormals();
 			geometry.computeVertexNormals();
 
-			const material = new THREE.MeshLambertMaterial({color: 0xCBC9D4, side: THREE.DoubleSide});
+			let material;
+
+			if (type == "whole") {
+				material = new THREE.MeshLambertMaterial({color: 0xCBC9D4, side: THREE.DoubleSide});
+			} else if (type == "black") {
+				material = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } );
+			}
 
 			const mesh = new THREE.Mesh(geometry, material);
-			mesh.castShadow = true;
-			mesh.receiveShadow = true;
+			if (type == "whole") {
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
+			}
+
 			mesh.name = "side"
 			return mesh
 		}
@@ -147,7 +161,7 @@ export class ChidoriHafu extends THREE.Group {
 			return mesh;
 	}
 
-	generate_top(MODE) {
+	generate_top(MODE, type = "whole") {
 		if (MODE==LINE) {
 			const material = new THREE.LineBasicMaterial({color: 0xCCFFCC});
 
@@ -171,7 +185,13 @@ export class ChidoriHafu extends THREE.Group {
 			geometry.computeFaceNormals();
 			geometry.computeVertexNormals();
 
-			const material = new THREE.MeshLambertMaterial({color: 0x222227, side: THREE.DoubleSide});
+			let material;
+
+			if (type == "whole") {
+				material = new THREE.MeshLambertMaterial({color: 0x222227, side: THREE.DoubleSide});
+			} else if (type == "black") {
+				material = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.DoubleSide})
+			}
 
 			const mesh = new THREE.Mesh(geometry, material);
 			mesh.name = "top";
@@ -214,8 +234,7 @@ export class ChidoriHafu extends THREE.Group {
 			heightrate: this.height / this.getYaneComponent().getYaneSize().height,
 			depthrate: this.depth / this.getYaneComponent().getYaneSize().depth,
 		}
-		console.log(PARAMS.hafu)
-        this.chidoriHafuGUIFolder = sceneManager.gui.addFolder('ChidoriHafu-' + PARAMS.hafu.length);
+        this.chidoriHafuGUIFolder = sceneManager.gui.addFolder('ChidoriHafu-' + this.PARAMS.hafu.length);
         this.chidoriHafuGUIFolder.add(this.params, 'alpha', 0, 1).onChange(() => {this.changeGUI(sceneManager)});
         this.chidoriHafuGUIFolder.add(this.params, 'centerrate', 0, 1).step(0.05).onChange(() => {this.changeGUI(sceneManager)});
         this.chidoriHafuGUIFolder.add(this.params, 'widthrate', 0, 1).step(0.05).onChange(() => {this.changeGUI(sceneManager)});
@@ -254,7 +273,7 @@ export class ChidoriHafu extends THREE.Group {
 }
 
 export class IrimoyaHafu extends THREE.Group {
-	constructor(A, B, C, D) {
+	constructor(PARAMS, A, B, C, D) {
 		super();
 
 		//     E----F    ^ y
@@ -262,6 +281,7 @@ export class IrimoyaHafu extends THREE.Group {
 		//   C--------D  --> x
 		//  /       |  \
 		// A------------B
+		this.PARAMS = PARAMS;
 		this.steps = 5;
 
 		this.A = new THREE.Vector3(0, 0, 0);
@@ -274,17 +294,18 @@ export class IrimoyaHafu extends THREE.Group {
 
 	}
 
-	generate(MODE) {
+	generate(MODE, type = "whole") {
 
-		this.lower = new SurroundingYane(this.A, this.B, this.C, this.D);
-		this.lower.create(MODE)
+		this.lower = new SurroundingYane(this.PARAMS, this.A, this.B, this.C, this.D);
+		this.lower.create(MODE, type)
 		this.add(this.lower)
 		this.upper = new ChidoriHafu(
+			this.PARAMS,
 			this.C.z - this.D.z,
 			this.E.y - this.C.y,
 			this.C.x - this.D.x
 		);
-		this.upper.create(MODE)
+		this.upper.create(MODE, type)
 		this.upper.rotation.y = Math.PI / 2;
 		this.upper.position.set(this.C.x, this.C.y, (this.C.z + this.D.z)/2)
 		this.add(this.upper)

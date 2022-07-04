@@ -7,24 +7,28 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 import { OrbitControls } from '../controls/OrbitControls.js';
 import { TransformControls } from '../controls/TransformControls.js';
 
+import { DetectRectangleTest } from '../tests/DetectRectangle.js';
+
 export class SceneManager {
     constructor() {
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer();
+        this.renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat, type: THREE.FloatType } );
 
         this.init();
 
         this.renderer.domElement.addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
         this.onWindowResizeEvent = this.onWindowResize.bind(this);
         this.addOnWindowResize();
+
+        // this.detectRectangle = new DetectRectangleTest(this);
     }
 
     init() {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-        // this.scene.add( new THREE.AxesHelper(300) );        
-        this.scene.add( new THREE.GridHelper( 1000, 10, 0x888888, 0x444444 ) );
+        this.addHelper();       
         
         this.addCamera();
         this.addSky();
@@ -39,7 +43,25 @@ export class SceneManager {
     }
 
     render() {
+        this.renderer.setRenderTarget( null );
         this.renderer.render( this.scene, this.currentCamera );
+    }
+
+    addHelper() {
+        this.grid = new THREE.Group();
+
+        const grid1 = new THREE.GridHelper( 1000, 20, 0x888888 );
+        grid1.material.color.setHex( 0x888888 );
+        grid1.material.vertexColors = false;
+        this.grid.add( grid1 );
+
+        const grid2 = new THREE.GridHelper( 1000, 10, 0x222222 );
+        grid2.material.color.setHex( 0x222222 );
+        grid2.material.depthFunc = THREE.AlwaysDepth;
+        grid2.material.vertexColors = false;
+        this.grid.add( grid2 );
+
+        this.scene.add(this.grid)
     }
 
     addCamera() {
@@ -51,6 +73,7 @@ export class SceneManager {
         
         this.currentCamera = this.cameraPersp;
         this.currentCamera.position.set( 253, 187, 614 );
+
     }
 
     addSky() {
@@ -95,17 +118,6 @@ export class SceneManager {
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( this.renderer.domElement );
-
-        $('#background-Image').on( 'change', (e) => { this.changeBackground(e) } );
-    }
-
-    changeBackground(e) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            $("body").css('background-image', 'url("' + e.target.result + '")');
-        }
-        reader.readAsDataURL(e.target.files[0]);
-        $(this.renderer.domElement).css('opacity', '0.7')
     }
 
     addOrbit() {
@@ -130,6 +142,7 @@ export class SceneManager {
         this.addGUICamera();
         this.addGUISky();
         this.addGUILight();
+        this.addGUICanvas();
 
         this.changeGUI();
     }
@@ -173,10 +186,23 @@ export class SceneManager {
 
     }
 
+    addGUICanvas() {
+        this.canvasController = {
+            opacity: 1.0
+        }
+        const canvasFolder = this.gui.addFolder('Canvas');
+        canvasFolder.add(this.canvasController, 'opacity', 0, 1.0).onChange( (e) => {
+            $(this.renderer.domElement).css('opacity', e)
+        })
+    }
+
     changeGUI() {
+
         this.changeGUICamera();
         this.changeGUISky();
+
         this.renderer.render( this.scene, this.currentCamera );
+
     }
 
     changeGUICamera() {
@@ -188,6 +214,7 @@ export class SceneManager {
         this.control.camera = this.currentCamera;
 
         this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
+        this.cameraPersp.updateProjectionMatrix()
         // this.onWindowResize();
     }
     
@@ -267,7 +294,10 @@ export class SceneManager {
         window.removeEventListener( 'resize', this.onWindowResizeEvent, false );
     }
 
-    onWindowResize() {
-        this.changeRendererSize( window.innerWidth, window.innerHeight );    
+    onWindowResize(event, width, height) {
+        if (!width) width = window.innerWidth
+        if (!height) height = window.innerHeight
+        console.log(width, height)
+        this.changeRendererSize( width, height );    
     }
 }

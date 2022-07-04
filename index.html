@@ -17,24 +17,29 @@
       "C" toggle camera | "V" random zoom
     </div> -->
 
-    <div id="controlPanel">
+    <div id="controlPanel" style="width: 260px;">
+      <div id="controlPanel-main">
        <ul id="modeButton">
          <li id="orbit">orbit</li>
          <li id="construction">construction</li>
          <li id="edit">edit</li>
+         <li id="2Dfix">2Dfix</li>
        </ul>
        <div id="background-change">
         <input type="file" id="background-Image" accept="image/*">
         <img id="preview">
        </div>
        <div id="output">
-         <button id="obj-output">obj出力</button>
+        <button id="obj-output">obj出力</button>
+        <button id="convertTo3D">3Dモデル化</button>
          <!-- <a id="objExport">obj</a>
          <a id="mtlExport">mtl</a> -->
        </div>
        <div>
          P:display params
        </div>
+      </div>
+      <div id="controlPanel-close">Hidden Controls</div>
     </div>
     
     <script type="module" src="./js/index.js"></script>

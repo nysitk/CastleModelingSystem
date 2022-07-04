@@ -4,7 +4,6 @@ import { CastleModelManager } from './CastleModelManager.js';
 import { ModelingSupporter } from './ModelingSupporter.js'
 
 import { ModelPresets } from '../models/ModelPresets.js'
-import { PARAMS } from './Params.js';
 
 /**
  * 城郭モデル生成関連のモデルクラス
@@ -12,13 +11,29 @@ import { PARAMS } from './Params.js';
  export class ModelingManager {
     constructor(sceneManager) {
         this.sceneManager = sceneManager;
+
         this.clickPosition = new Array(4);
+        this.click2DPosition = new Array(4);
+
         this.referencePoint = {
             ishigakiBottom: new Array(2),
             ishigakiTop: new Array(2),
             yaguraTop: new Array(2),
         };
-        this.castle = new CastleModelManager(this.referencePoint, sceneManager);
+
+        this.PARAMS = {
+            ishigakiSteps: 6,
+            yaguraSteps: 5,
+            yaneSizeRatio: new THREE.Vector3(1.0, 1.0, 1.0),
+            yaneUpperPosition: 1.0,
+            yaneLowerPosition: 1.0,
+            seiRatio: 1.0,
+            windowNum: 1.0,
+            windowWidth: 1.0,
+            hafu: []
+        }
+
+        this.castle = new CastleModelManager(this);
     }
 
     addTestMesh(x, y, z) {
@@ -103,12 +118,13 @@ import { PARAMS } from './Params.js';
     calcPointOnGround(mousePos) {
 		const planeNormal = new THREE.Vector3(0, 1, 0); //平面の法線ベクトル
 		const pointOnPlane = new THREE.Vector3(0, 0, 0); //平面上の1点
-		return this.calcPointOnRayPlaneIntersection(
+		const result = this.calcPointOnRayPlaneIntersection(
             this.sceneManager.currentCamera.position,
             mousePos,
             planeNormal,
             pointOnPlane
-        ) 
+        )
+        return result;
     }
 
     /**
@@ -138,6 +154,7 @@ import { PARAMS } from './Params.js';
      */ 
     determineClickPosition(e, clickCount) {
 		const mousePos = new THREE.Vector2(e.clientX, e.clientY)
+        console.log(mousePos)
         if (clickCount < 2) {
             // 1,2回目のクリックは、地面上の点
             this.clickPosition[clickCount] = this.calcPointOnGround(mousePos);
@@ -251,12 +268,23 @@ import { PARAMS } from './Params.js';
     }
 
     createIshigakiLine(mousePos) {
+        let ishigakiTopPoint = this.referencePoint.ishigakiTop[1];
+
+        if (mousePos) {
+            ishigakiTopPoint = this.calcPointOnNormalPlane(mousePos).clone()
+        }
+
+        if (ishigakiTopPoint === undefined) {
+            console.error("The coordinate of top of ishigaki is not determined.")
+            return;
+        }
+
         this.createBottomRectangleLine();
         this.castle.createIshigakiLine(
             this.referencePoint.ishigakiBottom[0].clone(),
             this.referencePoint.ishigakiBottom[1].clone(),
             this.adjustUpperPoint(
-                this.calcPointOnNormalPlane(mousePos).clone(),
+                ishigakiTopPoint,
                 this.referencePoint.ishigakiBottom
             )
         );       
@@ -266,20 +294,32 @@ import { PARAMS } from './Params.js';
         this.castle.removeIshigakiLine();
     }
 
-    createIshigakiPolygon() {
+    createIshigakiPolygon(mousePos, type = "whole") {
         this.castle.createIshigakiPolygon(
             this.referencePoint.ishigakiBottom[0].clone(),
             this.referencePoint.ishigakiBottom[1].clone(),
-            this.referencePoint.ishigakiTop[1].clone()
+            this.referencePoint.ishigakiTop[1].clone(),
+            type
         );
     }
 
     createYaguraLine(mousePos) {
+        let yaguraTopPoint = this.referencePoint.yaguraTop[1];
+
+        if (mousePos) {
+            yaguraTopPoint = this.calcPointOnNormalPlane(mousePos).clone()
+        }
+
+        if (yaguraTopPoint === undefined) {
+            console.error("The coordinate of top of yagura is not determined.")
+            return;
+        }
+
         this.castle.createYaguraLine(
             this.referencePoint.ishigakiTop[0].clone(),
             this.referencePoint.ishigakiTop[1].clone(),
             this.adjustUpperPoint(
-                this.calcPointOnNormalPlane(mousePos).clone(),
+                yaguraTopPoint,
                 this.referencePoint.ishigakiTop
             )
         );
@@ -289,7 +329,7 @@ import { PARAMS } from './Params.js';
         this.castle.removeYaguraLine();
     }
 
-    createYaguraPolygon(mousePos) {
+    createYaguraPolygon(mousePos, type="whole") {
         let p = undefined;
         if (this.referencePoint.yaguraTop[1]) p = this.referencePoint.yaguraTop[1].clone();
         if (mousePos) p = this.adjustUpperPoint(
@@ -302,16 +342,28 @@ import { PARAMS } from './Params.js';
         this.castle.createYaguraPolygon(
             this.referencePoint.ishigakiTop[0].clone(),
             this.referencePoint.ishigakiTop[1].clone(),
-            p
+            p,
+            type
         );
     }
  
     createYaneLine(mousePos) {
+        let yaguraTopPoint = this.referencePoint.yaguraTop[1];
+
+        if (mousePos) {
+            yaguraTopPoint = this.calcPointOnNormalPlane(mousePos).clone()
+        }
+
+        if (yaguraTopPoint === undefined) {
+            console.error("The coordinate of top of yagura is not determined.")
+            return;
+        }
+
         this.castle.createYaneLine(
             this.referencePoint.ishigakiTop[0].clone(),
             this.referencePoint.ishigakiTop[1].clone(),
             this.adjustUpperPoint(
-                this.calcPointOnNormalPlane(mousePos).clone(),
+                yaguraTopPoint,
                 this.referencePoint.ishigakiTop
             )
         );        
@@ -321,11 +373,12 @@ import { PARAMS } from './Params.js';
         this.castle.removeYaneLine();
     }
 
-    createYanePolygon() {
+    createYanePolygon(mousePos, type = "whole") {
         this.castle.createYanePolygon(
             this.referencePoint.ishigakiTop[0].clone(),
             this.referencePoint.ishigakiTop[1].clone(),
-            this.referencePoint.yaguraTop[1].clone()
+            this.referencePoint.yaguraTop[1].clone(),
+            type
         );
     }
 
@@ -364,7 +417,8 @@ import { PARAMS } from './Params.js';
     }
 
     createPresetModel() {
-        let name = "matsumae"
+        let name = "shimabara"
+        let type = "polygon"
         let modelPreset = ModelPresets[name];
         let camera = this.sceneManager.cameraPersp;
 
@@ -418,13 +472,13 @@ import { PARAMS } from './Params.js';
             return false;
         }
 
-        // クリック座標情報を登録
+        //クリック座標情報を登録
         modelPreset.clickPosition.forEach((e, i) => {
             this.clickPosition[i] = new THREE.Vector3(e.x, e.y, e.z);
         });
 
         this.registerReferencePoint();
-        this.createAllModel(modelPreset);
+        this.createAllModel(modelPreset, type);
 
         this.sceneManager.render();
 
@@ -441,16 +495,25 @@ import { PARAMS } from './Params.js';
         p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
     }
 
-    createAllModel(modelPreset) {
-        if (modelPreset.yaguraSteps) 
-            PARAMS.yaguraSteps = modelPreset.yaguraSteps;
+    createAllModel(modelPreset, type = "polygon") {
+        if (modelPreset) 
+            this.castle.PARAMS.yaguraSteps = modelPreset.yaguraSteps;
 
-        this.createIshigakiPolygon()
-        this.createYaguraPolygon()
-        this.createYanePolygon();
-        this.castle.createHafuPreset(modelPreset.hafuName);
-        this.castle.setWallTexture(modelPreset.wallTexture);
-        this.castle.setYaneColor(modelPreset.yaneColor);
+        if (type === "line") {
+            this.createIshigakiLine()
+            this.createYaguraLine()
+            this.createYaneLine();
+        } else {
+            this.createIshigakiPolygon()
+            this.createYaguraPolygon()
+            this.createYanePolygon();
+        }
+
+        if (modelPreset) {
+            this.castle.createHafuPreset(modelPreset.hafuName);
+            this.castle.setWallTexture(modelPreset.wallTexture);
+            this.castle.setYaneColor(modelPreset.yaneColor);
+        }
     }
 
     createAutoFloor() {
@@ -466,5 +529,50 @@ import { PARAMS } from './Params.js';
 
     displayClickPosition() {
         console.log(this.clickPosition);
+    }
+
+    set2DPosition(clickCount, mousePos) {
+        this.click2DPosition[clickCount] = mousePos;
+        console.log(this.click2DPosition)
+    }
+
+    createAllLineFrom2D(clickCount, type = "polygon") {
+        const polygonType = "black"
+
+        if (clickCount > 0) {
+            this.clickPosition[0] = this.calcPointOnGround(this.click2DPosition[0]);
+            this.determineReferencePoint(0)
+        }
+
+        if (clickCount > 1) {
+            this.clickPosition[1] = this.calcPointOnGround(this.click2DPosition[1]);
+            this.determineReferencePoint(1)
+            this.createBottomRectangleLine(this.click2DPosition[1]);
+        }
+
+        if (clickCount > 2) {
+            this.clickPosition[2] = this.calcPointOnNormalPlane(this.click2DPosition[2]);
+            this.determineReferencePoint(2)
+
+            if (type == "polygon") {
+                this.createIshigakiPolygon(this.click2DPosition[2], polygonType);
+            } else {
+                this.createIshigakiLine(this.click2DPosition[2]);
+            }
+        }
+
+        if (clickCount > 3) {
+            this.clickPosition[3] = this.calcPointOnNormalPlane(this.click2DPosition[3]);
+            this.determineReferencePoint(3)
+
+            if (type == "polygon") {
+                this.createYaguraPolygon(this.click2DPosition[3], polygonType);
+                this.createYanePolygon(this.click2DPosition[3], polygonType);
+            } else {
+                this.createYaguraLine(this.click2DPosition[3]);
+                this.createYaneLine(this.click2DPosition[3]);
+            }
+        }
+
     }
 }

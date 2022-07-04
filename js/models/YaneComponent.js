@@ -1,12 +1,12 @@
 import * as THREE from '/build/three.module.js';
 
-import { LINE, POLYGON, PARAMS } from '../managers/Params.js'
+import { LINE, POLYGON } from '../managers/Params.js'
 
 import { ModelingSupporter } from '../managers/ModelingSupporter.js'
 import { ChidoriHafu, IrimoyaHafu } from './Hafu.js'
 
 export class YaneComponent extends THREE.Group {
-	constructor(A, B, C, D, direction, tarukiInterval) {
+	constructor(PARAMS, A, B, C, D, direction, tarukiInterval) {
 		super();
 		// 入力は4点と方向
 		//   C---D
@@ -16,6 +16,8 @@ export class YaneComponent extends THREE.Group {
 		// ^ z      2
 		// |--> x  3 1 d:direction
 		//          0
+
+        this.PARAMS = PARAMS;
 
 		this.direction = direction;
 		const axis = new THREE.Vector3( 0, 1, 0 );
@@ -39,7 +41,7 @@ export class YaneComponent extends THREE.Group {
 		this.tarukiNum = Math.ceil(this.getYaneSize().width / this.tarukiInterval)+1;
 		if (this.tarukiNum > 100) this.tarukiNum = 100;
 
-		this.sei = this.tarukiInterval * PARAMS.seiRatio;
+		this.sei = this.tarukiInterval * this.PARAMS.seiRatio;
 
         this.kayaoiThick = this.tarukiInterval / 2.0;
         this.kawarabohThick = this.tarukiInterval / 8.0;
@@ -101,7 +103,7 @@ export class YaneComponent extends THREE.Group {
 
     }
 
-    generateBody(MODE) {
+    generateBody(MODE, type = "whole") {
         switch(MODE) {
             case LINE:
                 this.body = new YaneBody(this.vertices)
@@ -109,7 +111,7 @@ export class YaneComponent extends THREE.Group {
                 break;
             case POLYGON:
                 this.body = new YaneBody(this.vertices)
-                this.add(this.body.generatePolygon());
+                this.add(this.body.generatePolygon(type));
                 break;
         }
     }
@@ -158,14 +160,14 @@ export class YaneComponent extends THREE.Group {
     }
 
 	addChidoriHafu(lowerCenter, width, height, depth, MODE) {
-		const chidoriHafu = new ChidoriHafu(width, height, depth);
+		const chidoriHafu = new ChidoriHafu(this.PARAMS, width, height, depth);
         
 		chidoriHafu.create(MODE);
 		chidoriHafu.position.set(lowerCenter.x, lowerCenter.y, lowerCenter.z + depth)
 
         chidoriHafu.name = "chidoriHafu";
 		this.add(chidoriHafu)
-        PARAMS.hafu.push(chidoriHafu)
+        this.PARAMS.hafu.push(chidoriHafu)
 
         return chidoriHafu;
 	}
@@ -199,6 +201,10 @@ export class YaneComponent extends THREE.Group {
             return child.name == "chidoriHafu"
         })
     }
+
+    getBodyMesh() {
+        return this.body.getMesh();
+    }
 }
 
 class YaneBody extends THREE.Group {
@@ -231,7 +237,7 @@ class YaneBody extends THREE.Group {
 
     }
 
-    generatePolygon() {
+    generatePolygon(type = "whole") {
 
         const geometry = new THREE.Geometry();
 
@@ -253,15 +259,21 @@ class YaneBody extends THREE.Group {
         geometry.computeFaceNormals();
         geometry.computeVertexNormals();
 
-        const material = new THREE.MeshPhongMaterial({color: 0x222227, emissive:0x0, side: THREE.DoubleSide, vertexColors: true});
+        let material; 
+
+        if (type == "whole") {
+            material = new THREE.MeshPhongMaterial({color: 0x222227, emissive:0x0, side: THREE.DoubleSide, vertexColors: true});
+        } else if (type == "black") {
+            material = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+        }
         this.body = new THREE.Mesh(geometry, material);
 
         // this.body.receiveShadow = true;
-        this.body.castShadow = true;
+        if (type == "whole") this.body.castShadow = true;
 
         this.add(this.body);
         
-        const wire = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true});
+        // const wire = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true});
         // const wireMesh = new THREE.Mesh(geometry, wire);
         // this.add(wireMesh);
 

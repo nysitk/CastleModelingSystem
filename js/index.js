@@ -9,6 +9,6 @@ import { SceneManager } from './managers/SceneManager.js'
       const sceneManager = new SceneManager();
       sceneManager.render()
 
-      const operationManager = new OperationManager(sceneManager);
+      new OperationManager(sceneManager);
   };
 })();
