@@ -418,7 +418,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     createPresetModel() {
         let name = "shimabara"
-        let type = "polygon"
+        let type = "black"
         let modelPreset = ModelPresets[name];
         let camera = this.sceneManager.cameraPersp;
 
@@ -504,15 +504,18 @@ import { ModelPresets } from '../models/ModelPresets.js'
             this.createYaguraLine()
             this.createYaneLine();
         } else {
-            this.createIshigakiPolygon()
-            this.createYaguraPolygon()
-            this.createYanePolygon();
+            this.createIshigakiPolygon(undefined, type)
+            this.createYaguraPolygon(undefined, type)
+            this.createYanePolygon(undefined, type);
         }
 
         if (modelPreset) {
             this.castle.createHafuPreset(modelPreset.hafuName);
-            this.castle.setWallTexture(modelPreset.wallTexture);
-            this.castle.setYaneColor(modelPreset.yaneColor);
+
+            if (type == "polygon") {
+                this.castle.setWallTexture(modelPreset.wallTexture);
+                this.castle.setYaneColor(modelPreset.yaneColor);
+            }
         }
     }
 

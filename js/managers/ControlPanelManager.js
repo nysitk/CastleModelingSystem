@@ -43,15 +43,32 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
     }
 
     changeBackground(e) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            $("body").css('background-image', 'url("' + e.target.result + '")');
-        }
-        reader.readAsDataURL(e.target.files[0]);
-        $(this.sceneManager.renderer.domElement).css('opacity', '0.8')
+        const sceneManager = this.sceneManager;
+        const canvas = document.getElementById("backgroundCanvas");
+        const context = canvas.getContext("2d");
+        const image = document.getElementById("backgroundImage");
 
-        this.sceneManager.effectController.inclination = 1.0;
-        this.sceneManager.changeGUI();
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            image.src = e.target.result;
+            image.onload = function () {
+                canvas.width = image.width;
+                canvas.height = image.height;
+                context.drawImage(image, 0, 0)
+
+                $(sceneManager.renderer.domElement).css('opacity', '0.5')
+                console.log(canvas.width, canvas.height)
+                sceneManager.changeRendererSize(canvas.width, canvas.height);
+                sceneManager.removeOnWindowResize();
+
+                sceneManager.effectController.turbidity = 0.0
+                sceneManager.effectController.inclination = 0.0;
+                sceneManager.changeGUI();
+            }
+        }
+        
+        reader.readAsDataURL(e.target.files[0]);
     }
 
     convertTo3D() {

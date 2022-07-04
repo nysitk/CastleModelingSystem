@@ -3,26 +3,45 @@
   <head>
     <meta charset="utf-8">
     <title>Display image array using HTML img tag</title>  
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
   </head>
   <body>
+    <input type="file" id="img-json">
+
     <script>
-        fetch("./imageData.json")
-        .then(response => {
-        return response.json();
-        })
-        .then(jsondata => dataToImage(jsondata));
-      // 画像の幅、高さ
-      const width = 1004;
-      const height = 656;
+        $(function(){
+
+            var reader;
+
+            function onChange(event) {
+                reader.readAsText(event.target.files[0]);
+            }
+
+            function onLoad(event) {
+                dataToImage(JSON.parse(event.target.result));
+            }
+
+            reader = new FileReader();
+            reader.onload = onLoad;
+
+            $('#img-json').on('change', onChange);
+        });
 
       function dataToImage(data) {
+        console.log(data)
+        const width = data.width;
+        const height = data.height;
+        const rawArray = data.array;
+
         const array = new Array();
+
         for (let i = 0; i < width * height; i++) {
-            array.push(data[i].r)
-            array.push(data[i].g)
-            array.push(data[i].b)
-            array.push(data[i].a)
+            array.push(rawArray[i].r)
+            array.push(rawArray[i].g)
+            array.push(rawArray[i].b)
+            array.push(rawArray[i].a)
         }
+
         console.log(array)
 
         // 配列をImageDataに変換する
@@ -45,17 +64,6 @@
         }, 'image/png');
       }
 
-      // 一次元配列に各ピクセルのRGBA値を格納する
-      const array = new Array(width * height * 4); // 4 = RGBA
-      for (let y = 0; y < height; ++y) {
-        for (let x = 0; x < width; ++x) {
-          const index = (x + (y * width)) * 4;
-          array[index] = x; // Red
-          array[index + 1] = y; // Green
-          array[index + 2] = 0; // Blue
-          array[index + 3] = 255; // Alpha
-        }
-      }
     </script>
   </body>
 </html>

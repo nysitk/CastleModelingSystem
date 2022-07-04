@@ -214,91 +214,64 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 break;
 
             case 'KeyJ':
-                const sceneManager = this.sceneManager
-                const context = this.sceneManager.renderer.getContext()
 
-                let width = context.drawingBufferWidth;
-                let height = context.drawingBufferHeight;
+                const rawData = this.generateAllJsonData();
+                console.log(rawData)
                 
-                sceneManager.onWindowResize(undefined, width, height);
+                const canvas = document.getElementById("backgroundCanvas");
+                const context = canvas.getContext("2d");
 
-                const pixels = new Uint8Array(width * height * 4);
-
-                context.readPixels(0, 0, 1000, 656, context.RGBA, context.UNSIGNED_BYTE, pixels);
-                console.log(pixels)
-
+                const editorArray = new Array();
                 const imageArray = new Array();
-                for (let y = 0; y < height; y++) {
-                    for (let x = 0; x < width; x++) {
-                        let p = getPixel(pixels, x, y, width, height);
-                        imageArray.push(p)
+                const errorArray = new Array();
+
+                for (let y = 0; y < rawData.height; y++) {
+
+                    for (let x = 0; x < rawData.width; x++) {
+        
+                        let editorData = rawData.array[x + y * rawData.width];
+                        let imageData = context.getImageData(x, y, 1, 1);
+
+                        let editorR = (editorData.r > 255) ? 255 : editorData.r;
+                        let editorG = (editorData.g > 255) ? 255 : editorData.g;
+                        let editorB = (editorData.b > 255) ? 255 : editorData.b;
+                        let editorA = (editorData.a > 255) ? 255 : editorData.a;
+
+                        editorArray.push({r:editorR,g:editorG,b:editorG,a:editorA})
+                        imageArray.push({r:imageData.data[0],g:imageData.data[1],b:imageData.data[2],a:imageData.data[3]})
+
+                        let errorR = editorR != imageData.data[0]
+                        let errorG = editorG != imageData.data[1]
+                        let errorB = editorB != imageData.data[2]
+                        let errorA = editorA != imageData.data[3]
+                        
+                        let error = (errorR | errorG | errorB | errorA);
+
+                        let pix = (error) ? {r:255,g:0,b:0,a:255} : {r:255,g:255,b:255,a:255}
+
+                        errorArray.push(pix)
+
                     }
+        
                 }
+
+                console.log(editorArray)
                 console.log(imageArray)
-                 
-                const fileName = "imageData.json";
-                const data = JSON.stringify(imageArray);
-                const link = document.createElement("a");
-                link.href = "data:text/plain," + encodeURIComponent(data);
-                link.download = fileName;
-                link.click();
-
-                function getPixel(pixels, x, y, width, height) {
-                    const pos = x + y * width;
-                    const head = pos * 4;
-
-                    const r = pixels[head];
-                    const g = pixels[head+1];
-                    const b = pixels[head+2];
-                    const a = pixels[head+3];
-
-                    return {r, g, b, a}
-
+                
+                const errorRawData = {
+                    width: rawData.width,
+                    height: rawData.height,
+                    array: errorArray
                 }
+
+                this.downloadFile(errorRawData, "errorData.json")
 
                 break;
 
             case 'KeyK':
-                const renderTarget = this.sceneManager.renderTarget
-                this.sceneManager.renderer.setRenderTarget( renderTarget );
-                this.sceneManager.renderer.render( this.sceneManager.scene, this.sceneManager.currentCamera );
 
-                let width2 = renderTarget.width;
-                let height2 = renderTarget.height;
-
-                // let imageArray2 = new Array();
-                const pixelBuffer = new Float32Array( width2 * height2 * 4 );
-                this.sceneManager.renderer.readRenderTargetPixels( renderTarget, 0, 0, width2, height2, pixelBuffer );
-                console.log(pixelBuffer)
-
-                const imageArray2 = new Array();
-                for (let y = 0; y < height2; y++) {
-                    for (let x = 0; x < width2; x++) {
-                        let p = getPixel2(pixelBuffer, x, y, width2, height2);
-                        imageArray2.push(p)
-                    }
-                }
-                console.log(imageArray2)
-                 
-                const fileName2 = "imageData.json";
-                const data2 = JSON.stringify(imageArray2);
-                const link2 = document.createElement("a");
-                link2.href = "data:text/plain," + encodeURIComponent(data2);
-                link2.download = fileName2;
-                link2.click();
-
-                function getPixel2(pixels, x, y, width, height) {
-                    const pos = x + y * width;
-                    const head = pos * 4;
-
-                    const r = pixels[head] * 255;
-                    const g = pixels[head+1] * 255;
-                    const b = pixels[head+2] * 255;
-                    const a = pixels[head+3] * 255;
-
-                    return {r, g, b, a}
-
-                }
+                const rawData2 = this.generateAllJsonData();
+                this.downloadFile(rawData2, "imageData.json")
 
                 break;
 
@@ -328,6 +301,71 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 this.modelingManager.removeWallTexture();
         }
 
+    }
+
+    getPixelBuffer(renderTarget, width, height) {
+
+        const pixelBuffer = new Float32Array( width * height * 4 );
+        this.sceneManager.renderer.readRenderTargetPixels( renderTarget, 0, 0, width, height, pixelBuffer );
+
+        return pixelBuffer;
+    }
+
+    changeBufferToJson(pixelBuffer, width, height) {
+        const imageArray = new Array();
+
+        for (let y = height - 1; y >= 0; y--) {
+
+            for (let x = 0; x < width; x++) {
+
+                let p = getPixel(pixelBuffer, x, y, width, height);
+                imageArray.push(p);
+
+            }
+
+        }
+
+        return imageArray;
+
+        function getPixel(pixels, x, y, width, height) {
+            const pos = x + y * width;
+            const head = pos * 4;
+
+            const r = pixels[head] * 255;
+            const g = pixels[head+1] * 255;
+            const b = pixels[head+2] * 255;
+            const a = pixels[head+3] * 255;
+
+            return {r, g, b, a}
+
+        }
+    }
+
+    generateAllJsonData() {
+        const renderTarget = this.sceneManager.renderTarget
+        this.sceneManager.renderer.setRenderTarget( renderTarget );
+        this.sceneManager.renderer.render( this.sceneManager.scene, this.sceneManager.currentCamera );
+
+        let width = renderTarget.width;
+        let height = renderTarget.height;
+
+        const pixelBuffer = this.getPixelBuffer(renderTarget, width, height)
+        const imageArray = this.changeBufferToJson(pixelBuffer, width, height);
+        
+        return {
+            width: width,
+            height: height,
+            array: imageArray
+        }
+
+    }
+
+    downloadFile(rawData, fileName) {
+        const data = JSON.stringify(rawData);
+        const link = document.createElement("a");
+        link.href = "data:text/plain," + encodeURIComponent(data);
+        link.download = fileName;
+        link.click();
     }
 
     addDraggablePoint(e, count2D) {

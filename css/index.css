@@ -11,6 +11,21 @@ body {
 	overscroll-behavior: none;
 }
 
+#backgroundCanvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: -1;
+	background-color: #fff000;
+}
+
+#editorCanvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 0;
+}
+
 canvas {
 	display: block;
 }

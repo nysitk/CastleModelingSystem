@@ -17,6 +17,7 @@ export class SceneManager {
 
         this.init();
 
+        this.renderer.domElement.setAttribute("id","editorCanvas");
         this.renderer.domElement.addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
         this.onWindowResizeEvent = this.onWindowResize.bind(this);
         this.addOnWindowResize();
@@ -61,7 +62,7 @@ export class SceneManager {
         grid2.material.vertexColors = false;
         this.grid.add( grid2 );
 
-        this.scene.add(this.grid)
+        // this.scene.add(this.grid)
     }
 
     addCamera() {
@@ -282,6 +283,7 @@ export class SceneManager {
     
         this.renderer.setPixelRatio(window.devicePixelRatio)
         this.renderer.setSize( width, height );
+        this.renderTarget.setSize( width, height );
     
         this.render();
     }
@@ -297,7 +299,6 @@ export class SceneManager {
     onWindowResize(event, width, height) {
         if (!width) width = window.innerWidth
         if (!height) height = window.innerHeight
-        console.log(width, height)
         this.changeRendererSize( width, height );    
     }
 }
