@@ -6,9 +6,14 @@ import { SceneManager } from './managers/SceneManager.js'
  */
 (() => {
   window.onload = () => {
-      const sceneManager = new SceneManager();
-      sceneManager.render()
+    const sceneManager = new SceneManager();
+    WebGLAnimation(sceneManager);
 
-      new OperationManager(sceneManager);
+    new OperationManager(sceneManager);
+
+    function WebGLAnimation() {
+      requestAnimationFrame(WebGLAnimation)
+      sceneManager.render();
+    }
   };
 })();

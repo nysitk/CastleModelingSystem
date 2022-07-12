@@ -417,8 +417,8 @@ import { ModelPresets } from '../models/ModelPresets.js'
     }
 
     createPresetModel() {
-        let name = "shimabara"
-        let type = "black"
+        let name = "osakaSimple"
+        let type = "black" //line, black, whole
         let modelPreset = ModelPresets[name];
         let camera = this.sceneManager.cameraPersp;
 
@@ -446,13 +446,13 @@ import { ModelPresets } from '../models/ModelPresets.js'
         }
 
         // カメラの回転の変更
-        if (modelPreset.cameraRot) {
-            camera.rotation.set(
-                modelPreset.cameraRot._x,
-                modelPreset.cameraRot._y,
-                modelPreset.cameraRot._z
-            );
-        }
+        // if (modelPreset.cameraRot) {
+        //     camera.rotation.set(
+        //         modelPreset.cameraRot._x,
+        //         modelPreset.cameraRot._y,
+        //         modelPreset.cameraRot._z
+        //     );
+        // }
 
         // orbitの注視点の変更
         if (modelPreset.orbitTarget) {
@@ -480,8 +480,6 @@ import { ModelPresets } from '../models/ModelPresets.js'
         this.registerReferencePoint();
         this.createAllModel(modelPreset, type);
 
-        this.sceneManager.render();
-
         return true;
     }
 
@@ -495,7 +493,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
         p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
     }
 
-    createAllModel(modelPreset, type = "polygon") {
+    createAllModel(modelPreset, type = "whole") {
         if (modelPreset) 
             this.castle.PARAMS.yaguraSteps = modelPreset.yaguraSteps;
 
@@ -510,7 +508,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
         }
 
         if (modelPreset) {
-            this.castle.createHafuPreset(modelPreset.hafuName);
+            // this.castle.createHafuPreset(modelPreset.hafuName);
 
             if (type == "polygon") {
                 this.castle.setWallTexture(modelPreset.wallTexture);

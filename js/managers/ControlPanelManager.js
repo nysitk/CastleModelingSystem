@@ -57,10 +57,12 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 canvas.height = image.height;
                 context.drawImage(image, 0, 0)
 
-                $(sceneManager.renderer.domElement).css('opacity', '0.5')
-                console.log(canvas.width, canvas.height)
+                $(sceneManager.renderer.domElement).css('opacity', '0.6')
                 sceneManager.changeRendererSize(canvas.width, canvas.height);
                 sceneManager.removeOnWindowResize();
+
+                sceneManager.scene.remove(sceneManager.sky);
+                sceneManager.renderer.setClearColor(0xffffff, 1);
 
                 sceneManager.effectController.turbidity = 0.0
                 sceneManager.effectController.inclination = 0.0;

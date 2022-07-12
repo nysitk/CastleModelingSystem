@@ -13,7 +13,7 @@ export class SceneManager {
     constructor() {
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer();
-        this.renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat, type: THREE.FloatType } );
+        this.renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 
         this.init();
 
@@ -23,6 +23,8 @@ export class SceneManager {
         this.addOnWindowResize();
 
         // this.detectRectangle = new DetectRectangleTest(this);
+
+        return this;
     }
 
     init() {
@@ -41,6 +43,7 @@ export class SceneManager {
         this.addControl();
 
         this.addGUI();
+
     }
 
     render() {
@@ -125,12 +128,10 @@ export class SceneManager {
         this.orbit = new OrbitControls( this.currentCamera, this.renderer.domElement );
         this.orbit.target.set(0.92, 104.4, 1.0)
         this.orbit.update();
-        this.orbit.addEventListener( 'change', () => { this.render() } );
     }
 
     addControl() {
         this.control = new TransformControls( this.currentCamera, this.renderer.domElement );
-        this.control.addEventListener( 'change', () => { this.render() } );
 
         this.control.addEventListener( 'dragging-changed', function ( event ) {
             this.orbit.enabled = ! event.value;

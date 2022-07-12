@@ -59,6 +59,11 @@ export const ModelPresets = {
             "_z": -0.03965845106781206,
             "_order": "XYZ"
         },
+        "orbitTarget": {
+            "x": 0.92,
+            "y": 104.4,
+            "z": 1.0
+        },
         "rendererSize": {
             "x": 800,
             "y": 600
