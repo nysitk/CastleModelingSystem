@@ -239,7 +239,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     createBottomRectangleLine(mousePos) {
         if (!this.bottomRectangleLine) {
-            this.bottomRectangleLine = new THREE.Line(new THREE.Geometry(), new THREE.LineBasicMaterial({color: 0xFFFFFF}));
+            this.bottomRectangleLine = new THREE.Line(new THREE.Geometry(), new THREE.LineBasicMaterial({color: 0xFD7E00}));
             this.sceneManager.scene.add(this.bottomRectangleLine)
         }
 
@@ -251,7 +251,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
     }
 
     createFloorLine() {
-        this.bottomRectangleLine = new THREE.Line(new THREE.Geometry(), new THREE.LineBasicMaterial({color: 0xFFFFFF}));
+        this.bottomRectangleLine = new THREE.Line(new THREE.Geometry(), new THREE.LineBasicMaterial({color: 0xFD7E00}));
         const A = this.referencePoint.ishigakiBottom[0].clone();
         const B = this.referencePoint.ishigakiBottom[1].clone();
 
@@ -417,8 +417,8 @@ import { ModelPresets } from '../models/ModelPresets.js'
     }
 
     createPresetModel() {
-        let name = "osakaSimple"
-        let type = "black" //line, black, whole
+        let name = "osaka"
+        let type = "whole" //line, black, whole
         let modelPreset = ModelPresets[name];
         let camera = this.sceneManager.cameraPersp;
 
@@ -508,9 +508,10 @@ import { ModelPresets } from '../models/ModelPresets.js'
         }
 
         if (modelPreset) {
-            // this.castle.createHafuPreset(modelPreset.hafuName);
+            this.castle.createHafuPreset(modelPreset.hafuName);
 
-            if (type == "polygon") {
+            if (type == "whole") {
+                console.log(modelPreset)
                 this.castle.setWallTexture(modelPreset.wallTexture);
                 this.castle.setYaneColor(modelPreset.yaneColor);
             }

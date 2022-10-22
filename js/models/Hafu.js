@@ -93,7 +93,7 @@ export class ChidoriHafu extends THREE.Group {
 
 	generate_side(MODE, type = "whole") {
 		if (MODE==LINE) {
-			const material = new THREE.LineBasicMaterial({color: 0xCCFFCC});
+			const material = new THREE.LineBasicMaterial({color: 0xFD7E00});
 
 			const geometry = new THREE.Geometry();
 
@@ -163,7 +163,7 @@ export class ChidoriHafu extends THREE.Group {
 
 	generate_top(MODE, type = "whole") {
 		if (MODE==LINE) {
-			const material = new THREE.LineBasicMaterial({color: 0xCCFFCC});
+			const material = new THREE.LineBasicMaterial({color: 0xFD7E00});
 
 			const geometry = new THREE.Geometry();
 			geometry.vertices.push(new THREE.Vector3(this.width/2, this.height, 0));
@@ -233,6 +233,7 @@ export class ChidoriHafu extends THREE.Group {
 			widthrate: this.width / this.getYaneComponent().getYaneSize().width,
 			heightrate: this.height / this.getYaneComponent().getYaneSize().height,
 			depthrate: this.depth / this.getYaneComponent().getYaneSize().depth,
+			symmetric: true,
 		}
         this.chidoriHafuGUIFolder = sceneManager.gui.addFolder('ChidoriHafu-' + this.PARAMS.hafu.length);
         this.chidoriHafuGUIFolder.add(this.params, 'alpha', 0, 1).onChange(() => {this.changeGUI(sceneManager)});
@@ -254,7 +255,19 @@ export class ChidoriHafu extends THREE.Group {
 		
 		this.removeChildren();
 		this.calcParameter();
-		this.create(POLYGON);
+		// this.create(POLYGON);
+	
+		this.symmetricParams = {
+			layer: this.layer,
+			dir: (this.dir + 2) % 4,
+			alpha: this.params.alpha,
+			centerrate: this.params.centerrate,
+			widthrate: this.params.widthrate,
+			heightrate: this.params.heightrate,
+			depthrate: this.params.depthrate,
+		}
+		console.log(this.symmetricParams)
+		this.getYaneComponent().createSimpleChidoriHafu(this.symmetricParams).create(POLYGON)
 
 		sceneManager.render();
 	}

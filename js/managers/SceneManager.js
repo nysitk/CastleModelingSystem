@@ -22,7 +22,7 @@ export class SceneManager {
         this.onWindowResizeEvent = this.onWindowResize.bind(this);
         this.addOnWindowResize();
 
-        // this.detectRectangle = new DetectRectangleTest(this);
+        this.detectRectangle = new DetectRectangleTest(this);
 
         return this;
     }
@@ -57,15 +57,18 @@ export class SceneManager {
         const grid1 = new THREE.GridHelper( 1000, 20, 0x888888 );
         grid1.material.color.setHex( 0x888888 );
         grid1.material.vertexColors = false;
-        this.grid.add( grid1 );
+        // this.grid.add( grid1 );
 
-        const grid2 = new THREE.GridHelper( 1000, 10, 0x222222 );
-        grid2.material.color.setHex( 0x222222 );
+        const grid2 = new THREE.GridHelper( 1000, 5, 0xCCCCCC );
+        grid2.material.color.setHex( 0x888888 );
         grid2.material.depthFunc = THREE.AlwaysDepth;
         grid2.material.vertexColors = false;
         this.grid.add( grid2 );
 
-        // this.scene.add(this.grid)
+        this.scene.add(this.grid)
+
+        this.axesHelper = new THREE.AxesHelper( 150 );
+        this.scene.add( this.axesHelper );
     }
 
     addCamera() {
@@ -76,7 +79,7 @@ export class SceneManager {
         this.cameraOrtho = new THREE.OrthographicCamera( - 600 * this.aspect, 600 * this.aspect, 600, - 600, 0.01, 30000 );
         
         this.currentCamera = this.cameraPersp;
-        this.currentCamera.position.set( 253, 187, 614 );
+        this.currentCamera.position.set( 250, 200, 600 );
 
     }
 
@@ -126,7 +129,7 @@ export class SceneManager {
 
     addOrbit() {
         this.orbit = new OrbitControls( this.currentCamera, this.renderer.domElement );
-        this.orbit.target.set(0.92, 104.4, 1.0)
+        this.orbit.target.set(1.0, 100.0, 1.0)
         this.orbit.update();
     }
 

@@ -217,7 +217,7 @@ class YaneBody extends THREE.Group {
 
 	generateLine() {
 
-        const material = new THREE.LineBasicMaterial({color: 0xFFFFFF});
+        const material = new THREE.LineBasicMaterial({color: 0xFD7E00});
 
         const upperGeometry = new THREE.Geometry();
         const lowerGeometry = new THREE.Geometry();

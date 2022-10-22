@@ -110,6 +110,7 @@ export const ModelPresets = {
         },
         "fov": 30,
         "yaguraSteps": 5,
+        "yaneColor": 0x638A72,
         "orbitTarget": {
             "x": 0,
             "y": 75,

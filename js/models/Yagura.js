@@ -101,7 +101,7 @@ class Line extends Yagura {
     
     create() {
 		for (const vertices of this.allVertices) {
-            const material = new THREE.LineBasicMaterial({color: 0xFFFFFF})
+            const material = new THREE.LineBasicMaterial({color: 0xFD7E00})
             const geometry = new ModelingSupporter().generateBoxLineGeometry(
                 vertices.A,
                 vertices.B,

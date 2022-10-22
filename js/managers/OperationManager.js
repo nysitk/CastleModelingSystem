@@ -89,8 +89,8 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 this.modelingManager.createIshigakiLine(mousePos);
                 break;
             case 3:
-                this.modelingManager.createYaguraPolygon(mousePos);
-                // this.modelingManager.createYaguraLine(mousePos);
+                // this.modelingManager.createYaguraPolygon(mousePos);
+                this.modelingManager.createYaguraLine(mousePos);
                 this.modelingManager.createYaneLine(mousePos);
                 break;
         }
@@ -187,13 +187,20 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 
                 function exportToObj(sceneManager) {
 
-                    const exporter = new OBJExporter("castle");
+                    const exporter = new OBJExporterWithMtl("castle");
+
                     sceneManager.scene.remove(sceneManager.sky);
 
                     const result = exporter.parse( sceneManager.scene );
-                    console.log(result)
-                    var objblob = new Blob([result], {"type": "text/plain"});
+
+                    sceneManager.scene.add(sceneManager.sky);
+
+                    console.log(result.obj)
+                    console.log(result.mtl)
+
+                    var objblob = new Blob([result.obj], {"type": "text/plain"});
                     var mtlblob = new Blob([result.mtl], {"type": "text/plain"});
+
                     if (window.navigator.msSaveBlob) { 
                         window.navigator.msSaveBlob(objblob, "castle.obj");
                         window.navigator.msSaveBlob(mtlblob, "castle.mtl");
@@ -204,9 +211,12 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                         document.getElementById("objExport").href = window.URL.createObjectURL(objblob);
                         document.getElementById("mtlExport").href = window.URL.createObjectURL(mtlblob);
                     }
-                    sceneManager.scene.add(sceneManager.sky);
 
                 }
+                break;
+
+            case 'KeyD':
+                this.modelingManager.castle.setYaneColor("0x638A72");
                 break;
 
             case 'KeyI':
@@ -273,23 +283,23 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
     gradientDescentCameraParameter() {
 
         // shimabara
-        // const cameraPos = {
-        //     "x": 400, //ans:241.72459748046273,
-        //     "y": 0, //ans:72.8499912883189,
-        //     "z": 390, //ans:387.9337030430132
-        // }
+        const cameraPos = {
+            "x": 200, //ans:241.72459748046273,
+            "y": 72.8499912883189,
+            "z": 387.9337030430132
+        }
 
-        // const orbitTarget = {
-        //     "x": 0.92,
-        //     "y": 104.4,
-        //     "z": 1.0
-        // }
+        const orbitTarget = {
+            "x": 0.92,
+            "y": 104.4,
+            "z": 1.0
+        }
 
         const cameraPersp = this.sceneManager.cameraPersp
         const orbit = this.sceneManager.orbit
 
-        const cameraPos = cameraPersp.position
-        const orbitTarget = orbit.target
+        // const cameraPos = cameraPersp.position
+        // const orbitTarget = orbit.target
 
         const calcError = () => this.calcError("num")
 
@@ -332,20 +342,20 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
                 prevPos.x = cameraPos.x;
                 cameraPos.x += 0.001;
 
-                prevPos.y = cameraPos.y;
-                cameraPos.y += 0.001;
+                // prevPos.y = cameraPos.y;
+                // cameraPos.y += 0.001;
 
-                prevPos.z = cameraPos.z;
-                cameraPos.z += 0.001;
+                // prevPos.z = cameraPos.z;
+                // cameraPos.z += 0.001;
 
-                prevTarget.x = orbitTarget.x;
-                orbitTarget.x += 0.001;
+                // prevTarget.x = orbitTarget.x;
+                // orbitTarget.x += 0.001;
 
-                prevTarget.y = orbitTarget.y;
-                orbitTarget.y += 0.001;
+                // prevTarget.y = orbitTarget.y;
+                // orbitTarget.y += 0.001;
 
-                prevTarget.z = orbitTarget.z;
-                orbitTarget.z += 0.001;
+                // prevTarget.z = orbitTarget.z;
+                // orbitTarget.z += 0.001;
 
                 // カメラ位置の変更
                 cameraPersp.position.set(
@@ -383,30 +393,30 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
             cameraPos.x -= alpha * difference.x;
             if (cameraPos.x == prevPos.x) cameraPos.x += 0.1;
 
-            difference.y = (nowError - prevError) / (cameraPos.y - prevPos.y);
-            prevPos.y = cameraPos.y;
-            cameraPos.y -= alpha * difference.y;
-            if (cameraPos.y == prevPos.y) cameraPos.y += 0.1;
+            // difference.y = (nowError - prevError) / (cameraPos.y - prevPos.y);
+            // prevPos.y = cameraPos.y;
+            // cameraPos.y -= alpha * difference.y;
+            // if (cameraPos.y == prevPos.y) cameraPos.y += 0.1;
 
-            difference.z = (nowError - prevError) / (cameraPos.z - prevPos.z);
-            prevPos.z = cameraPos.z;
-            cameraPos.z -= alpha * difference.z;
-            if (cameraPos.z == prevPos.z) cameraPos.z += 0.1;
+            // difference.z = (nowError - prevError) / (cameraPos.z - prevPos.z);
+            // prevPos.z = cameraPos.z;
+            // cameraPos.z -= alpha * difference.z;
+            // if (cameraPos.z == prevPos.z) cameraPos.z += 0.1;
 
-            difference.x = (nowError - prevError) / (orbitTarget.x - prevTarget.x);
-            prevTarget.x = orbitTarget.x;
-            orbitTarget.x -= alpha * difference.x;
-            if (orbitTarget.x == prevTarget.x) orbitTarget.x += 0.1;
+            // difference.x = (nowError - prevError) / (orbitTarget.x - prevTarget.x);
+            // prevTarget.x = orbitTarget.x;
+            // orbitTarget.x -= alpha * difference.x;
+            // if (orbitTarget.x == prevTarget.x) orbitTarget.x += 0.1;
 
-            difference.y = (nowError - prevError) / (orbitTarget.y - prevTarget.y);
-            prevTarget.y = orbitTarget.y;
-            orbitTarget.y -= alpha * difference.y;
-            if (orbitTarget.y == prevTarget.y) orbitTarget.y += 0.1;
+            // difference.y = (nowError - prevError) / (orbitTarget.y - prevTarget.y);
+            // prevTarget.y = orbitTarget.y;
+            // orbitTarget.y -= alpha * difference.y;
+            // if (orbitTarget.y == prevTarget.y) orbitTarget.y += 0.1;
 
-            difference.z = (nowError - prevError) / (orbitTarget.z - prevTarget.z);
-            prevTarget.z = orbitTarget.z;
-            orbitTarget.z -= alpha * difference.z;
-            if (orbitTarget.z == prevTarget.z) orbitTarget.z += 0.1;
+            // difference.z = (nowError - prevError) / (orbitTarget.z - prevTarget.z);
+            // prevTarget.z = orbitTarget.z;
+            // orbitTarget.z -= alpha * difference.z;
+            // if (orbitTarget.z == prevTarget.z) orbitTarget.z += 0.1;
 
             // console.log(cameraPos, orbitTarget, nowError, min)
 

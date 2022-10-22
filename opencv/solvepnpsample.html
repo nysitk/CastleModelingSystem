@@ -1,0 +1,337 @@
+<!--
+    https://showy-iguanodon-aca.notion.site/2D-5720fe51d2274809b357a8f0787dfcda
+    上記サイトのコードをJavaScriptに変換したもの
+
+    正解データ：
+    - カメラ座標： x：392,  y：336,  z：234
+    - 画角（fov）：90°
+    - 解像度横：1280[px]
+    - 解像度縦：720[px]
+    - 光軸：中心
+-->
+
+<p id="status">opencv.js 読み込み中... まだ押せない↓</p>
+<button disabled id="startButton" onclick="init()">スタート</button>
+<div style="position: relative;">
+    <canvas id="canvas" width="942" height="714" style="position: absolute; top: 0px; left: 0px; transform: scaleX(-1);"></canvas>
+  </div>
+
+<script>
+const button = document.getElementById("startButton");
+
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
+
+// opencv.jsが読み込まれた後に実行される
+function onOpenCvReady() {
+  document.getElementById("status").innerHTML = "opencv.js 読み込み終了 もう押せる↓";
+  button.disabled = false
+}
+
+function init() {
+
+    // 入力データ
+    COORD_SET_FOR_CALIB_2D = [
+        // uvz(screen cood), xyz(unrealengine coord)
+        ...[663, 306],
+        ...[871, 313],
+        ...[776, 366],
+        ...[758, 263],
+        ...[762, 469],
+        ...[898, 562],
+    ]
+
+    COORD_SET_FOR_CALIB_3D = [
+        ...[560, 500, 100],
+        ...[500, 560, 100],
+        ...[500, 500, 100],
+        ...[560, 560, 100],
+        ...[500, 500, 50],
+        ...[440, 500, 50]
+    ]
+
+    // テストデータ
+    COORD_SET_FOR_TEST_2D = [
+        // uvz(screen cood), xyz(unrealengine coord)
+        ...[1022, 376],
+        ...[935, 453], 
+        ...[748, 354],
+        ...[849, 408],
+        ...[661, 402],
+        ...[978, 481],
+    ]
+
+    COORD_SET_FOR_TEST_3D = [
+        ...[440, 560, 100],
+        ...[440, 500, 100],
+        ...[560, 560, 50],
+        ...[500, 560, 50],
+        ...[560, 500, 50],
+        ...[440, 560, 50]
+    ]
+    
+    const rows = COORD_SET_FOR_CALIB_3D.length / 3;
+
+    // camera matrix
+    const size = {
+        width: 1280,
+        height: 720,
+    };
+
+    const fov = 90;
+    const fx = 1.0 / (2.0 * Math.tan( fov * (Math.PI/180) / 2.0 )) * size.width;
+    const fy = fx;
+    const cx = size.width / 2.0;
+    const cy = size.height / 2.0;
+    const center = [size.width / 2, size.height / 2];
+    const cameraMatrix = cv.matFromArray(3, 3, cv.CV_64FC1, [
+        ...[fx, 0, cx],
+        ...[0, fy, cy],
+        ...[0, 0, 1],
+    ]);
+
+    // image matrix
+    const distCoeffs = cv.Mat.zeros(4, 1, cv.CV_64FC1);
+    const rvec = new cv.Mat({ width: 1, height: 3 }, cv.CV_64FC1);
+    const tvec = new cv.Mat({ width: 1, height: 3 }, cv.CV_64FC1);
+
+    // 2D points
+    const imagePoints = cv.matFromArray(rows, 2, cv.CV_64FC1, COORD_SET_FOR_CALIB_2D);
+
+    // 3D points
+    const modelPoints = cv.matFromArray(rows, 3, cv.CV_64FC1, COORD_SET_FOR_CALIB_3D);
+
+    // 移動ベクトルと回転ベクトルの初期値を与えることで推測速度の向上をはかる
+    tvec.data64F[0] = -100;
+    tvec.data64F[1] = 100;
+    tvec.data64F[2] = 1000;
+
+    const success = cv.solvePnP(
+        modelPoints,
+        imagePoints,
+        cameraMatrix,
+        distCoeffs,
+        rvec,
+        tvec,
+        true
+    );
+
+    const result = {
+        success,
+        imagePoints,
+        cameraMatrix,
+        distCoeffs,
+        rvec, // 回転ベクトル
+        tvec, // 移動ベクトル
+    };
+
+    console.log(result)
+
+    // 2D points
+    const imagePointsTest = new cv.Mat();
+
+    // 3D points
+    const modelPointsTest = cv.matFromArray(rows, 3, cv.CV_64FC1, COORD_SET_FOR_TEST_3D);
+
+    const jaco = new cv.Mat();
+
+    cv.projectPoints(
+        modelPointsTest,
+        rvec,
+        tvec,
+        cameraMatrix,
+        distCoeffs,
+        imagePointsTest,
+        jaco
+    );
+
+    console.log(imagePointsTest);
+
+    const rmat = new cv.Mat();
+    cv.Rodrigues(rvec, rmat);
+
+    const rraw = new cv.Mat();
+    cv.transpose(rmat, rraw);
+
+    const traw = new cv.Mat();
+    cv.gemm(rraw, tvec, -1, new cv.Mat(), 0, traw)
+
+    console.log(rmat.data64F[0], rmat.data64F[1], rmat.data64F[2],
+        rmat.data64F[3], rmat.data64F[4], rmat.data64F[5],
+        rmat.data64F[6], rmat.data64F[7], rmat.data64F[8],
+    )
+    console.log(traw.data64F[0], traw.data64F[1], traw.data64F[2])
+    console.log(rraw.data64F[0], rraw.data64F[1], rraw.data64F[2],
+        rraw.data64F[3], rraw.data64F[4], rraw.data64F[5],
+        rraw.data64F[6], rraw.data64F[7], rraw.data64F[8],
+    )
+
+    drawResultRectangle();
+    drawResultAxis();
+
+    // --------------------------------
+
+    function drawResultRectangle() {
+        const point3D = [
+            new cv.Mat(),
+            new cv.Mat(),
+            new cv.Mat(),
+            new cv.Mat()
+        ];
+
+        const point2D = [
+            cv.matFromArray(1, 3, cv.CV_64FC1, [100, 50, 0]),
+            cv.matFromArray(1, 3, cv.CV_64FC1, [-100, 50, 0]),
+            cv.matFromArray(1, 3, cv.CV_64FC1, [-100, -50, 0]),
+            cv.matFromArray(1, 3, cv.CV_64FC1, [100, -50, 0])
+        ]
+        
+        const jaco = new cv.Mat();
+
+        const position = [];
+
+        for (let i = 0; i < point3D.length; i++) {
+            cv.projectPoints(
+                point2D[i],
+                rvec,
+                tvec,
+                cameraMatrix,
+                distCoeffs,
+                point3D[i],
+                jaco
+            );
+
+            position.push(
+                {
+                    x: point3D[i].data64F[0],
+                    y: point3D[i].data64F[1],
+                }
+            )
+        }
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < position.length; i++) {
+            addSideLine(i)
+        }
+
+        function addSideLine(i) {
+            const ii = (i + 1) % 4;
+
+            context.beginPath();
+            context.lineWidth = 2;
+            context.strokeStyle = "black";
+            context.moveTo(position[i].x, position[i].y);
+            context.lineTo(position[ii].x, position[ii].y);
+            context.stroke();
+            context.closePath();
+        }
+
+    }
+
+    function drawResultAxis() {
+
+        const endPoint2DO = new cv.Mat();
+        const endPoint2DZ = new cv.Mat();
+        const endPoint2DY = new cv.Mat();
+        const endPoint2DX = new cv.Mat();
+
+        const pointO = cv.matFromArray(1, 3, cv.CV_64FC1, [0.0, 0.0, 0.0]);
+        const pointZ = cv.matFromArray(1, 3, cv.CV_64FC1, [0.0, 0.0, 100.0]);
+        const pointY = cv.matFromArray(1, 3, cv.CV_64FC1, [0.0, 100.0, 0.0]);
+        const pointX = cv.matFromArray(1, 3, cv.CV_64FC1, [100.0, 0.0, 0.0]);
+        const jaco = new cv.Mat();
+
+        cv.projectPoints(
+            pointO,
+            rvec,
+            tvec,
+            cameraMatrix,
+            distCoeffs,
+            endPoint2DO,
+            jaco
+        );
+        cv.projectPoints(
+            pointZ,
+            rvec,
+            tvec,
+            cameraMatrix,
+            distCoeffs,
+            endPoint2DZ,
+            jaco
+        );
+        cv.projectPoints(
+            pointY,
+            rvec,
+            tvec,
+            cameraMatrix,
+            distCoeffs,
+            endPoint2DY,
+            jaco
+        );
+        cv.projectPoints(
+            pointX,
+            rvec,
+            tvec,
+            cameraMatrix,
+            distCoeffs,
+            endPoint2DX,
+            jaco
+        );
+
+        const position = {
+            origin: {
+                x: endPoint2DO.data64F[0],
+                y: endPoint2DO.data64F[1],
+            },
+            x: {
+                x: endPoint2DX.data64F[0],
+                y: endPoint2DX.data64F[1],
+            },
+            y: {
+                x: endPoint2DY.data64F[0],
+                y: endPoint2DY.data64F[1],
+            },
+            z: {
+                x: endPoint2DZ.data64F[0],
+                y: endPoint2DZ.data64F[1],
+            },
+        };
+
+        // context.clearRect(0, 0, canvas.width, canvas.height);
+
+        addLine(position, "x")
+        addLine(position, "y")
+        addLine(position, "z")
+    
+        function addLine(position, dir) {
+            let color = "black"
+            switch (dir) {
+                case "x":
+                    color = "green"
+                    break;
+                case "y":
+                    color = "red"
+                    break;
+                case "z":
+                    color = "blue"
+                    break;
+            }
+            context.beginPath();
+            context.lineWidth = 2;
+            context.strokeStyle = color;
+            context.moveTo(position.origin.x, position.origin.y);
+            context.lineTo(position[dir].x, position[dir].y);
+            context.stroke();
+            context.closePath();
+        }
+
+    }
+
+}
+</script>
+<script async src="opencv.js" onload="onOpenCvReady();"></script>
+
+<!--
+    参考コード： https://blog.mahoroi.com/posts/2020/05/browser-head-pose-estimation/
+-->

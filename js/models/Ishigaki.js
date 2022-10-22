@@ -29,10 +29,11 @@ export class Ishigaki extends THREE.Group {
 
     calcParameters() {
 		this.h = this.C.y - this.A.y;
-		this.b_x = (this.A.x - this.C.x) * 50/44;
-		this.b_z = (this.A.z - this.C.z) * 50/44;
-		this.d_x = (this.A.x - this.C.x) * 6/44;
-		this.d_z = (this.A.z - this.C.z) * 6/44;
+        const b_rate = 50/44;
+		this.b_x = (this.A.x - this.C.x) * b_rate;
+		this.b_z = (this.A.z - this.C.z) * b_rate;
+		this.d_x = (this.A.x - this.C.x) * (b_rate - 1);
+		this.d_z = (this.A.z - this.C.z) * (b_rate - 1);
 
 		this.delta_x = this.ishigakiSteps / (this.ishigakiSteps - 1) * this.d_x / this.h;
 		this.delta_z = this.ishigakiSteps / (this.ishigakiSteps - 1) * this.d_z / this.h;
@@ -92,7 +93,7 @@ class Line extends Ishigaki {
 			tmpD.y += this.changeLevel('y', (this.ishigakiSteps-1)-i);
 			tmpD.z += this.changeLevel('z', (this.ishigakiSteps-1)-i);
 
-            const material = new THREE.LineBasicMaterial({color: 0xFFFFFF})
+            const material = new LineBasicMaterial({color: 0xFD7E00, linewidth: 20})
             const geometry = new ModelingSupporter().generateBoxLineGeometry(tmpA, tmpB, tmpC, tmpD);
 
             this.add(new THREE.Line(geometry, material));
