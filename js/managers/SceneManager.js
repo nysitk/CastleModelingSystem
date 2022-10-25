@@ -80,6 +80,7 @@ export class SceneManager {
         
         this.currentCamera = this.cameraPersp;
         this.currentCamera.position.set( 250, 200, 600 );
+        console.log(this.currentCamera.projectionMatrixInverse)
 
     }
 
@@ -154,7 +155,7 @@ export class SceneManager {
 
     addGUICamera() {
         const cameraFolder = this.gui.addFolder('Camera');
-        cameraFolder.add(this.cameraPersp, "fov", 0, 90, 1).onChange( () => { this.changeGUI() } );
+        cameraFolder.add(this.cameraPersp, "fov", 0, 90, 1).listen().onChange( () => { this.changeGUI() } );
     }
 
     addGUISky() {
@@ -172,22 +173,22 @@ export class SceneManager {
 
         const skyFolder = this.gui.addFolder('Sky');
 
-        skyFolder.add( this.effectController, "turbidity", 0.0, 20.0, 0.1 ).onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "rayleigh", 0.0, 4, 0.001 ).onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "mieCoefficient", 0.0, 0.1, 0.001 ).onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "mieDirectionalG", 0.0, 1, 0.001 ).onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "inclination", 0, 1, 0.0001 ).onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "azimuth", 0, 1, 0.0001 ).onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "exposure", 0, 1, 0.0001 ).onChange( () => { this.changeGUI() } );
+        skyFolder.add( this.effectController, "turbidity", 0.0, 20.0, 0.1 ).listen().onChange( () => { this.changeGUI() } );
+        skyFolder.add( this.effectController, "rayleigh", 0.0, 4, 0.001 ).listen().onChange( () => { this.changeGUI() } );
+        skyFolder.add( this.effectController, "mieCoefficient", 0.0, 0.1, 0.001 ).listen().onChange( () => { this.changeGUI() } );
+        skyFolder.add( this.effectController, "mieDirectionalG", 0.0, 1, 0.001 ).listen().onChange( () => { this.changeGUI() } );
+        skyFolder.add( this.effectController, "inclination", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
+        skyFolder.add( this.effectController, "azimuth", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
+        skyFolder.add( this.effectController, "exposure", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
 
     }
 
     addGUILight() {
         const directionalLightFolder = this.gui.addFolder('DirectionalLight');
-        directionalLightFolder.add(this.directionalLight, 'intensity', 0, 2, 0.01).onChange( () => { this.changeGUI() } );
-        directionalLightFolder.add(this.directionalLight.target.position, 'x', -2000, 2000).onChange( () => { this.changeGUI() } );
-        directionalLightFolder.add(this.directionalLight.target.position, 'z', -2000, 2000).onChange( () => { this.changeGUI() } );
-        directionalLightFolder.add(this.directionalLight.target.position, 'y', 0, 2000).onChange( () => { this.changeGUI() } );
+        directionalLightFolder.add(this.directionalLight, 'intensity', 0, 2, 0.01).listen().onChange( () => { this.changeGUI() } );
+        directionalLightFolder.add(this.directionalLight.target.position, 'x', -2000, 2000).listen().onChange( () => { this.changeGUI() } );
+        directionalLightFolder.add(this.directionalLight.target.position, 'z', -2000, 2000).listen().onChange( () => { this.changeGUI() } );
+        directionalLightFolder.add(this.directionalLight.target.position, 'y', 0, 2000).listen().onChange( () => { this.changeGUI() } );
 
     }
 
@@ -196,7 +197,7 @@ export class SceneManager {
             opacity: 1.0
         }
         const canvasFolder = this.gui.addFolder('Canvas');
-        canvasFolder.add(this.canvasController, 'opacity', 0, 1.0).onChange( (e) => {
+        canvasFolder.add(this.canvasController, 'opacity', 0, 1.0).listen().onChange( (e) => {
             $(this.renderer.domElement).css('opacity', e)
         })
     }

@@ -1,6 +1,5 @@
 import * as THREE from '/build/three.module.js';
 
-
 export class DetectRectangleTest {
     constructor(sceneManager) {
         this.sceneManager = sceneManager;
@@ -43,15 +42,18 @@ class Plane extends THREE.Mesh {
         let c = this.worldToScreenCoordinate(0, 0, 0, sceneManager.currentCamera);
         console.log(new THREE.Vector3(0, 0, 0), c)
 
-        console.log("camera:", sceneManager.currentCamera)
-        console.log("orbit:", sceneManager.orbit)
-        console.log("Width:", window.innerWidth, " Height:", window.innerHeight)
+
+        // console.log("camera:", sceneManager.currentCamera)
+        // console.log("orbit:", sceneManager.orbit)
+        // console.log("Width:", window.innerWidth, " Height:", window.innerHeight)
+        // console.log("matrixWorldInverse:", sceneManager.currentCamera.matrixWorldInverse)
+        // console.log("projectionMatrix:", sceneManager.currentCamera.projectionMatrix)
     }
 
     // ワールド座標からスクリーン座標に変換
     worldToScreenCoordinate(x, y, z, camera) {
-        const projection = new THREE.Vector3(x, y, z).project(camera);
-        // const projection = new THREE.Vector3(x, y, z).applyMatrix4(camera.matrixWorldInverse).applyMatrix4(camera.projectionMatrix);
+        // const projection = new THREE.Vector3(x, y, z).project(camera);
+        const projection = new THREE.Vector3(x, y, z).applyMatrix4(camera.matrixWorldInverse).applyMatrix4(camera.projectionMatrix);
 
         const sx = (window.innerWidth / 2) * ( +projection.x + 1.0 );
         const sy = (window.innerHeight / 2) * ( -projection.y + 1.0 );

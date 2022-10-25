@@ -1,0 +1,131 @@
+{
+    "data": [
+        {
+            "$comment": "This is a template.",
+            "coordinateSystem": "Three.js",
+            "coordinates": [
+                {
+                    "ID": 1,
+                    "worldCoordinate": [-500, 328, -568],
+                    "screenCoordinate": [762, 284]
+                }
+            ],
+            "camera": {
+                "fov": 30,
+                "position": [2421, 1241, 293]
+            },
+            "orbit": {
+                "target": [-35, 336, 141]
+            },
+            "renderSize": {
+                "width": 942,
+                "height": 714
+            }
+        },
+
+        {
+            "coordinateSystem": "Three.js",
+            "coordinates": [
+                {
+                    "ID": 1,
+                    "worldCoordinate": [-500.1565744066836, 328.4058162663621, -568.4514913614764],
+                    "screenCoordinate": [762.5261289732233, 284.71329434355863]
+                },
+                {
+                    "ID": 2,
+                    "worldCoordinate": [-240.38166396734266, 505.01037789081283, 920.5973933328582],
+                    "screenCoordinate": [82.08905901984372, 252.49895650063758]
+                },
+                {
+                    "ID": 3,
+                    "worldCoordinate": [-495.3755335397094, -487.55044969867174, 842.2055047016377],
+                    "screenCoordinate": [176.4354590466826, 611.3580884254677]
+                },
+                {
+                    "ID": 4,
+                    "worldCoordinate": [-571.2132036056632, -63.51192478917551, -870.2203467252457],
+                    "screenCoordinate": [862.3118832042154, 424.6242577781339]
+                },
+                {
+                    "ID": 5,
+                    "worldCoordinate": [776.9077243780398, 770.5123375841399, 376.3744104529976],
+                    "screenCoordinate": [325.9029376918858, 260.47214718847965]
+                },
+                {
+                    "ID": 6,
+                    "worldCoordinate": [-285.21001215751744, 523.7012467978577, -595.7499334740226],
+                    "screenCoordinate": [809.0827408701812, 226.2819110755879]
+                },
+                {
+                    "ID": 7,
+                    "worldCoordinate": [-372.12060241270797, -177.8529127391772, 941.8568033019121],
+                    "screenCoordinate": [114.67690471254825, 523.436137437008]
+                },
+                {
+                    "ID": 8,
+                    "worldCoordinate": [-70.6626551907492, 764.9379430218773, -28.69941731429651],
+                    "screenCoordinate": [559.2282944194421, 135.53507180982194]
+                }
+            ],
+            "camera": {
+                "fov": 30,
+                "position": [2421, 1241, 293]
+            },
+            "orbit": {
+                "target": [-35, 336, 141]
+            },
+            "renderSize": {
+                "width": 942,
+                "height": 714
+            }
+        },
+        
+        {
+            "$comment": "Refer to https://showy-iguanodon-aca.notion.site/2D-5720fe51d2274809b357a8f0787dfcda",
+            "coordinateSystem": "UnrealEngine",
+            "coordinates": [
+                {
+                    "ID": 1,
+                    "worldCoordinate": [560, 500, 100],
+                    "screenCoordinate": [663, 306]
+                },
+                {
+                    "ID": 2,
+                    "worldCoordinate": [500, 560, 100],
+                    "screenCoordinate": [871, 313]
+                },
+                {
+                    "ID": 3,
+                    "worldCoordinate": [500, 500, 100],
+                    "screenCoordinate": [776, 366]
+                },
+                {
+                    "ID": 4,
+                    "worldCoordinate": [560, 560, 100],
+                    "screenCoordinate": [758, 263]
+                },
+                {
+                    "ID": 5,
+                    "worldCoordinate": [500, 500, 50],
+                    "screenCoordinate": [762, 469]
+                },
+                {
+                    "ID": 6,
+                    "worldCoordinate": [440, 500, 50],
+                    "screenCoordinate": [898, 562]
+                }
+            ],
+            "camera": {
+                "fov": 90,
+                "position": [392, 336, 234],
+                "rotation": [326, 41, 0]
+            },
+            "orbit": {
+            },
+            "renderSize": {
+                "width": 1280,
+                "height": 720
+            }
+        }
+    ]
+}

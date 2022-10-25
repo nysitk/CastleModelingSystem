@@ -1,0 +1,42 @@
+<p id="status">opencv.js 読み込み中... まだ押せない↓</p>
+<button disabled id="startButton">スタート</button>
+<button disabled id="startButton2">カメラ推定</button>
+<button id="setSceneButton">シーンセット</button>
+<button id="startButton3">SolvePnP</button>
+<button id="addSphereButton">addSphere</button>
+<div>
+    <p id="mousePos"></p>
+    <table id="sphereTable">
+        <tr>
+            <td>ID</td>
+            <td>3Dx</td>
+            <td>3Dy</td>
+            <td>3Dz</td>
+            <td>2Dx</td>
+            <td>2Dy</td>
+        </tr>
+    </table>
+</div>
+<div style="position: relative;">
+    <!-- <img src="testInverse.png"> -->
+    <!-- <canvas id="canvas" width="942" height="714" style="position: absolute; top: 0px; left: 0px; transform: scaleX(-1);"></canvas> -->
+  </div>
+
+  <script>
+    const button = document.getElementById("startButton");
+    const button2 = document.getElementById("startButton2");
+    const button22 = document.getElementById("startButton22");
+    const button3 = document.getElementById("startButton3");
+    
+    // opencv.jsが読み込まれた後に実行される
+    function onOpenCvReady() {
+        document.getElementById("status").innerHTML = "opencv.js 読み込み終了 もう押せる↓";
+        button.disabled = false
+        button2.disabled = false
+        button3.disabled = false
+    }
+  </script>
+<script type="module" src="generateCoordinates.js"></script>  
+<script type="module" src="coordinateSolvePnP.js"></script>  
+<script type="module" src="coordinateTransformation.js"></script>
+<script async src="opencv.js" onload="onOpenCvReady();"></script>
