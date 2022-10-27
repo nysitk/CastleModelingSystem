@@ -66,7 +66,7 @@ function solvePnPFromJSON(data) {
     };
 
     const fov = currentData.camera.fov;
-    const fx = 1.0 / (2.0 * Math.tan( fov * (Math.PI/180) / 2.0 )) * size.width;
+    const fx = 1.0 / (2.0 * Math.tan( fov * (Math.PI/180) / 2.0 )) * size.height;
     const fy = fx;
     const cx = size.width / 2.0;
     const cy = size.height / 2.0;

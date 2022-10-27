@@ -13,8 +13,10 @@ function init() {
         z: getRandomArbitrary(-1000, 1000),
     }
 
-    const resultCv = simpleCalcOpenCvProjection(coord.x, coord.y, coord.z);
-    const resultTh = simpleCalcThreeJsProjection(coord.x, coord.y, coord.z);
+    // const resultCv = simpleCalcOpenCvProjection(coord.x, coord.y, coord.z);
+    // const resultTh = simpleCalcThreeJsProjection(coord.x, coord.y, coord.z);
+    const resultCv = simpleCalcOpenCvProjection(100,200,300);
+    const resultTh = simpleCalcThreeJsProjection(100,200,300);
 
     console.log(resultCv, resultTh)
 }
@@ -131,10 +133,15 @@ function simpleCalcThreeJsProjection(x, y, z) {
     // ワールド座標からスクリーン座標に変換
     function worldToScreenCoordinate(x, y, z, camera) {
         // const projection = new THREE.Vector3(x, y, z).project(camera);
+        console.log(x,y,z)
+        console.log(matrixWorldInverse)
+        console.log(projectionMatrix)
         const projection = new THREE.Vector3(x, y, z).applyMatrix4(matrixWorldInverse).applyMatrix4(projectionMatrix);
 
         const sx = (size.width / 2) * ( +projection.x + 1.0 );
         const sy = (size.height / 2) * ( -projection.y + 1.0 );
+        console.log(projection)
+        console.log(sx,sy)
 
         // スクリーン座標
         return new THREE.Vector2(sx, sy)
