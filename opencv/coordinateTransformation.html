@@ -2,8 +2,11 @@
 <button disabled id="startButton">スタート</button>
 <button disabled id="startButton2">カメラ推定</button>
 <button id="setSceneButton">シーンセット</button>
+<button id="exportSceneButton">シーン出力</button>
 <button id="startButton3">SolvePnP</button>
-<button id="addSphereButton">addSphere</button>
+<button id="exportPnPButton">SolvePnP結果出力</button>
+<button id="addSphereButton">addSphere</button><br>
+Scene Set:<input type="text" id="sceneInput" value="4">
 <div>
     <p id="mousePos"></p>
     <table id="sphereTable">
@@ -18,9 +21,9 @@
     </table>
 </div>
 <div style="position: relative;">
-    <!-- <img src="testInverse.png"> -->
-    <!-- <canvas id="canvas" width="942" height="714" style="position: absolute; top: 0px; left: 0px; transform: scaleX(-1);"></canvas> -->
-  </div>
+    <!-- <canvas id="canvas" width="942" height="714" style="border: 1px solid #ccc; position: absolute; top: 0px; left: 0px; transform: scaleX(-1);"></canvas> -->
+    <canvas id="canvas" style="border: 1px solid #ccc;"></canvas>
+</div>
 
   <script>
     const button = document.getElementById("startButton");

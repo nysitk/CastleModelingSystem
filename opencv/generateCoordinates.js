@@ -83,7 +83,7 @@ class ThreeJsScene {
 
         this.scene.add(this.grid)
 
-        this.axesHelper = new THREE.AxesHelper( 150 );
+        this.axesHelper = new THREE.AxesHelper( 100 );
         this.scene.add( this.axesHelper );
 
     }
@@ -136,8 +136,8 @@ class ThreeJsScene {
     addGUICamera() {
 
         const cameraFolder = this.gui.addFolder('Camera');
-        cameraFolder.add(this.currentCamera, "fov", 0, 90, 1).onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.position, "x", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
+        cameraFolder.add(this.currentCamera, "fov", 0, 90, 1).listen().onChange( () => { this.changeGUI() } );
+        cameraFolder.add(this.currentCamera.position, "x", -5000, 5000, 1).listen().onChange( () => { this.changeGUI() } );
         cameraFolder.add(this.currentCamera.position, "y", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
         cameraFolder.add(this.currentCamera.position, "z", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
         cameraFolder.add(this.currentCamera.rotation, "x", -1, 1, 0.1).listen().onChange( () => { this.changeGUI() } );
@@ -192,7 +192,7 @@ class ThreeJsScene {
     changeGUICamera() {
         this.orbit.object = this.currentCamera;
 
-        // this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
+        this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
         this.currentCamera.updateProjectionMatrix()
         // this.onWindowResize();
 
@@ -202,6 +202,7 @@ class ThreeJsScene {
 
         document.getElementById('addSphereButton').addEventListener('click', () => { this.addSphere() });
         document.getElementById('setSceneButton').addEventListener('click', () => { this.setSceneInit() });
+        document.getElementById('exportSceneButton').addEventListener('click', () => { this.exportScene() });
         this.renderer.domElement.addEventListener('mousemove', (e) => { this.onMoveEvent(e) }, false);
 
     }
@@ -214,9 +215,9 @@ class ThreeJsScene {
 
     addSphere() {
 
-        const x = getRandomArbitrary(-1000, 1000);
-        const y = getRandomArbitrary(-1000, 1000);
-        const z = getRandomArbitrary(-1000, 1000);
+        const x = getRandomArbitrary(-200, 200);
+        const y = getRandomArbitrary(-200, 200);
+        const z = getRandomArbitrary(-200, 200);
         
         function getRandomArbitrary(min, max) {
             return Math.random() * (max - min) + min;
@@ -277,7 +278,9 @@ class ThreeJsScene {
 
         function setScene(scene, data) {
 
-            const currentData = data[2];
+            const dataNum = document.getElementById('sceneInput').value;
+            if (dataNum == "") return;
+            const currentData = data[dataNum];
 
             scene.size.width = currentData.renderSize.width;
             scene.size.height = currentData.renderSize.height;
@@ -298,7 +301,7 @@ class ThreeJsScene {
                 function degToRad(deg) {
                     return deg * (Math.PI/180)
                 }
-                scene.currentCamera.rotation.set(degToRad(41), degToRad(0), degToRad(326));
+                scene.currentCamera.rotation.set(degToRad(134), degToRad(0), degToRad(411));
             }
             console.log(scene.currentCamera.rotation)
 
@@ -330,6 +333,52 @@ class ThreeJsScene {
         function ConvertCoordinateUnrealEngineToThreeJs(p) {
             return [p[1], p[2], -1 * p[0]]
         }
+
+    }
+
+    exportScene() {
+        
+        const data = {};
+
+        data.coordinateSystem = "Three.js";
+
+        data.coordinates = []
+
+        for (let i = 0; i < this.spheres.length; i++) {
+
+            const sphere = this.spheres[i];
+            const coordinate = {};
+
+            coordinate.ID = i+1;
+
+            const worldCoordinate = sphere.mesh.position;
+            coordinate.worldCoordinate = [worldCoordinate.x, worldCoordinate.y, worldCoordinate.z];
+
+            const screenCoordinate = sphere.worldToScreenCoordinate();
+            coordinate.screenCoordinate = [screenCoordinate.x, screenCoordinate.y];
+
+            data.coordinates.push(coordinate);
+            
+        }
+
+        data.camera = {}
+        data.camera.row = this.currentCamera;
+        data.camera.fov = this.currentCamera.fov;
+        const cameraPos = this.currentCamera.position
+        data.camera.position = [cameraPos.x, cameraPos.y, cameraPos.z];
+        data.camera.matrixWorldInverse = this.currentCamera.matrixWorldInverse;
+        data.camera.projectionMatrix = this.currentCamera.projectionMatrix;
+
+        data.orbit = {}
+        const orbitTarget = this.orbit.target;
+        data.orbit.target = [orbitTarget.x, orbitTarget.y, orbitTarget.z];
+
+        data.renderSize = {}
+        data.renderSize.width = this.size.width;
+        data.renderSize.height = this.size.height;
+
+        const json = JSON.stringify(data);
+        console.log(json);
 
     }
 
