@@ -661,7 +661,7 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
     }
 
     addDraggablePoint(e, count2D) {
-        const draggablePoint = new DraggablePoint(e, count2D);
+        const draggablePoint = new DraggablePoint(e.clientX, e.clientY, count2D);
         this.draggablePoint[count2D] = draggablePoint;
         draggablePoint.operationManager = this;
         draggablePoint.modelingManager = this.modelingManager;
@@ -685,17 +685,21 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 /**
  * 2Dfixモードでクリックしたときに、基準点（P1～P4）の画素座標を保持する
  */ 
-class DraggablePoint {
-    constructor(e, clickCount) {
-		this.mousePos = new THREE.Vector2(e.clientX, e.clientY)
-        this.clickCount = clickCount
+export class DraggablePoint {
+
+    constructor(x, y, clickCount) {
+
+		this.mousePos = new THREE.Vector2(x, y);
+        this.clickCount = clickCount ? clickCount : 0;
         this.isDragging = false;
+
     }
 
-    add() {
+    add(name = "position2D") {
+
         this.modelingManager.set2DPosition(this.clickCount, this.mousePos)
         
-        this.domElement = $("<div id='position2D-" + this.clickCount + "' class='position2D'></div>");
+        this.domElement = $("<div id='" + name + "-" + this.clickCount + "' class='" + name + "'></div>");
         $("body").append(this.domElement);
         this.changePosition(this.mousePos.x, this.mousePos.y)
 
@@ -723,11 +727,16 @@ class DraggablePoint {
     }
 
     changePosition(x, y) {
+
         $(this.domElement).offset({ top: y, left: x });
         $(this.domElement).css( { transform: 'translate(-50%, -50%)' } );
+
     }
 
     remove() {
+
         this.domElement.remove();
+
     }
+    
 }

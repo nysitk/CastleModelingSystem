@@ -8,12 +8,15 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
  * ユーザー操作関連のモデルクラス
  */
  export class ControlPanelManager {
+    
     constructor(operationManager) {
+        
         this.operationManager = operationManager;
         this.sceneManager = operationManager.sceneManager;
         this.modelingManager = operationManager.modelingManager;
 
-        this.init(this.operationManager.cursorInfo.mode)
+        this.init(this.operationManager.cursorInfo.mode);
+        
     }
 
     init(mode) {

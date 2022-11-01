@@ -3,6 +3,8 @@ import { OrbitControls } from '../js/controls/OrbitControls.js';
 import { Sky } from '../js/controls/Sky.js';
 import { GUI } from '../js/controls/dat.gui.module.js';
 
+import { PlanePointControl } from './PlanePointControl.js'
+
 // const canvas = document.getElementById('canvas');
 // const context = canvas.getContext('2d');
 
@@ -109,7 +111,12 @@ class ThreeJsScene {
 
         // this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( this.size.width, this.size.height );
-        document.body.appendChild( this.renderer.domElement );
+
+        this.domParent = document.getElementById("threejsContainer");
+        this.domParent.appendChild( this.renderer.domElement );
+        this.renderer.domElement.style.position = "absolute";
+        this.renderer.domElement.style.top = 0;
+        this.renderer.domElement.style.left = 0;
 
     }
 
@@ -140,9 +147,9 @@ class ThreeJsScene {
         cameraFolder.add(this.currentCamera.position, "x", -5000, 5000, 1).listen().onChange( () => { this.changeGUI() } );
         cameraFolder.add(this.currentCamera.position, "y", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
         cameraFolder.add(this.currentCamera.position, "z", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.rotation, "x", -1, 1, 0.1).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.rotation, "y", -1, 1, 0.1).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.rotation, "z", -1, 1, 0.1).listen().onChange( () => { this.changeGUI() } );
+        cameraFolder.add(this.currentCamera.rotation, "x", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
+        cameraFolder.add(this.currentCamera.rotation, "y", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
+        cameraFolder.add(this.currentCamera.rotation, "z", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
         cameraFolder.open()
 
     }
@@ -190,8 +197,8 @@ class ThreeJsScene {
     }
 
     changeGUICamera() {
-        this.orbit.object = this.currentCamera;
 
+        this.orbit.object = this.currentCamera;
         this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
         this.currentCamera.updateProjectionMatrix()
         // this.onWindowResize();
@@ -203,6 +210,9 @@ class ThreeJsScene {
         document.getElementById('addSphereButton').addEventListener('click', () => { this.addSphere() });
         document.getElementById('setSceneButton').addEventListener('click', () => { this.setSceneInit() });
         document.getElementById('exportSceneButton').addEventListener('click', () => { this.exportScene() });
+
+        document.getElementById('inputImageButton').addEventListener( 'change', (e) => { this.inputImagePlane(e) } );
+       
         this.renderer.domElement.addEventListener('mousemove', (e) => { this.onMoveEvent(e) }, false);
 
     }
@@ -301,9 +311,8 @@ class ThreeJsScene {
                 function degToRad(deg) {
                     return deg * (Math.PI/180)
                 }
-                scene.currentCamera.rotation.set(degToRad(134), degToRad(0), degToRad(411));
             }
-            console.log(scene.currentCamera.rotation)
+                // scene.currentCamera.rotation.set(-0.7438826972, 3.925578, -15.21655619);
 
             let orbitTarget = currentData.orbit.target;
             if (orbitTarget != undefined) {
@@ -379,6 +388,53 @@ class ThreeJsScene {
 
         const json = JSON.stringify(data);
         console.log(json);
+
+    }
+
+    inputImagePlane(e) {
+
+        // 画像読み込み・サイズ合わせ
+        const sceneManager = this;
+        const canvas = document.getElementById("backgroundCanvas");
+        const context = canvas.getContext("2d");
+        const image = document.getElementById("backgroundImage");
+
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            image.src = e.target.result;
+
+            image.onload = function () {
+
+                sceneManager.size.width = image.width;
+                sceneManager.size.height = image.height;
+                console.log(sceneManager.size)
+                sceneManager.domParent.style.width = image.width;
+                sceneManager.domParent.style.height = image.height;
+                canvas.width = image.width;
+                canvas.height = image.height;
+                context.drawImage(image, 0, 0)
+
+                sceneManager.renderer.domElement.style.opacity = 0.6;
+                sceneManager.changeRendererSize(canvas.width, canvas.height);
+
+                sceneManager.scene.remove(sceneManager.sky);
+                sceneManager.renderer.setClearColor(0xffffff, 1);
+
+                // sceneManager.effectController.turbidity = 0.0
+                // sceneManager.effectController.inclination = 0.0;
+                sceneManager.changeGUI();
+
+                // 特徴点指定モード
+                this.planePointControl = new PlanePointControl(sceneManager);
+
+            }
+
+        }
+
+        reader.readAsDataURL(e.target.files[0]);
+
 
     }
 
