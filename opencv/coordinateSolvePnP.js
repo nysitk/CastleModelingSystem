@@ -27,21 +27,56 @@ function init() {
         let JSONData = request.response;
         JSONData = JSON.parse(JSON.stringify(JSONData));
         
-        solvePnPFromJSON(JSONData.data);
+        const dataNum = document.getElementById('sceneInput').value;
+        if (dataNum == "") return;
+        const currentData = JSONData.data[dataNum];
+
+        const estimatedCV = solvePnPFromJSON(currentData);
+
+        const json = JSON.stringify(estimatedCV);
+        // console.log(estimatedCV);
+        // console.log(json);
+
+        test(estimatedCV);
+
     }
+}
+
+function test(estimatedCV) {
+    console.log(estimatedCV)
+    const R3 = new THREE.Matrix3().fromArray(estimatedCV.camera.R.matrix).transpose();
+    const R4 = new THREE.Matrix4()
+    const R = setFromMatrix3(R3, R4)
+    const cameraRotation = new THREE.Euler();
+    cameraRotation.setFromRotationMatrix(R, 'XYZ');
+    console.log(cameraRotation)
+}
+
+function setFromMatrix3( m3, m4 ) {
+
+    const me = m3.elements;
+
+    m4.set(
+
+        me[ 0 ], me[ 3 ], me[ 6 ], 0,
+        me[ 1 ], me[ 4 ], me[ 7 ], 0,
+        me[ 2 ], me[ 5 ], me[ 8 ], 0,
+        0, 0, 0, 1
+
+    );
+
+    return m4;
+
 }
 
 
 
-function solvePnPFromJSON(data) {
+export function solvePnPFromJSON(currentData) {
 
-    const dataNum = document.getElementById('sceneInput').value;
-    if (dataNum == "") return;
-    const currentData = data[dataNum];
-
+    console.log(currentData.renderSize)
     const testPoints3D = []
     const testPoints2D = []
-    console.log(data.length)
+
     for (let i = 0; i < currentData.coordinates.length; i++) {
 
         let pW = currentData.coordinates[i].worldCoordinate;
@@ -65,7 +100,8 @@ function solvePnPFromJSON(data) {
         height: currentData.renderSize.height,
     };
 
-    const fov = currentData.camera.fov;
+    // const fov = currentData.camera.fov ? currentData.camera.fov : 30;
+    const fov = 30;
     const fx = 1.0 / (2.0 * Math.tan( fov * (Math.PI/180) / 2.0 )) * size.height;
     const fy = fx;
     const cx = size.width / 2.0;
@@ -96,13 +132,9 @@ function solvePnPFromJSON(data) {
     const trials = 1;
     for (let i = 0; i < trials; i++) {
         // 移動ベクトルと回転ベクトルの初期値を与えることで推測速度の向上をはかる
-        tvec.data64F[0] = getRandomArbitrary(-1000, 1000);
-        tvec.data64F[1] = getRandomArbitrary(-1000, 1000);
-        tvec.data64F[2] = getRandomArbitrary(-1000, 1000);
-
-        // tvec.data64F[0] = -1;
-        // tvec.data64F[1] = 86;
-        // tvec.data64F[2] = 1000;
+        // tvec.data64F[0] = getRandomArbitrary(-1000, 1000);
+        // tvec.data64F[1] = getRandomArbitrary(-1000, 1000);
+        // tvec.data64F[2] = getRandomArbitrary(-1000, 1000);
             
         function getRandomArbitrary(min, max) {
             return Math.random() * (max - min) + min;
@@ -115,7 +147,7 @@ function solvePnPFromJSON(data) {
             distCoeffs,
             rvec,
             tvec,
-            true
+            false
         );
 
         if (!success) {
@@ -157,7 +189,7 @@ function solvePnPFromJSON(data) {
             diffv += Math.abs(coordinateResult.Rt2Duv[1] - coordinate.screenCoordinate[1]);
 
             estimatedCVtmp.coordinates.push(convertCoordToJSON(coordinateResult))
-            console.log(i, ID)
+            // console.log(i, ID)
         }
 
         if (diffu + diffv < diffFinal) {
@@ -176,21 +208,19 @@ function solvePnPFromJSON(data) {
         
     }
 
-    const json = JSON.stringify(estimatedCVFinal);
-    console.log(estimatedCVFinal);
-    console.log(json);
-
     document.getElementById('exportPnPButton').addEventListener('click', () => { exportPnP() });
 
-    const t = estimatedCVFinal.camera.t.matrix;
-    if (currentData.coordinateSystem == "Three.js") {
-        console.log("traw(Three.js): ", ConvertCoordinateUnrealEngineToThreeJs(t))
-    } else {
-        console.log("traw: ", t)
-    }
+    // const t = estimatedCVFinal.camera.t.matrix;
+    // if (currentData.coordinateSystem == "Three.js") {
+    //     console.log("traw(Three.js): ", ConvertCoordinateUnrealEngineToThreeJs(t))
+    // } else {
+    //     console.log("traw: ", t)
+    // }
 
     drawResultAxis(currentData.coordinateSystem, rvec, tvec, cameraMatrix, distCoeffs)
 
+    return estimatedCVFinal;
+    
 }
 
 function clearCanvas(currentData) {
@@ -327,9 +357,9 @@ function drawResultAxis(coordinateSystem, rvec, tvec, cameraMatrix, distCoeffs) 
 
     const refPoints = [
         [0.0, 0.0, 0.0],
-        [0.0, 0.0, length],
-        [0.0, length, 0.0],
         [length, 0.0, 0.0],
+        [0.0, length, 0.0],
+        [0.0, 0.0, length],
     ]
 
     const scrPoints = []

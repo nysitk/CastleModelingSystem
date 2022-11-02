@@ -105,6 +105,8 @@ class ThreeJsScene {
         this.orbit.target.set(1.0, 100.0, 1.0)
         this.orbit.update();
 
+        this.isOrbit = true;
+
     }
 
     adjustSize() {
@@ -198,9 +200,13 @@ class ThreeJsScene {
 
     changeGUICamera() {
 
-        this.orbit.object = this.currentCamera;
-        this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
-        this.currentCamera.updateProjectionMatrix()
+        if (this.orbit.enabled) {
+            this.orbit.object = this.currentCamera;
+            this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
+        }
+        
+        this.currentCamera.updateProjectionMatrix();
+        console.log(this.currentCamera.rotation)
         // this.onWindowResize();
 
     }
@@ -351,24 +357,7 @@ class ThreeJsScene {
 
         data.coordinateSystem = "Three.js";
 
-        data.coordinates = []
-
-        for (let i = 0; i < this.spheres.length; i++) {
-
-            const sphere = this.spheres[i];
-            const coordinate = {};
-
-            coordinate.ID = i+1;
-
-            const worldCoordinate = sphere.mesh.position;
-            coordinate.worldCoordinate = [worldCoordinate.x, worldCoordinate.y, worldCoordinate.z];
-
-            const screenCoordinate = sphere.worldToScreenCoordinate();
-            coordinate.screenCoordinate = [screenCoordinate.x, screenCoordinate.y];
-
-            data.coordinates.push(coordinate);
-            
-        }
+        data.coordinates = this.exportCoordinatesSet();
 
         data.camera = {}
         data.camera.row = this.currentCamera;
@@ -388,6 +377,31 @@ class ThreeJsScene {
 
         const json = JSON.stringify(data);
         console.log(json);
+
+    }
+
+    exportCoordinatesSet() {
+
+        const coordinates = []
+
+        for (let i = 0; i < this.spheres.length; i++) {
+
+            const sphere = this.spheres[i];
+            const coordinate = {};
+
+            coordinate.ID = i+1;
+
+            const worldCoordinate = sphere.mesh.position;
+            coordinate.worldCoordinate = [worldCoordinate.x, worldCoordinate.y, worldCoordinate.z];
+
+            const screenCoordinate = sphere.worldToScreenCoordinate();
+            coordinate.screenCoordinate = [screenCoordinate.x, screenCoordinate.y];
+
+            coordinates.push(coordinate);
+            
+        }
+
+        return coordinates;
 
     }
 
