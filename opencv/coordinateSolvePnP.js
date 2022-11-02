@@ -10,7 +10,7 @@ function ConvertCoordinateThreeJsToUnrealEngine(p) {
     return [-1 * p[2], p[0], p[1]]
 }
 
-function ConvertCoordinateUnrealEngineToThreeJs(p) {
+export function ConvertCoordinateUnrealEngineToThreeJs(p) {
     return [p[1], p[2], -1 * p[0]]
 }
 
@@ -80,11 +80,6 @@ export function solvePnPFromJSON(currentData) {
     for (let i = 0; i < currentData.coordinates.length; i++) {
 
         let pW = currentData.coordinates[i].worldCoordinate;
-
-        if (currentData.coordinateSystem == "Three.js") {
-            pW = ConvertCoordinateThreeJsToUnrealEngine(pW);
-        }
-
         testPoints3D.push(...pW);
 
         let pS = currentData.coordinates[i].screenCoordinate;
@@ -271,10 +266,6 @@ function calc_R_t(rvec, tvec) {
 // 検算
 function verifyProjectionCalc_R_t(worldPointArray, coordinateSystem, R, t, cameraMatrix) {
 
-    if (coordinateSystem == "Three.js") {
-        worldPointArray = ConvertCoordinateThreeJsToUnrealEngine(worldPointArray);
-    }
-
     const xyz = cv.matFromArray(1, 3, cv.CV_64FC1, worldPointArray)
     const xyz_ = cv.matFromArray(3, 1, cv.CV_64FC1, worldPointArray)
     
@@ -300,9 +291,6 @@ function UVZtoUV(arr) {
 
 function verifyProjectionCalc_Projection(worldPointArray, coordinateSystem, rvec, tvec, cameraMatrix, distCoeffs) {
 
-    if (coordinateSystem == "Three.js") {
-        worldPointArray = ConvertCoordinateThreeJsToUnrealEngine(worldPointArray);
-    }
     const worldPoint = cv.matFromArray(1, 3, cv.CV_64FC1, worldPointArray);
 
     const screenPoint = new cv.Mat();

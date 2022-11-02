@@ -93,7 +93,7 @@ export class PlanePointControl {
         const R3 = new THREE.Matrix3().fromArray(estimatedCV.camera.R.matrix).transpose();
         const R4 = setFromMatrix3(R3, new THREE.Matrix4())
         const cameraRotation = new THREE.Euler().setFromRotationMatrix(R4, 'XYZ');
-        this.sceneManager.currentCamera.rotation.set(-1 * (Math.PI - cameraRotation.x), -cameraRotation.y, -cameraRotation.z)
+        this.sceneManager.currentCamera.rotation.set(cameraRotation.x - Math.PI, -cameraRotation.y, -cameraRotation.z)
 
         const camera_t = estimatedCV.camera.t;
         this.sceneManager.currentCamera.position.set(camera_t.matrix[0], camera_t.matrix[1], camera_t.matrix[2]);
