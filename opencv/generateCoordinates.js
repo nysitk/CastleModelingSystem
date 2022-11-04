@@ -135,8 +135,8 @@ class ThreeJsScene {
         this.gui = new GUI();
 
         this.addGUICamera();
-        this.addGUIOrbit();
-        this.addGUIRenderSize();
+        // this.addGUIOrbit();
+        // this.addGUIRenderSize();
 
         this.changeGUI();
 
@@ -146,12 +146,12 @@ class ThreeJsScene {
 
         const cameraFolder = this.gui.addFolder('Camera');
         cameraFolder.add(this.currentCamera, "fov", 0, 90, 1).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.position, "x", -5000, 5000, 1).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.position, "y", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.position, "z", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.rotation, "x", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.rotation, "y", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
-        cameraFolder.add(this.currentCamera.rotation, "z", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
+        // cameraFolder.add(this.currentCamera.position, "x", -5000, 5000, 1).listen().onChange( () => { this.changeGUI() } );
+        // cameraFolder.add(this.currentCamera.position, "y", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
+        // cameraFolder.add(this.currentCamera.position, "z", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
+        // cameraFolder.add(this.currentCamera.rotation, "x", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
+        // cameraFolder.add(this.currentCamera.rotation, "y", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
+        // cameraFolder.add(this.currentCamera.rotation, "z", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
         cameraFolder.open()
 
     }
@@ -172,6 +172,14 @@ class ThreeJsScene {
         renderSizeFolder.add(this.size, "width", 0, 2000, 1).listen().onChange( () => { this.changeGUI() } );
         renderSizeFolder.add(this.size, "height", 0, 2000, 1).listen().onChange( () => { this.changeGUI() } );
         renderSizeFolder.open();
+
+    }
+
+    addGUIRectangle() {
+
+        const rectangleFolder = this.gui.addFolder('Rectangle');
+        rectangleFolder.add(this.planePointControl, "aspect", 0, 2, 0.01).listen().onChange( () => this.planePointControl.startSolvePnP() );
+        rectangleFolder.open();
 
     }
 
@@ -436,12 +444,11 @@ class ThreeJsScene {
                 sceneManager.scene.remove(sceneManager.sky);
                 sceneManager.renderer.setClearColor(0xffffff, 1);
 
-                // sceneManager.effectController.turbidity = 0.0
-                // sceneManager.effectController.inclination = 0.0;
-                sceneManager.changeGUI();
-
                 // 特徴点指定モード
-                this.planePointControl = new PlanePointControl(sceneManager);
+                sceneManager.planePointControl = new PlanePointControl(sceneManager);
+                sceneManager.addGUIRectangle();
+                sceneManager.planePointControl.startSolvePnP();
+
 
             }
 

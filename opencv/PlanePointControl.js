@@ -10,14 +10,19 @@ export class PlanePointControl {
 	constructor(sceneManager) {
 		
 		this.sceneManager = sceneManager;
-		this.width = sceneManager.size.width;
-		this.height = sceneManager.size.height;
+		this.renderSize = {
+            width: sceneManager.size.width,
+		    height: sceneManager.size.height
+        }
+
+        this.aspect = 1.0; // aspect of rectangle. ( = width / height);
+        this.width = 200;
 
 		this.vertices2D = [
-			new DraggablePoint(this.width / 4 * 1, this.height / 4 * 3, 0).add(this),
-			new DraggablePoint(this.width / 4 * 3, this.height / 4 * 3, 1).add(this),
-			new DraggablePoint(this.width / 4 * 3, this.height / 4 * 2, 2).add(this),
-			new DraggablePoint(this.width / 4 * 1, this.height / 4 * 2, 3).add(this),
+			new DraggablePoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 3, 0).add(this),
+			new DraggablePoint(this.renderSize.width / 4 * 3, this.renderSize.height / 4 * 3, 1).add(this),
+			new DraggablePoint(this.renderSize.width / 4 * 3, this.renderSize.height / 4 * 2, 2).add(this),
+			new DraggablePoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 2, 3).add(this),
 		]
 
 	}
@@ -43,9 +48,14 @@ export class PlanePointControl {
 
         data.coordinates = this.exportCoordinatesSet();
 
-        data.renderSize = {}
-        data.renderSize.width = this.sceneManager.size.width;
-        data.renderSize.height = this.sceneManager.size.height;
+        data.camera = {
+            fov: this.sceneManager.currentCamera.fov
+        }
+
+        data.renderSize = {
+            width: this.sceneManager.size.width,
+            height: this.sceneManager.size.height
+        }
         
         return data;
 
@@ -53,17 +63,16 @@ export class PlanePointControl {
 
     exportCoordinatesSet() {
 
-        this.ASPECT = 1.0 // aspect of rectangle. ( = width / height);
-        this.width = 200;
-        this.height = this.width / this.ASPECT;
+        const width = this.width;
+        const height = width / this.aspect;
 
         const coordinatesSet = [];
 
         this.vertices3D = [
-            new THREE.Vector3(-this.width/2, 0, this.height/2),
-            new THREE.Vector3(this.width/2, 0, this.height/2),
-            new THREE.Vector3(this.width/2, 0, -this.height/2),
-            new THREE.Vector3(-this.width/2, 0, -this.height/2),
+            new THREE.Vector3(-width/2, 0, height/2),
+            new THREE.Vector3(width/2, 0, height/2),
+            new THREE.Vector3(width/2, 0, -height/2),
+            new THREE.Vector3(-width/2, 0, -height/2),
         ]
 
         for (let i = 0; i < 4; i++) {
