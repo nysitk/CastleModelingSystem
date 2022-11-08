@@ -93,7 +93,7 @@ class Line extends Ishigaki {
 			tmpD.y += this.changeLevel('y', (this.ishigakiSteps-1)-i);
 			tmpD.z += this.changeLevel('z', (this.ishigakiSteps-1)-i);
 
-            const material = new LineBasicMaterial({color: 0xFD7E00, linewidth: 20})
+            const material = new THREE.LineBasicMaterial({color: 0xFD7E00, linewidth: 20})
             const geometry = new ModelingSupporter().generateBoxLineGeometry(tmpA, tmpB, tmpC, tmpD);
 
             this.add(new THREE.Line(geometry, material));

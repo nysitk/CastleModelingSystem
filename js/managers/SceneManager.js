@@ -7,303 +7,371 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 import { OrbitControls } from '../controls/OrbitControls.js';
 import { TransformControls } from '../controls/TransformControls.js';
 
-import { DetectRectangleTest } from '../tests/DetectRectangle.js';
+import { OperationManager } from './OperationManager.js';
+
+// import { DetectRectangleTest } from '../tests/DetectRectangle.js';
 
 export class SceneManager {
-    constructor() {
-        this.scene = new THREE.Scene();
-        this.renderer = new THREE.WebGLRenderer();
-        this.renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
 
-        this.init();
+	constructor() {
 
-        this.renderer.domElement.setAttribute("id","editorCanvas");
-        this.renderer.domElement.addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
-        this.onWindowResizeEvent = this.onWindowResize.bind(this);
-        this.addOnWindowResize();
+		this.scene = new THREE.Scene();
+		this.renderer = new THREE.WebGLRenderer();
 
-        this.detectRectangle = new DetectRectangleTest(this);
+		this.containerDom = document.getElementById("mainView");
 
-        return this;
-    }
+		this.addHelper();       
+		
+		this.addCamera();
+		this.addSky();
+		this.addLight();
 
-    init() {
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		this.addOrbit();
+		this.addControl();
 
-        this.addHelper();       
-        
-        this.addCamera();
-        this.addSky();
-        this.addLight();
-        
-        this.adjustSize();
+		this.addGUI();
 
-        this.addOrbit();
-        this.addControl();
+		this.renderer.domElement.addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
+		this.onWindowResizeEvent = this.onWindowResize.bind(this);
+		this.addOnWindowResize();
+		
+		this.addDomElement();
 
-        this.addGUI();
+		this.operationManager = new OperationManager(this);
 
-    }
+		return this;
 
-    render() {
-        this.renderer.setRenderTarget( null );
-        this.renderer.render( this.scene, this.currentCamera );
-    }
+	}
 
-    addHelper() {
-        this.grid = new THREE.Group();
+	render() {
 
-        const grid1 = new THREE.GridHelper( 1000, 20, 0x888888 );
-        grid1.material.color.setHex( 0x888888 );
-        grid1.material.vertexColors = false;
-        // this.grid.add( grid1 );
+		this.renderer.setRenderTarget( null );
+		this.renderer.render( this.scene, this.currentCamera );
 
-        const grid2 = new THREE.GridHelper( 1000, 5, 0xCCCCCC );
-        grid2.material.color.setHex( 0x888888 );
-        grid2.material.depthFunc = THREE.AlwaysDepth;
-        grid2.material.vertexColors = false;
-        this.grid.add( grid2 );
+	}
 
-        this.scene.add(this.grid)
+	addHelper() {
 
-        this.axesHelper = new THREE.AxesHelper( 150 );
-        this.scene.add( this.axesHelper );
-    }
+		this.grid = new THREE.Group();
 
-    addCamera() {
-        // this.aspect = 800 / 600;
-        this.aspect = window.innerWidth / window.innerHeight;
+		const grid1 = new THREE.GridHelper( 1000, 20, 0x888888 );
+		grid1.material.color.setHex( 0x888888 );
+		grid1.material.vertexColors = false;
+		// this.grid.add( grid1 );
 
-        this.cameraPersp = new THREE.PerspectiveCamera( 30, this.aspect, 1, 5000 );
-        this.cameraOrtho = new THREE.OrthographicCamera( - 600 * this.aspect, 600 * this.aspect, 600, - 600, 0.01, 30000 );
-        
-        this.currentCamera = this.cameraPersp;
-        this.currentCamera.position.set( 250, 200, 600 );
-        console.log(this.currentCamera.projectionMatrixInverse)
+		const grid2 = new THREE.GridHelper( 1000, 5, 0xCCCCCC );
+		grid2.material.color.setHex( 0x888888 );
+		grid2.material.depthFunc = THREE.AlwaysDepth;
+		grid2.material.vertexColors = false;
+		this.grid.add( grid2 );
 
-    }
+		this.scene.add(this.grid)
 
-    addSky() {
-        this.sky = new Sky();
-        this.sky.scale.setScalar( 450000 );
-        this.scene.add(this.sky);
-    }
 
-    addLight() {
-        // const hemisphereLight = new THREE.HemisphereLight( 0xeeeeff,0x999999,1.0);
-        // hemisphereLight.position.set( 2000, 2000, 2000);
-        // this.scene.add( hemisphereLight );
+		this.axesHelper = new THREE.AxesHelper( 150 );
 
-        // const hemisphereLightHelper = new THREE.HemisphereLightHelper( hemisphereLight);
-        // this.scene.add( hemisphereLightHelper);
-        this.ambientLight = new THREE.AmbientLight(0xc0c0c0, 1.0);
-        this.scene.add(this.ambientLight);
+		this.scene.add( this.axesHelper );
+		
+	}
 
-        this.directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        this.directionalLight.position.set(200, 200, 200);
-        this.directionalLight.target.position.set(-5, 100, 0);
+	addCamera() {
 
-        this.directionalLight.castShadow = true;
-        this.directionalLight.shadow.camera.right = 200;
-        this.directionalLight.shadow.camera.left = -200;
-        this.directionalLight.shadow.camera.top = -200;
-        this.directionalLight.shadow.camera.bottom = 300;
-        this.directionalLight.shadow.camera.far = 500;
-        // this.directionalLight.shadow.mapSize.width = 1024;
-        // this.directionalLight.shadow.mapSize.height = 1024;
+		this.aspect = this.containerDom.offsetWidth / this.containerDom.offsetHeight;
 
-        this.scene.add(this.directionalLight);
-        this.scene.add(this.directionalLight.target);
+		this.cameraPersp = new THREE.PerspectiveCamera( 30, this.aspect, 1, 5000 );
+		this.cameraOrtho = new THREE.OrthographicCamera( - 600 * this.aspect, 600 * this.aspect, 600, - 600, 0.01, 30000 );
+		
+		this.currentCamera = this.cameraPersp;
+		this.currentCamera.position.set( 250, 200, 600 );
 
-        // var directionalLightShadowHelper = new THREE.CameraHelper(this.directionalLight.shadow.camera);
-        // this.scene.add( directionalLightShadowHelper);
-        // var directionalLightHelper = new THREE.DirectionalLightHelper( this.directionalLight);
-        // this.scene.add( directionalLightHelper);
-    }
+	}
 
-    adjustSize() {
-        this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setSize( window.innerWidth, window.innerHeight );
-        document.body.appendChild( this.renderer.domElement );
-    }
+	addSky() {
 
-    addOrbit() {
-        this.orbit = new OrbitControls( this.currentCamera, this.renderer.domElement );
-        this.orbit.target.set(1.0, 100.0, 1.0)
-        this.orbit.update();
-    }
+		this.sky = new Sky();
+		this.sky.scale.setScalar( 450000 );
+		this.scene.add(this.sky);
 
-    addControl() {
-        this.control = new TransformControls( this.currentCamera, this.renderer.domElement );
+		this.sun = new THREE.Vector3();
 
-        this.control.addEventListener( 'dragging-changed', function ( event ) {
-            this.orbit.enabled = ! event.value;
-        } );
-    }
+		this.skyEffectController = {
 
-    addGUI() {
-        this.gui = new GUI();
+			turbidity: 10,
+			rayleigh: 3,
+			mieCoefficient: 0.035,
+			mieDirectionalG: 0.9,
+			inclination: 0.35, // elevation / inclination
+			azimuth: 0.38, // Facing front,
+			exposure: this.renderer.toneMappingExposure
 
-        this.addGUICamera();
-        this.addGUISky();
-        this.addGUILight();
-        this.addGUICanvas();
+		};
 
-        this.changeGUI();
-    }
+	}
 
-    addGUICamera() {
-        const cameraFolder = this.gui.addFolder('Camera');
-        cameraFolder.add(this.cameraPersp, "fov", 0, 90, 1).listen().onChange( () => { this.changeGUI() } );
-    }
+	addLight(light = "directional") {
 
-    addGUISky() {
-        this.sun = new THREE.Vector3();
+		switch (light) {
 
-        this.effectController = {
-            turbidity: 10,
-            rayleigh: 3,
-            mieCoefficient: 0.035,
-            mieDirectionalG: 0.9,
-            inclination: 0.35, // elevation / inclination
-            azimuth: 0.38, // Facing front,
-            exposure: this.renderer.toneMappingExposure
-        };
+			case "hemisphere":
+				
+				const hemisphereLight = new THREE.HemisphereLight( 0xeeeeff,0x999999,1.0);
+				hemisphereLight.position.set( 2000, 2000, 2000);
+				this.scene.add( hemisphereLight );
 
-        const skyFolder = this.gui.addFolder('Sky');
+				const hemisphereLightHelper = new THREE.HemisphereLightHelper( hemisphereLight);
+				this.scene.add( hemisphereLightHelper);
 
-        skyFolder.add( this.effectController, "turbidity", 0.0, 20.0, 0.1 ).listen().onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "rayleigh", 0.0, 4, 0.001 ).listen().onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "mieCoefficient", 0.0, 0.1, 0.001 ).listen().onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "mieDirectionalG", 0.0, 1, 0.001 ).listen().onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "inclination", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "azimuth", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
-        skyFolder.add( this.effectController, "exposure", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
+				break;
 
-    }
+			case "ambient":
 
-    addGUILight() {
-        const directionalLightFolder = this.gui.addFolder('DirectionalLight');
-        directionalLightFolder.add(this.directionalLight, 'intensity', 0, 2, 0.01).listen().onChange( () => { this.changeGUI() } );
-        directionalLightFolder.add(this.directionalLight.target.position, 'x', -2000, 2000).listen().onChange( () => { this.changeGUI() } );
-        directionalLightFolder.add(this.directionalLight.target.position, 'z', -2000, 2000).listen().onChange( () => { this.changeGUI() } );
-        directionalLightFolder.add(this.directionalLight.target.position, 'y', 0, 2000).listen().onChange( () => { this.changeGUI() } );
+				this.ambientLight = new THREE.AmbientLight(0xc0c0c0, 1.0);
+				this.scene.add(this.ambientLight);
 
-    }
+				break;
 
-    addGUICanvas() {
-        this.canvasController = {
-            opacity: 1.0
-        }
-        const canvasFolder = this.gui.addFolder('Canvas');
-        canvasFolder.add(this.canvasController, 'opacity', 0, 1.0).listen().onChange( (e) => {
-            $(this.renderer.domElement).css('opacity', e)
-        })
-    }
+			case "directional":
 
-    changeGUI() {
+				this.directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+				this.directionalLight.position.set(200, 200, 200);
+				this.directionalLight.target.position.set(-5, 100, 0);
 
-        this.changeGUICamera();
-        this.changeGUISky();
+				this.directionalLight.castShadow = true;
+				this.directionalLight.shadow.camera.right = 200;
+				this.directionalLight.shadow.camera.left = -200;
+				this.directionalLight.shadow.camera.top = -200;
+				this.directionalLight.shadow.camera.bottom = 300;
+				this.directionalLight.shadow.camera.far = 500;
 
-        this.renderer.render( this.scene, this.currentCamera );
+				this.scene.add(this.directionalLight);
+				this.scene.add(this.directionalLight.target);
 
-    }
+				// var directionalLightShadowHelper = new THREE.CameraHelper(this.directionalLight.shadow.camera);
+				// this.scene.add( directionalLightShadowHelper);
+				// var directionalLightHelper = new THREE.DirectionalLightHelper( this.directionalLight);
+				// this.scene.add( directionalLightHelper);
 
-    changeGUICamera() {
-        const position = this.currentCamera.position.clone();
+				break;
+		
+			default:
+				break;
 
-        this.currentCamera.position.copy( position );
+		}
 
-        this.orbit.object = this.currentCamera;
-        this.control.camera = this.currentCamera;
+	}
 
-        this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
-        this.cameraPersp.updateProjectionMatrix()
-        // this.onWindowResize();
-    }
-    
-    changeGUISky() {
+	addDomElement() {
 
-        const uniforms = this.sky.material.uniforms;
-        uniforms[ "turbidity" ].value = this.effectController.turbidity;
-        uniforms[ "rayleigh" ].value = this.effectController.rayleigh;
-        uniforms[ "mieCoefficient" ].value = this.effectController.mieCoefficient;
-        uniforms[ "mieDirectionalG" ].value = this.effectController.mieDirectionalG;
+		this.renderer.setPixelRatio( window.devicePixelRatio );
+		this.renderer.setSize(this.containerDom.offsetWidth, this.containerDom.offsetHeight);
+		this.containerDom.appendChild( this.renderer.domElement );
 
-        const theta = Math.PI * ( this.effectController.inclination - 0.5 );
-        const phi = 2 * Math.PI * ( this.effectController.azimuth - 0.5 );
+	}
 
-        this.sun.x = Math.cos( phi );
-        this.sun.y = Math.sin( phi ) * Math.sin( theta );
-        this.sun.z = Math.sin( phi ) * Math.cos( theta );
+	addOrbit() {
 
-        uniforms[ "sunPosition" ].value.copy( this.sun );
+		this.orbit = new OrbitControls( this.currentCamera, this.renderer.domElement );
+		this.orbit.target.set(1.0, 100.0, 1.0)
 
-        this.renderer.toneMappingExposure = this.effectController.exposure;
-    }
+	}
 
-    addSphere(x,y,z) {
-        const sphereRadius = 3;
-        const sphereWidthDivisions = 32;
-        const sphereHeightDivisions = 16;
-        const sphereGeo = new THREE.SphereGeometry(sphereRadius, sphereWidthDivisions, sphereHeightDivisions);
-        const sphereMat = new THREE.MeshPhongMaterial({color: '#CA8'});
-        const mesh = new THREE.Mesh(sphereGeo, sphereMat);
-        if (x) mesh.position.set(x,y,z);
-        this.scene.add(mesh);
-    }
+	addControl() {
 
-    onKeydownEvent(event) {
-        
+		this.control = new TransformControls( this.currentCamera, this.renderer.domElement );
+
+		this.control.addEventListener( 'dragging-changed', function ( event ) {
+			this.orbit.enabled = ! event.value;
+		} );
+
+	}
+
+	addGUI() {
+
+		this.gui = new GUI();
+		this.gui.close();
+
+		this.addGUICamera();
+		this.addGUISky();
+		
+		if (this.directionalLight !== undefined) this.addGUIDirectionalLight();
+		
+		this.addGUICanvas();
+
+		this.changeGUI();
+		
+	}
+
+	addGUICamera() {
+
+		const cameraFolder = this.gui.addFolder('Camera');
+
+		cameraFolder.add(this.cameraPersp, "fov", 0, 90, 1).listen().onChange( () => { this.changeGUI() } );
+		cameraFolder.add(this.cameraPersp.position, "x", -5000, 5000, 1).listen().onChange( () => { this.changeGUI() } );
+		cameraFolder.add(this.cameraPersp.position, "y", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
+		cameraFolder.add(this.cameraPersp.position, "z", -2000, 2000, 1).listen().onChange( () => { this.changeGUI() } );
+		cameraFolder.add(this.cameraPersp.rotation, "x", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
+		cameraFolder.add(this.cameraPersp.rotation, "y", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
+		cameraFolder.add(this.cameraPersp.rotation, "z", -5, 5, 0.01).listen().onChange( () => { this.changeGUI() } );
+	
+	}
+
+	addGUISky() {
+
+		const skyFolder = this.gui.addFolder('Sky');
+
+		skyFolder.add( this.skyEffectController, "turbidity", 0.0, 20.0, 0.1 ).listen().onChange( () => { this.changeGUI() } );
+		skyFolder.add( this.skyEffectController, "rayleigh", 0.0, 4, 0.001 ).listen().onChange( () => { this.changeGUI() } );
+		skyFolder.add( this.skyEffectController, "mieCoefficient", 0.0, 0.1, 0.001 ).listen().onChange( () => { this.changeGUI() } );
+		skyFolder.add( this.skyEffectController, "mieDirectionalG", 0.0, 1, 0.001 ).listen().onChange( () => { this.changeGUI() } );
+		skyFolder.add( this.skyEffectController, "inclination", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
+		skyFolder.add( this.skyEffectController, "azimuth", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
+		skyFolder.add( this.skyEffectController, "exposure", 0, 1, 0.0001 ).listen().onChange( () => { this.changeGUI() } );
+
+	}
+
+	addGUIDirectionalLight() {
+
+		const directionalLightFolder = this.gui.addFolder('DirectionalLight');
+		
+		directionalLightFolder.add(this.directionalLight, 'intensity', 0, 2, 0.01).listen().onChange( () => { this.changeGUI() } );
+		directionalLightFolder.add(this.directionalLight.target.position, 'x', -2000, 2000).listen().onChange( () => { this.changeGUI() } );
+		directionalLightFolder.add(this.directionalLight.target.position, 'y', 0, 2000).listen().onChange( () => { this.changeGUI() } );
+		directionalLightFolder.add(this.directionalLight.target.position, 'z', -2000, 2000).listen().onChange( () => { this.changeGUI() } );
+
+	}
+
+	addGUICanvas() {
+
+		this.canvasController = {
+			opacity: 1.0
+		}
+
+		const canvasFolder = this.gui.addFolder('Canvas');
+
+		canvasFolder.add(this.canvasController, 'opacity', 0, 1.0).listen().onChange( (e) => {
+			$(this.renderer.domElement).css('opacity', e)
+		});
+
+	}
+
+	changeGUI() {
+
+		this.changeGUICamera();
+		this.changeGUISky();
+
+		this.renderer.render( this.scene, this.currentCamera );
+
+	}
+
+	changeGUICamera() {
+
+		const position = this.currentCamera.position.clone();
+
+		this.currentCamera.position.copy( position );
+
+		this.orbit.object = this.currentCamera;
+		this.control.camera = this.currentCamera;
+
+		this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
+		this.cameraPersp.updateProjectionMatrix()
+
+		this.orbit.update();
+
+	}
+	
+	changeGUISky() {
+
+		const uniforms = this.sky.material.uniforms;
+		uniforms[ "turbidity" ].value = this.skyEffectController.turbidity;
+		uniforms[ "rayleigh" ].value = this.skyEffectController.rayleigh;
+		uniforms[ "mieCoefficient" ].value = this.skyEffectController.mieCoefficient;
+		uniforms[ "mieDirectionalG" ].value = this.skyEffectController.mieDirectionalG;
+
+		const theta = Math.PI * ( this.skyEffectController.inclination - 0.5 );
+		const phi = 2 * Math.PI * ( this.skyEffectController.azimuth - 0.5 );
+
+		this.sun.x = Math.cos( phi );
+		this.sun.y = Math.sin( phi ) * Math.sin( theta );
+		this.sun.z = Math.sin( phi ) * Math.cos( theta );
+
+		uniforms[ "sunPosition" ].value.copy( this.sun );
+
+		this.renderer.toneMappingExposure = this.skyEffectController.exposure;
+	
+	}
+
+	addSphere( x = 0, y = 0, z = 0 ) {
+
+		const sphereRadius = 3;
+		const sphereWidthDivisions = 32;
+		const sphereHeightDivisions = 16;
+
+		const sphereGeo = new THREE.SphereGeometry(sphereRadius, sphereWidthDivisions, sphereHeightDivisions);
+		const sphereMat = new THREE.MeshPhongMaterial({color: '#CA8'});
+		
+		const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+		mesh.position.set(x, y, z);
+		
+		this.scene.add(mesh);
+	
+	}
+
+	onKeydownEvent(event) {
+		
 		switch ( event.keyCode ) {
-            
+			
 			case 67: // C
-                const position = this.currentCamera.position.clone();
 
-                this.currentCamera = this.currentCamera.isPerspectiveCamera ? this.cameraOrtho : this.cameraPersp;
-                this.currentCamera.position.copy( position );
+				const position = this.currentCamera.position.clone();
 
-                this.orbit.object = this.currentCamera;
-                this.control.camera = this.currentCamera;
+				this.currentCamera = this.currentCamera.isPerspectiveCamera ? this.cameraOrtho : this.cameraPersp;
+				this.currentCamera.position.copy( position );
 
-                this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
-                this.onWindowResize();
-                break;
+				this.orbit.object = this.currentCamera;
+				this.control.camera = this.currentCamera;
 
-        }
+				this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
+				this.onWindowResize();
 
-    }
+				break;
 
-    changeRendererSize(width, height) {
-        this.aspect = width / height;
-    
-        this.cameraPersp.aspect = this.aspect;
-        this.cameraPersp.updateProjectionMatrix();
-    
-        this.cameraOrtho.left = this.cameraOrtho.bottom * this.aspect;
-        this.cameraOrtho.right = this.cameraOrtho.top * this.aspect;
-        this.cameraOrtho.updateProjectionMatrix();
-    
-        this.renderer.setPixelRatio(window.devicePixelRatio)
-        this.renderer.setSize( width, height );
-        this.renderTarget.setSize( width, height );
-    
-        this.render();
-    }
+		}
 
-    addOnWindowResize() {
-        window.addEventListener( 'resize', this.onWindowResizeEvent, false );
-    }
+	}
 
-    removeOnWindowResize() {
-        window.removeEventListener( 'resize', this.onWindowResizeEvent, false );
-    }
+	changeRendererSize(width, height) {
 
-    onWindowResize(event, width, height) {
-        if (!width) width = window.innerWidth
-        if (!height) height = window.innerHeight
-        this.changeRendererSize( width, height );    
-    }
+		this.aspect = width / height;
+	
+		this.cameraPersp.aspect = this.aspect;
+		this.cameraPersp.updateProjectionMatrix();
+	
+		this.cameraOrtho.left = this.cameraOrtho.bottom * this.aspect;
+		this.cameraOrtho.right = this.cameraOrtho.top * this.aspect;
+		this.cameraOrtho.updateProjectionMatrix();
+	
+		this.renderer.setPixelRatio(window.devicePixelRatio)
+		this.renderer.setSize( width, height );
+	
+		this.render();
+
+	}
+
+	addOnWindowResize() {
+		window.addEventListener( 'resize', this.onWindowResizeEvent, false );
+	}
+
+	removeOnWindowResize() {
+		window.removeEventListener( 'resize', this.onWindowResizeEvent, false );
+	}
+
+	onWindowResize(event, width, height) {
+	
+		if ( !width ) width = this.containerDom.offsetWidth;
+		if ( !height ) height = this.containerDom.offsetHeight;
+
+		this.changeRendererSize( width, height );
+	  
+	}
+
 }

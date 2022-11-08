@@ -3,7 +3,7 @@ import * as THREE from '/build/three.module.js';
 import { solvePnPFromJSON } from './coordinateSolvePnP.js';
 
 /**
- * ユーザー操作関連のモデルクラス
+ * 平面カメラ推定
  */
 export class PlanePointControl {
 

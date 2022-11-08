@@ -4,10 +4,12 @@ import { ModelingManager } from './ModelingManager.js';
 
 import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 
+import { Tab } from './SidePanelTabManager.js'
+
 /**
- * ユーザー操作関連のモデルクラス
+ * サイドパネルのモデルクラス
  */
- export class ControlPanelManager {
+ export class SidePanelManager {
     
     constructor(operationManager) {
         
@@ -15,11 +17,21 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
         this.sceneManager = operationManager.sceneManager;
         this.modelingManager = operationManager.modelingManager;
 
-        this.init(this.operationManager.cursorInfo.mode);
-        
-    }
 
-    init(mode) {
+        this.orbitButton = document.getElementById("changeOrbit")
+
+        this.containerDom = document.getElementById("sidePanel")
+
+        this.sceneTab = new Tab(this, "Scene")
+        this.castleEditTab = new Tab(this, "CastleEdit");
+        this.planeControlTab = new Tab(this, "PlaneControl");
+
+        this.openTab(this.castleEditTab);
+
+        this.orbitButton.addEventListener('click', (e) => {
+            this.operationManager.changeCursorMode("orbit");
+        })
+
 
         $('#controlPanel-close').on("click", () => {
             $('#controlPanel-main').slideToggle(500);
@@ -33,6 +45,26 @@ import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 
         $('#convertTo3D').on('click', (e) => { this.convertTo3D(e) });
 
+    }
+
+    openTab(tab) {
+
+        if (this.selected) {
+            this.selected.close();
+        }
+
+        tab.open();
+
+        this.selected = tab;
+
+    }
+
+    enableOrbit() {
+        this.orbitButton.disabled = true;
+    }
+
+    disableOrbit() {
+        this.orbitButton.disabled = false;
     }
 
     clickCursorModeButton(e){

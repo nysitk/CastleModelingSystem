@@ -152,9 +152,8 @@ import { ModelPresets } from '../models/ModelPresets.js'
     /**
      * クリックしたときに、基準点（P1～P4）を保持する
      */ 
-    determineClickPosition(e, clickCount) {
-		const mousePos = new THREE.Vector2(e.clientX, e.clientY)
-        console.log(mousePos)
+    determineClickPosition(mousePos, clickCount) {
+        
         if (clickCount < 2) {
             // 1,2回目のクリックは、地面上の点
             this.clickPosition[clickCount] = this.calcPointOnGround(mousePos);
