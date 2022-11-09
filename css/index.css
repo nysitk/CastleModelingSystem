@@ -15,7 +15,6 @@ body {
 * {
 	box-sizing: border-box;
     word-wrap: break-word;
-    line-height: 1.5em;
     margin: 0;
     padding: 0;
 }
@@ -113,15 +112,23 @@ canvas {
     left: 0;
     right: 300px;
     bottom: 0;
+	overflow: auto;
+	z-index: -1;
+}
+
+#mainView canvas {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translateY(-50%) translateX(-50%);
+	-webkit-transform: translateY(-50%) translateX(-50%);
 }
 
 #toolbar {
-	position: absolute;
-	left: 10px;
-	top: 42px;
-	width: 32px;
+	min-width: 32px;
 	background: #eee;
-	text-align: center;
+	padding: 16px;
+	margin: 0 0 8px 0;
 }
 
 #menuBar {
@@ -145,6 +152,7 @@ canvas {
 
 #sidePanel #tabContainer {
     color: #aaa;
+	border-top: 1px solid #aaa;
     border-right: 1px solid #ccc;
 	position: relative;
     display: block;
@@ -160,7 +168,7 @@ canvas {
 }
 
 .tabContent {
-	color: #888;
+	color: #666;
 }
 
 #contentContainer .panel {
@@ -202,7 +210,7 @@ canvas {
 	display: flex;
     align-items: center;
     min-height: 24px;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
 }
  
 button {
@@ -210,7 +218,7 @@ button {
     background-color: #ddd;
     border: 0px;
     margin: 0px;
-    padding: 5px 8px;
+    padding: 8px 16px;
     font-size: 12px;
     cursor: pointer;
     outline: none;
@@ -271,4 +279,39 @@ input.Number {
 	height: 14px;
 	text-align: center;
 	color: #ddd;
+}
+
+#gui {
+	width: 100%!important;
+}
+
+.dg li.folder {
+	margin-bottom: 16px;
+}
+
+.dg li.title {
+	background-color: #bbb!important;
+	color: #333;
+}
+
+.dg .cr {
+	background: #eee!important;
+	border: none!important;
+
+}
+#gui .dg {
+	text-shadow: none;
+	color: #888;
+}
+
+.dg .c .slider {
+    background: #aaa!important;
+}
+
+.dg .c input[type=text] {
+    background: #eee!important;
+}
+
+.dg.main .close-button.close-bottom {
+	display: none;
 }

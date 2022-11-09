@@ -17,28 +17,22 @@ import * as gradientDescent from '../tests/gradientDescent.js'
         this.sceneManager = sceneManager;
         this.modelingManager = new ModelingManager(sceneManager);
 
-        this.cursorInfo = {
-            count2D: 0,
-            mode: "orbit"
-        }
+        this.cursorMode = "orbit"
 
         this.controlPanel = new SidePanelManager(this);
-        this.changeCursorMode(this.cursorInfo.mode);
+        this.changeCursorMode(this.cursorMode);
 
         this.view = sceneManager.renderer.domElement;
-        this.addEventListener(this.view);
-
-        this.is2DfixEnabled = true;
-        this.draggablePoint = new Array(4);
+        this.addEventListener();
 
     }
 
-    addEventListener(view) {
+    addEventListener() {
 
         // イベントリスナーの登録
-        view.addEventListener('click', (e) => { this.onClickEvent(e) }, false);
-        view.addEventListener('mousemove', (e) => { this.onMoveEvent(e) }, false);
-        view.addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
+        document.getElementById("mainView").addEventListener('click', (e) => { this.onClickEvent(e) }, false);
+        document.getElementById("mainView").addEventListener('mousemove', (e) => { this.onMoveEvent(e) }, false);
+        document.getElementById("mainView").addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
     
     }
 
@@ -48,9 +42,12 @@ import * as gradientDescent from '../tests/gradientDescent.js'
         const width = element.offsetWidth;
         const height = element.offsetHeight;
 
+        const x = e.pageX - $("#mainCanvas").offset().left;
+        const y = e.pageY - $("#mainCanvas").offset().top;
+
         return new THREE.Vector2(
-            (e.offsetX / width) * 2 - 1,
-            -(e.offsetY / height) * 2 + 1
+            (x / width) * 2 - 1,
+            -(y / height) * 2 + 1
         )
 
     }
@@ -58,52 +55,86 @@ import * as gradientDescent from '../tests/gradientDescent.js'
     changeCursorMode(mode = "orbit") {
 
         this.controlPanel.changeCursorModeButtonColor(mode);
-        this.cursorInfo.mode = mode;
 
-        this.sceneManager.orbit.enabled = false;
-        this.controlPanel.disableOrbit();
+        // 元のモードのアクションを終了させる
+        switch (this.cursorMode) {
 
+            case "orbit":
+
+                this.sceneManager.orbit.enabled = false;
+                this.controlPanel.disableOrbitMode();
+                break;
+
+            case "construction":
+
+                this.controlPanel.castleEditTab.content.disableConstructionMode();
+                break;
+
+            case "addHafu":
+
+                this.controlPanel.castleEditTab.content.disableAddHafuMode();
+                break;
+
+            case "2DFix":
+
+                this.controlPanel.planeControlTab.content.disable2DFixMode();
+                break;
+
+            default:
+                break;
+
+        }
+
+        // 引数の新しいモードのアクションを開始する
         switch (mode) {
 
             case "orbit":
 
                 this.sceneManager.orbit.enabled = true;
-                this.controlPanel.enableOrbit();
-                $('#mainView').css('cursor', 'grab');
+                this.controlPanel.enableOrbitMode();
+                $(this.sceneManager.renderer.domElement).css('cursor', 'grab');
                 break;
 
             case "construction":
 
-                $('#mainView').css('cursor', 'crosshair');
+                this.controlPanel.castleEditTab.content.enableConstructionMode();
+                $(this.sceneManager.renderer.domElement).css('cursor', 'crosshair');
                 break;
 
-            case "edit":
+            case "addHafu":
 
-                $('#mainView').css('cursor', 'default');
+                this.controlPanel.castleEditTab.content.enableAddHafuMode();
+                $(this.sceneManager.renderer.domElement).css('cursor', 'pointer');
                 break;
 
             case "2Dfix":
 
-                $('#mainView').css('cursor', 'crosshair');
+                this.controlPanel.planeControlTab.content.enable2DFixMode();
+                $(this.sceneManager.renderer.domElement).css('cursor', 'crosshair');
                 break;
 
         }
+
+        this.cursorMode = mode;
 
     }
 
     onMoveEvent(e) {
 
-		const mousePos = new THREE.Vector2(e.offsetX, e.offsetY)
+        const x = e.pageX - $("#mainCanvas").offset().left;
+        const y = e.pageY - $("#mainCanvas").offset().top;
+		const mousePos = new THREE.Vector2(x, y)
 
-        if (this.cursorInfo.mode == "construction") {
+        if (this.cursorMode == "construction") {
 
             this.controlPanel.castleEditTab.content.onMoveEvent(mousePos);       
 
-        } else if (this.cursorInfo.mode == "2Dfix") {
+        } else if (this.cursorMode == "2Dfix") {
 
-            if (this.is2DfixEnabled) this.modelingManager.createAllLineFrom2D(this.cursorInfo.count2D);
+            this.controlPanel.planeControlTab.content.onMoveEvent(mousePos); 
 
-        } else if (this.cursorInfo.mode == "edit") {
+
+        } else if (this.cursorMode == "addHafu") {
 
             const raycasterMousePos = this.generateRaycasterMousePos(e)
             this.modelingManager.selectYaneComponent(raycasterMousePos);
@@ -114,55 +145,22 @@ import * as gradientDescent from '../tests/gradientDescent.js'
 
     onClickEvent(e) {
 
-		const mousePos = new THREE.Vector2(e.offsetX, e.offsetY)
+        const x = e.pageX - $("#mainCanvas").offset().left;
+        const y = e.pageY - $("#mainCanvas").offset().top;
+		const mousePos = new THREE.Vector2(x, y)
 
-        if (this.cursorInfo.mode == "construction") {
+        if (this.cursorMode == "construction") {
 
             this.controlPanel.castleEditTab.content.onClickEvent(mousePos);       
 
-        } else if (this.cursorInfo.mode == "edit") {
+        } else if (this.cursorMode == "addHafu") {
 
             const raycasterMousePos = this.generateRaycasterMousePos(e)
             this.modelingManager.determineYaneComponent(raycasterMousePos);
         
-        } else if (this.cursorInfo.mode == "2Dfix") {
+        } else if (this.cursorMode == "2Dfix") {
 
-            if (this.cursorInfo.count2D < 4)
-            this.addDraggablePoint(mousePos, this.cursorInfo.count2D);
-
-            switch (this.cursorInfo.count2D) {
-
-                case 0:
-
-                    this.cursorInfo.count2D++;
-
-                    let createAllLineFrom2D = () => {
-                        this.modelingManager.createAllLineFrom2D(4);
-                    }
-
-                    this.createAllLineFrom2Dbind = createAllLineFrom2D.bind(this);
-                    this.sceneManager.orbit.addEventListener('change', this.createAllLineFrom2Dbind)
-                    
-                    break;
-
-                case 1:
-
-                    this.cursorInfo.count2D++;
-                    break;
-
-                case 2:
-
-                    this.cursorInfo.count2D++;
-                    break;
-
-                case 3:
-
-                    this.cursorInfo.count2D++;
-                    this.changeCursorMode("orbit");
-
-                    break;
-
-            }
+            this.controlPanel.planeControlTab.content.onClickEvent(mousePos);       
 
         }
     }
@@ -242,11 +240,11 @@ import * as gradientDescent from '../tests/gradientDescent.js'
                 break;
 
             case 'KeyM':
-                if (this.cursorInfo.mode == "orbit") {
+                if (this.cursorMode == "orbit") {
                     this.changeClickMode("construction")
-                } else if (this.cursorInfo.mode == "construction") {
-                    this.changeClickMode("edit")
-                } else if (this.cursorInfo.mode == "edit") {
+                } else if (this.cursorMode == "construction") {
+                    this.changeClickMode("addHafu")
+                } else if (this.cursorMode == "addHafu") {
                     this.changeClickMode("orbit")
                 }
                 break;
@@ -274,90 +272,4 @@ import * as gradientDescent from '../tests/gradientDescent.js'
 
     }
 
-    
-
-    addDraggablePoint(mousePos, count2D) {
-
-        const draggablePoint = new DraggablePoint(mousePos.x, mousePos.y, count2D);
-        this.draggablePoint[count2D] = draggablePoint;
-        draggablePoint.operationManager = this;
-        draggablePoint.modelingManager = this.modelingManager;
-        draggablePoint.add()
-
-        return draggablePoint;
-
-    }
-
-    disable2DFix() {
-        this.is2DfixEnabled = false;
-        this.modelingManager.castle.removeAllLine();
-        this.draggablePoint.map((p) => { 
-            p.remove();
-            p = null 
-        })
-        this.sceneManager.orbit.removeEventListener('change', this.createAllLineFrom2D)
-    }
-}
-
-
-/**
- * 2Dfixモードでクリックしたときに、基準点（P1～P4）の画素座標を保持する
- */ 
-export class DraggablePoint {
-
-    constructor(x, y, clickCount) {
-
-		this.mousePos = new THREE.Vector2(x, y);
-        this.clickCount = clickCount ? clickCount : 0;
-        this.isDragging = false;
-
-    }
-
-    add(name = "position2D") {
-
-        this.modelingManager.set2DPosition(this.clickCount, this.mousePos)
-        
-        this.domElement = $("<div id='" + name + "-" + this.clickCount + "' class='" + name + "'></div>");
-        $("body").append(this.domElement);
-        this.changePosition(this.mousePos.x, this.mousePos.y)
-
-        this.domElement.on('mousedown', e => { 
-            console.log(this)
-            this.isDragging = true;
-        });
-
-        $("body").on('mousemove', e => {
-
-            if (this.isDragging === true) {
-                
-                this.mousePos.x = e.clientX;
-                this.mousePos.y = e.clientY;
-                this.changePosition(this.mousePos.x, this.mousePos.y)
-                this.modelingManager.set2DPosition(this.clickCount, this.mousePos)
-                this.modelingManager.createAllLineFrom2D(4);
-            }
-
-        });
-          
-        this.domElement.on('mouseup', e => {
-            if (this.isDragging === true) {
-                this.isDragging = false;
-            }
-        });
-
-    }
-
-    changePosition(x, y) {
-
-        $(this.domElement).offset({ top: y, left: x });
-        $(this.domElement).css( { transform: 'translate(-50%, -50%)' } );
-
-    }
-
-    remove() {
-
-        this.domElement.remove();
-
-    }
-    
 }

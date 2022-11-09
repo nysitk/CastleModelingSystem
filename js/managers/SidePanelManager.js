@@ -26,7 +26,7 @@ import { Tab } from './SidePanelTabManager.js'
         this.castleEditTab = new Tab(this, "CastleEdit");
         this.planeControlTab = new Tab(this, "PlaneControl");
 
-        this.openTab(this.castleEditTab);
+        this.openTab(this.sceneTab);
 
         this.orbitButton.addEventListener('click', (e) => {
             this.operationManager.changeCursorMode("orbit");
@@ -43,7 +43,6 @@ import { Tab } from './SidePanelTabManager.js'
 
         $('#background-Image').on( 'change', (e) => { this.changeBackground(e) } );
 
-        $('#convertTo3D').on('click', (e) => { this.convertTo3D(e) });
 
     }
 
@@ -59,11 +58,11 @@ import { Tab } from './SidePanelTabManager.js'
 
     }
 
-    enableOrbit() {
+    enableOrbitMode() {
         this.orbitButton.disabled = true;
     }
 
-    disableOrbit() {
+    disableOrbitMode() {
         this.orbitButton.disabled = false;
     }
 
@@ -78,7 +77,9 @@ import { Tab } from './SidePanelTabManager.js'
     }
 
     changeBackground(e) {
+
         const sceneManager = this.sceneManager;
+
         const canvas = document.getElementById("backgroundCanvas");
         const context = canvas.getContext("2d");
         const image = document.getElementById("backgroundImage");
@@ -86,30 +87,31 @@ import { Tab } from './SidePanelTabManager.js'
         var reader = new FileReader();
 
         reader.onload = function (e) {
+
             image.src = e.target.result;
+
             image.onload = function () {
+                
                 canvas.width = image.width;
                 canvas.height = image.height;
                 context.drawImage(image, 0, 0)
 
-                $(sceneManager.renderer.domElement).css('opacity', '0.6')
-                sceneManager.changeRendererSize(canvas.width, canvas.height);
+                sceneManager.canvasController.opacity = 0.6;
+                sceneManager.canvasController.width = canvas.width;
+                sceneManager.canvasController.height = canvas.height;
                 sceneManager.removeOnWindowResize();
 
                 sceneManager.scene.remove(sceneManager.sky);
                 sceneManager.renderer.setClearColor(0xffffff, 1);
 
-                sceneManager.effectController.turbidity = 0.0
-                sceneManager.effectController.inclination = 0.0;
+                sceneManager.skyEffectController.turbidity = 0.0
+                sceneManager.skyEffectController.inclination = 0.0;
+
                 sceneManager.changeGUI();
+                
             }
         }
         
         reader.readAsDataURL(e.target.files[0]);
-    }
-
-    convertTo3D() {
-        this.modelingManager.createAllModel();
-        this.operationManager.disable2DFix();
     }
 }

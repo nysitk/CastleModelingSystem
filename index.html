@@ -13,38 +13,30 @@
 	<div id="menuBar"></div>
 
     <div id="sidePanel">
-    	<div id="controlPanel-main">
-			<ul id="modeButton">
-				<li id="orbit">orbit</li>
-				<li id="construction">construction</li>
-				<li id="edit">edit</li>
-				<li id="2Dfix">2Dfix</li>
-			</ul>
-			<div id="background-change">
-				<input type="file" id="background-Image" accept="image/*">
-				<img id="preview">
-			</div>
-			<div id="output">
-				<!-- <button id="obj-output">obj出力</button> -->
-				<button id="convertTo3D">3Dモデル化</button>
-				<a id="objExport" download="castle.obj">obj</a>
-				<a id="mtlExport" download="castle.mtl">mtl</a>
-			</div>
-			<div>
-				P:display params
-			</div>
+		<div id="toolbar">
+			<button id="changeOrbit" class="Button selected">
+				Orbit
+			</button>
 		</div>
-		<div id="controlPanel-close">Hidden Controls</div>
 		<div id="tabContainer">
-			<span id="SceneTab" class="tab selected">Scene</span>
+			<span id="SceneTab" class="tab">Scene</span>
 			<span id="CastleEditTab" class="tab">CastleEdit</span>
 			<span id="PlaneControlTab" class="tab">PlaneControl</span>
 		</div>
 		<div id="contentContainer">
-			<div id="SceneContent" class="tabContent" style="display: block;">
-				<div class="panel">scene</div>
+			<div id="SceneContent" class="tabContent">
+				<div class="panel">
+					<div class="row" id="SceneGUI"></div>
+				</div>
+				<div class="panel">
+					<div id="output">
+						<!-- <button id="obj-output">obj出力</button> -->
+						<a id="objExport" download="castle.obj">obj</a>
+						<a id="mtlExport" download="castle.mtl">mtl</a>
+					</div>
+				</div>
 			</div>
-			<div id="CastleEditContent" class="tabContent" style="display: none;">
+			<div id="CastleEditContent" class="tabContent">
 				<div class="panel">
 					<div class="row">
 						<button id="startConstruction">START CONSTRUCTION</button>
@@ -85,21 +77,39 @@
 				<div class="panel">
 					<div id="castleOutliner"></div>
 				</div>
+				<div class="panel">
+					<div class="row">
+						<button id="addHafu" disabled>ADD HAFU</button>
+					</div>
+				</div>
 			</div>
-			<div id="PlaneControlContent" class="tabContent" style="display: none;">
+			<div id="PlaneControlContent" class="tabContent">
+				<div class="panel">
+					<div class="row">INPUT Background Image</div>
+					<div class="row">
+						<div id="background-change">
+							<input type="file" id="background-Image" accept="image/*">
+							<img id="preview">
+						</div>
+					</div>
+				</div>
+				<div class="panel">
+					<div class="row">
+						<button id="start2DFix">START 2DFIX</button>
+					</div>
+					<div class="row">
+						<button id="convertTo3D" disabled>CONVERT To 3D</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
 
-	<div id="mainView"></div>
-	<div id="toolbar">
-		<button id="changeOrbit" class="Button selected">
-			Orbit
-		</button>
+	<div id="mainView">
+		<canvas id="backgroundCanvas"></canvas>
+		<img id="backgroundImage" style="display:none;">
 	</div>
 
-    <!-- <canvas id="backgroundCanvas"></canvas>
-    <img id="backgroundImage" style="display:none;"> -->
     
     <script type="module" src="./js/index.js"></script>
 
