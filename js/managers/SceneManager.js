@@ -48,6 +48,12 @@ export class SceneManager {
 		this.renderer.setRenderTarget( null );
 		this.renderer.render( this.scene, this.currentCamera );
 
+		if (this.operationManager?.controlPanel?.sceneTab) {
+
+			this.operationManager.controlPanel.sceneTab.content.displayStatus();
+
+		}
+
 	}
 
 	addHelper() {
@@ -173,6 +179,8 @@ export class SceneManager {
 		
 		this.containerDom.appendChild( this.renderer.domElement );
 		this.renderer.domElement.id = "mainCanvas"
+
+		this.renderTarget = new THREE.WebGLRenderTarget(this.canvasController.width, this.canvasController.height);
 
 	}
 

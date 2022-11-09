@@ -1,8 +1,10 @@
 import * as THREE from '/build/three.module.js';
 
-import { ModelingManager } from './ModelingManager.js';
-
 import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
+
+import { ModelPresets } from '../models/ModelPresets.js'
+
+import * as gradientDescent from '../tests/gradientDescent.js'
 
 export class Tab {
 
@@ -39,6 +41,10 @@ export class Tab {
             case "PlaneControl":
                 this.content = new planeControlTab(this.sidePanelManager);
                 break;
+
+            case "Test":
+                this.content = new testTab(this.sidePanelManager);
+                break;
         
             default:
                 break;
@@ -65,9 +71,97 @@ export class Tab {
 
 class SceneTab {
 
-    constructor() {
+    constructor(sidePanelManager) {
+
+        this.sidePanelManager = sidePanelManager
+        this.operationManager = sidePanelManager.operationManager;
+        this.modelingManager = this.operationManager.modelingManager;
+        this.sceneManager = this.operationManager.sceneManager;
         
-        return this;
+        $("#logStatus").on('click', (e) => {
+            this.logStatus();
+        })
+
+        $("#exportObj").on('click', (e) => {
+            this.exportObj();
+        })
+
+    }
+
+    displayStatus() {
+
+        document.getElementById('sceneStatus').innerHTML = ""
+        this.addStatusRow("camera info", this.sceneManager.currentCamera.position.x)
+
+    }
+
+    addStatusRow(name, param) {
+
+        const dom = document.createElement( 'div' );
+        dom.classList.add( 'row' );
+
+        const nameSpan = document.createElement('span');
+        nameSpan.classList.add('name')
+        nameSpan.innerHTML = name
+
+        const paramSpan = document.createElement('span');
+        paramSpan.innerHTML = param;
+
+        dom.appendChild(nameSpan)
+        dom.appendChild(paramSpan)
+
+        document.getElementById('sceneStatus').appendChild(dom);
+
+    }
+
+    logStatus() {
+
+        console.log("camera info:", this.sceneManager.currentCamera);
+        console.log("camera pos:", this.sceneManager.currentCamera.position);
+        console.log("camera rot:", this.sceneManager.currentCamera.rotation);
+        console.log("focal length:", this.sceneManager.currentCamera.getFocalLength());
+        console.log("display size:", this.sceneManager.renderer.getSize(new THREE.Vector2()));
+        console.log("target:", this.sceneManager.orbit.target);
+        
+        console.log("click position:", this.modelingManager.clickPosition);
+
+    }
+
+    exportObj() {
+
+        const sceneManager = this.sceneManager;
+        const exporter = new OBJExporterWithMtl("castle");
+
+        sceneManager.scene.remove(sceneManager.sky);
+        const result = exporter.parse( sceneManager.scene );
+        sceneManager.scene.add(sceneManager.sky);
+
+        console.log(result.obj)
+        console.log(result.mtl)
+
+        var objblob = new Blob([result.obj], {"type": "text/plain"});
+        var mtlblob = new Blob([result.mtl], {"type": "text/plain"});
+
+        if (window.navigator.msSaveBlob) {
+
+            window.navigator.msSaveBlob(objblob, "castle.obj");
+            window.navigator.msSaveBlob(mtlblob, "castle.mtl");
+
+            // msSaveOrOpenBlobの場合はファイルを保存せずに開ける
+            window.navigator.msSaveOrOpenBlob(objblob, "castle.obj"); 
+            window.navigator.msSaveOrOpenBlob(mtlblob, "castle.mtl"); 
+
+        } else {
+
+            const objLink = document.getElementById("objExport");
+            objLink.href = window.URL.createObjectURL(objblob);
+            objLink.click();
+
+            const mtlLink = document.getElementById("mtlExport");
+            mtlLink.href = window.URL.createObjectURL(mtlblob);
+            mtlLink.click();
+
+        }
 
     }
 
@@ -93,12 +187,30 @@ class CastleEditTab {
             this.operationManager.changeCursorMode("addHafu");
         })
 
+        $("#changeRoofColor").on('click', (e) => {
+            this.changeRoofColor();
+        })
+
+        $("#removeWallTexture").on('click', (e) => {
+            this.modelingManager.removeWallTexture();
+        })
+
+        for (let name in ModelPresets) {
+            $("#selectModelPreset").append("<option value='" + name + "'>" + name + "</option>")
+        }
+
+        $("#generatePresetModel").on('click', (e) => {
+            this.generatePresetModel();
+        })
+
     }
 
     enableConstructionMode() {
+
         this.changeSelectedRefPointClass(this.clickCount+1)
         $("#startConstruction").html("UNDER CONSTRUCTION");
         $("#startConstruction").attr("disabled", true);
+
     }
 
     disableConstructionMode() {
@@ -116,6 +228,14 @@ class CastleEditTab {
             $("#startConstruction").attr("disabled", true);
 
         }
+
+    }
+
+    finishConstructionMode() {
+
+        $("#addHafu").attr("disabled", false);
+        $("#changeRoofColor").attr("disabled", false);
+        $("#removeWallTexture").attr("disabled", false);
 
     }
 
@@ -235,7 +355,7 @@ class CastleEditTab {
         } else {
         
             this.operationManager.changeCursorMode("orbit");
-            $("#addHafu").attr("disabled", false);
+            this.finishConstructionMode();
         
         }
 
@@ -281,6 +401,42 @@ class CastleEditTab {
         $("#P" + clickCount + "x").val(this.modelingManager.clickPosition[clickCount-1].x)
         $("#P" + clickCount + "y").val(this.modelingManager.clickPosition[clickCount-1].y)
         $("#P" + clickCount + "z").val(this.modelingManager.clickPosition[clickCount-1].z)
+
+    }
+
+    changeRoofColor() {
+
+        const val = $("#inputRoofColor").val();
+        const color = (val) ? val :"0x638A72";
+        
+        this.modelingManager.castle.setYaneColor(color);
+
+    }
+
+    generatePresetModel() {
+
+        const name = $("#selectModelPreset").val()
+
+        this.modelingManager.createPresetModel(name);
+
+        this.completeAutoModel();
+
+    }
+
+    completeAutoModel() {
+
+        for (let i = 1; i <= 4; i++) {
+            
+            this.setRefPointButton(i, i+1)
+
+            this.displayClickPosition(i);
+
+        }
+
+        this.updateCastleOutline();
+
+        this.clickCount = 5;
+        this.disableConstructionMode();
 
     }
 
@@ -383,11 +539,14 @@ class planeControlTab {
 
     disableConvertTo3DMode() {
 
+        $("#convertTo3D").attr("disabled", true);
+
     }
 
     convertTo3D() {
 
         this.modelingManager.createAllModel();
+        this.operationManager.controlPanel.castleEditTab.content.completeAutoModel();
         this.finish2DFixMode();
 
     }
@@ -491,4 +650,44 @@ export class DraggablePoint {
 
     }
     
+}
+
+class testTab {
+
+    constructor(sidePanelManager) {
+
+        this.sidePanelManager = sidePanelManager
+        this.operationManager = sidePanelManager.operationManager;
+        this.modelingManager = this.operationManager.modelingManager;
+        this.sceneManager = this.operationManager.sceneManager;
+        
+        // it doesnt work.
+        $("#gradientDescentCameraParameter").on('click', (e) => {
+            gradientDescent.gradientDescentCameraParameter(this.sceneManager);
+        })
+
+        $("#outputError").on('click', (e) => {
+            let calcError = () => {
+                let errorRate = gradientDescent.calcError("rate");
+                console.log(errorRate)
+            }
+            gradientDescent.calcErrorbind = calcError.bind(this);
+            this.sceneManager.orbit.addEventListener('change', this.calcErrorbind)
+
+            const errorRawData = gradientDescent.calcError(this.sceneManager)
+
+            gradientDescent.downloadFile(errorRawData, "errorData.json")
+        })
+
+        $("#generatePixelData").on('click', (e) => {
+            const sceneData = gradientDescent.generatePixelData(this.sceneManager);
+            gradientDescent.downloadFile(sceneData, "sceneData.json")
+        })
+
+        $("#gradientDescentPrototype2").on('click', (e) => {
+            gradientDescent.gradientDescentPrototype2();
+        })
+
+    }
+
 }

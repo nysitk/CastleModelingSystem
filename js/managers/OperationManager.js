@@ -3,10 +3,6 @@ import * as THREE from '/build/three.module.js';
 import { ModelingManager } from './ModelingManager.js';
 import { SidePanelManager } from './SidePanelManager.js';
 
-import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
-
-import * as gradientDescent from '../tests/gradientDescent.js'
-
 /**
  * ユーザー操作関連のモデルクラス
  */
@@ -163,113 +159,6 @@ import * as gradientDescent from '../tests/gradientDescent.js'
             this.controlPanel.planeControlTab.content.onClickEvent(mousePos);       
 
         }
-    }
-
-    onKeydownEvent(e) {
-
-		switch ( e.code ) {
-            
-			case 'KeyA': // A
-                let createAllModel = this.modelingManager.createPresetModel();
-                if (createAllModel) this.cursorInfo.count = 10;
-                break;
-
-            case 'KeyB': // B
-                exportToObj(this.sceneManager);
-
-                function exportToObj(sceneManager) {
-
-                    const exporter = new OBJExporterWithMtl("castle");
-
-                    sceneManager.scene.remove(sceneManager.sky);
-
-                    const result = exporter.parse( sceneManager.scene );
-
-                    sceneManager.scene.add(sceneManager.sky);
-
-                    console.log(result.obj)
-                    console.log(result.mtl)
-
-                    var objblob = new Blob([result.obj], {"type": "text/plain"});
-                    var mtlblob = new Blob([result.mtl], {"type": "text/plain"});
-
-                    if (window.navigator.msSaveBlob) { 
-                        window.navigator.msSaveBlob(objblob, "castle.obj");
-                        window.navigator.msSaveBlob(mtlblob, "castle.mtl");
-                        // msSaveOrOpenBlobの場合はファイルを保存せずに開ける
-                        window.navigator.msSaveOrOpenBlob(objblob, "castle.obj"); 
-                        window.navigator.msSaveOrOpenBlob(mtlblob, "castle.mtl"); 
-                    } else {
-                        document.getElementById("objExport").href = window.URL.createObjectURL(objblob);
-                        document.getElementById("mtlExport").href = window.URL.createObjectURL(mtlblob);
-                    }
-
-                }
-                break;
-
-            case 'KeyD':
-                this.modelingManager.castle.setYaneColor("0x638A72");
-                break;
-
-            case 'KeyI':
-                
-                gradientDescent.gradientDescentCameraParameter();
-
-                break;
-
-            case 'KeyJ':
-
-                let calcError = () => {
-                    let errorRate = gradientDescent.calcError("rate");
-                    console.log(errorRate)
-                }
-                gradientDescent.calcErrorbind = calcError.bind(this);
-                this.sceneManager.orbit.addEventListener('change', this.calcErrorbind)
-
-                const errorRawData = gradientDescent.calcError()
-
-                gradientDescent.downloadFile(errorRawData, "errorData.json")
-
-                break;
-
-            case 'KeyK':
-
-                const sceneData = gradientDescent.generatePixelData();
-                gradientDescent.downloadFile(sceneData, "sceneData.json")
-
-                break;
-
-            case 'KeyM':
-                if (this.cursorMode == "orbit") {
-                    this.changeClickMode("construction")
-                } else if (this.cursorMode == "construction") {
-                    this.changeClickMode("addHafu")
-                } else if (this.cursorMode == "addHafu") {
-                    this.changeClickMode("orbit")
-                }
-                break;
-
-            case 'KeyP':
-                console.log("camera info:", this.sceneManager.currentCamera);
-                console.log("camera pos:", this.sceneManager.currentCamera.position);
-                console.log("camera rot:", this.sceneManager.currentCamera.rotation);
-                console.log("focal length:", this.sceneManager.currentCamera.getFocalLength());
-                console.log("display size:", this.sceneManager.renderer.getSize(new THREE.Vector2()));
-                console.log("target:", this.sceneManager.orbit.target);
-                
-                // this.modelingManager.createAutoFloor();
-                console.log(this.modelingManager.clickPosition)
-                break;
-
-            case 'KeyS':
-                gradientDescent.gradientDescentPrototype2();
-                break;
-
-            case 'KeyW':
-                this.modelingManager.removeWallTexture();
-                break;
-        }
-
     }
 
 }

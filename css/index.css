@@ -217,7 +217,7 @@ button {
 	color: #555;
     background-color: #ddd;
     border: 0px;
-    margin: 0px;
+    margin: 0 8px 0 0;
     padding: 8px 16px;
     font-size: 12px;
     cursor: pointer;
@@ -254,7 +254,24 @@ input.Number {
 	margin: 0 8px 0 0;
 }
 
-#castleOutliner {
+input.Text {
+	padding: 2px;
+	border: 1px solid transparent;
+	width: 128px;
+	font-size: 14px;
+}
+
+.Select {
+	color: #666;
+    background-color: #ddd;
+    border: 0px;
+    cursor: pointer;
+    outline: none;
+	padding: 4px;
+	width: 110px;
+}
+
+.displayer {
 	color: #444;
     background-color: #fff;
     padding: 0;
@@ -267,7 +284,7 @@ input.Number {
     outline: none !important;
 }
 
-#castleOutliner .option {
+.displayer .option {
 	padding: 4px;
     color: #666;
     white-space: nowrap;

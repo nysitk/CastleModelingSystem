@@ -415,9 +415,11 @@ import { ModelPresets } from '../models/ModelPresets.js'
         })
     }
 
-    createPresetModel() {
-        let name = "osaka"
-        let type = "whole" //line, black, whole
+    createPresetModel(name, type) {
+
+        name = (name) ? name : "osaka"
+        type = (type) ? type : "whole"  //line, black, whole
+
         let modelPreset = ModelPresets[name];
         let camera = this.sceneManager.cameraPersp;
 

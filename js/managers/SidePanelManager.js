@@ -25,6 +25,7 @@ import { Tab } from './SidePanelTabManager.js'
         this.sceneTab = new Tab(this, "Scene")
         this.castleEditTab = new Tab(this, "CastleEdit");
         this.planeControlTab = new Tab(this, "PlaneControl");
+        this.testTab = new Tab(this, "Test");
 
         this.openTab(this.sceneTab);
 
@@ -32,17 +33,7 @@ import { Tab } from './SidePanelTabManager.js'
             this.operationManager.changeCursorMode("orbit");
         })
 
-
-        $('#controlPanel-close').on("click", () => {
-            $('#controlPanel-main').slideToggle(500);
-        })
-
-        $("#modeButton > li").each(function(i, button) {
-            button.addEventListener('click', (e) => { this.clickCursorModeButton(e) }, false)
-        }.bind(this));
-
         $('#background-Image').on( 'change', (e) => { this.changeBackground(e) } );
-
 
     }
 

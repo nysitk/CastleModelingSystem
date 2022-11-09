@@ -22,6 +22,7 @@
 			<span id="SceneTab" class="tab">Scene</span>
 			<span id="CastleEditTab" class="tab">CastleEdit</span>
 			<span id="PlaneControlTab" class="tab">PlaneControl</span>
+			<span id="TestTab" class="tab">Test</span>
 		</div>
 		<div id="contentContainer">
 			<div id="SceneContent" class="tabContent">
@@ -29,10 +30,20 @@
 					<div class="row" id="SceneGUI"></div>
 				</div>
 				<div class="panel">
+					STATUS
+					<div class="displayer" id="sceneStatus"></div>
+					<div class="row">
+						<button id="logStatus">Log Status</button>
+					</div>
+				</div>
+				<div class="panel">
+					<div class="row">
+						<button id="exportObj">Export OBJ</button>
+					</div>
 					<div id="output">
 						<!-- <button id="obj-output">obj出力</button> -->
-						<a id="objExport" download="castle.obj">obj</a>
-						<a id="mtlExport" download="castle.mtl">mtl</a>
+						<a id="objExport" download="castle.obj">OBJ File</a><br>
+						<a id="mtlExport" download="castle.mtl">MTL File</a>
 					</div>
 				</div>
 			</div>
@@ -75,11 +86,28 @@
 					</div>
 				</div>
 				<div class="panel">
-					<div id="castleOutliner"></div>
+					<div class="displayer" id="castleOutliner"></div>
 				</div>
 				<div class="panel">
 					<div class="row">
 						<button id="addHafu" disabled>ADD HAFU</button>
+					</div>
+					<div class="row">
+						<input class="Text" id="inputRoofColor" value="">
+					</div>
+					<div class="row">
+						<button id="changeRoofColor" disabled>CHANGE ROOF COLOR</button>
+					</div>
+					<div class="row">
+						<button id="removeWallTexture" disabled>REMOVE WALL TEXTURE</button>
+					</div>
+				</div>
+				<div class="panel">
+					<div class="row">
+						<select id="selectModelPreset" class="Select" autocomplete="off"></select>
+					</div>
+					<div class="row">
+						<button id="generatePresetModel">GENERATE PRESET MODEL</button>
 					</div>
 				</div>
 			</div>
@@ -99,6 +127,22 @@
 					</div>
 					<div class="row">
 						<button id="convertTo3D" disabled>CONVERT To 3D</button>
+					</div>
+				</div>
+			</div>
+			<div id="TestContent" class="tabContent">
+				<div class="panel">
+					<div class="row">
+						<button id="gradientDescentCameraParameter">gradientDescentCameraParameter</button>
+					</div>
+					<div class="row">
+						<button id="outputError">outputError</button>
+					</div>
+					<div class="row">
+						<button id="generatePixelData">generatePixelData</button>
+					</div>
+					<div class="row">
+						<button id="gradientDescentPrototype2">gradientDescentPrototype2</button>
 					</div>
 				</div>
 			</div>

@@ -1,4 +1,6 @@
-export function gradientDescentCameraParameter() {
+import * as THREE from '/build/three.module.js';
+
+export function gradientDescentCameraParameter(sceneManager) {
 
     // shimabara
     const cameraPos = {
@@ -13,13 +15,11 @@ export function gradientDescentCameraParameter() {
         "z": 1.0
     }
 
-    const cameraPersp = this.sceneManager.cameraPersp
-    const orbit = this.sceneManager.orbit
+    const cameraPersp = sceneManager.cameraPersp
+    const orbit = sceneManager.orbit
 
     // const cameraPos = cameraPersp.position
     // const orbitTarget = orbit.target
-
-    const calcError = () => this.calcError("num")
 
     const alpha = 0.0001;
     const th = 300;
@@ -52,7 +52,7 @@ export function gradientDescentCameraParameter() {
         orbit.update();
 
         // console.log(cameraPos.x, prevPos.x, nowError, prevError)
-        nowError = calcError()
+        nowError = calcError(sceneManager)
 
         if (i == 0) {
             prevError = nowError;
@@ -92,7 +92,7 @@ export function gradientDescentCameraParameter() {
             cameraPersp.updateProjectionMatrix();
             orbit.update();
 
-            nowError = calcError();
+            nowError = calcError(sceneManager);
             
             i++;
             return;
@@ -233,10 +233,10 @@ export function gradientDescentPrototype2() {
     console.log("x: " + x + " extremum: " + f(x));
 }
 
-export function getPixelBuffer(renderTarget, width, height) {
+export function getPixelBuffer(sceneManager, renderTarget, width, height) {
 
     const pixelBuffer = new Uint8Array( width * height * 4 );
-    this.sceneManager.renderer.readRenderTargetPixels( renderTarget, 0, 0, width, height, pixelBuffer );
+    sceneManager.renderer.readRenderTargetPixels( renderTarget, 0, 0, width, height, pixelBuffer );
 
     return pixelBuffer;
 }
@@ -294,17 +294,17 @@ export function adjustArrayDirection(pixelBuffer, width, height) {
 
 }
 
-export function generatePixelData(type = "buffer") {
+export function generatePixelData(sceneManager, type = "buffer") {
 
-    const renderTarget = this.sceneManager.renderTarget
-    this.sceneManager.renderer.setRenderTarget( renderTarget );
-    this.sceneManager.renderer.render( this.sceneManager.scene, this.sceneManager.currentCamera );
+    const renderTarget = sceneManager.renderTarget
+    sceneManager.renderer.setRenderTarget( renderTarget );
+    sceneManager.renderer.render( sceneManager.scene, sceneManager.currentCamera );
 
     let width = renderTarget.width;
     let height = renderTarget.height;
 
-    const pixelBuffer = this.getPixelBuffer(renderTarget, width, height)
-    const adjustPixelBuffer = this.adjustArrayDirection(pixelBuffer, width, height);
+    const pixelBuffer = getPixelBuffer(sceneManager, renderTarget, width, height)
+    const adjustPixelBuffer = adjustArrayDirection(pixelBuffer, width, height);
     let buffer = Array.from(adjustPixelBuffer);
 
     if (type == "buffer")
@@ -332,9 +332,9 @@ export function downloadFile(rawData, fileName) {
     link.click();
 }
 
-export function calcError(type = "json") {
+export function calcError(sceneManager, type = "json") {
 
-    const rawData = this.generatePixelData("buffer");
+    const rawData = generatePixelData(sceneManager, "buffer");
     
     const canvas = document.getElementById("backgroundCanvas");
     const context = canvas.getContext("2d");
