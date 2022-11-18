@@ -27,7 +27,7 @@
 		<div id="contentContainer">
 			<div id="SceneContent" class="tabContent">
 				<div class="panel">
-					<div class="row" id="SceneGUI"></div>
+					<div class="row" id="SceneGUIWrapper"></div>
 				</div>
 				<div class="panel">
 					STATUS
@@ -105,6 +105,11 @@
 				<div class="panel">
 					<div class="row">
 						<select id="selectModelPreset" class="Select" autocomplete="off"></select>
+						<select id="selectModelType" class="Select" autocomplete="off">
+							<option value="whole">whole</option>
+							<option value="line">line</option>
+							<option value="black">black</option>
+						</select>
 					</div>
 					<div class="row">
 						<button id="generatePresetModel">GENERATE PRESET MODEL</button>
@@ -126,7 +131,17 @@
 						<button id="start2DFix">START 2DFIX</button>
 					</div>
 					<div class="row">
+						<button id="startPlaneEstimation">START PLANE ESTIMATION</button>
+					</div>
+					<div class="row">
 						<button id="convertTo3D" disabled>CONVERT To 3D</button>
+					</div>
+					<div style="position: relative;">
+						<canvas id="estimationCanvas" style="border: 1px solid #ccc;"></canvas>
+					</div>
+					<div id="openCVstatus">opencv.js 読み込み中</div>
+					<div class="panel">
+						<div class="row" id="PlaneControlGUIWrapper"></div>
 					</div>
 				</div>
 			</div>
@@ -144,6 +159,12 @@
 					<div class="row">
 						<button id="gradientDescentPrototype2">gradientDescentPrototype2</button>
 					</div>
+					<div class="row">
+						<button id="generatePixelPNG">generatePixelPNG</button>
+					</div>
+					<div class="row">
+						<button id="raycasterPlane">raycasterPlane</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -156,6 +177,13 @@
 
     
     <script type="module" src="./js/index.js"></script>
+	<script>
+		// opencv.jsが読み込まれた後に実行される
+		function onOpenCvReady() {
+			document.getElementById("openCVstatus").innerHTML = "opencv.js 読み込み終了";
+		}
+	</script>
+	<script async src="./opencv/opencv.js" onload="onOpenCvReady();"></script>
 
 
   </body>

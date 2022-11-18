@@ -5,8 +5,8 @@ import { GUI } from '../js/controls/dat.gui.module.js';
 
 import { PlanePointControl } from './PlanePointControl.js'
 
-// const canvas = document.getElementById('canvas');
-// const context = canvas.getContext('2d');
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
 
 document.getElementById('startButton2').addEventListener('click', init);
 
@@ -178,7 +178,7 @@ class ThreeJsScene {
     addGUIRectangle() {
 
         const rectangleFolder = this.gui.addFolder('Rectangle');
-        rectangleFolder.add(this.planePointControl, "aspect", 0, 2, 0.01).listen().onChange( () => this.planePointControl.startSolvePnP() );
+        rectangleFolder.add(this.planePointControl, "rectAspect", 0, 2, 0.01).listen().onChange( () => this.planePointControl.startSolvePnP() );
         rectangleFolder.open();
 
     }

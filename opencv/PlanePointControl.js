@@ -15,14 +15,14 @@ export class PlanePointControl {
 		    height: sceneManager.size.height
         }
 
-        this.aspect = 1.0; // aspect of rectangle. ( = width / height);
-        this.width = 200;
+        this.rectAspect = 1.0; // aspect of rectangle. ( = width / height);
+        this.rectWidth = 200;
 
 		this.vertices2D = [
-			new DraggablePoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 3, 0).add(this),
-			new DraggablePoint(this.renderSize.width / 4 * 3, this.renderSize.height / 4 * 3, 1).add(this),
-			new DraggablePoint(this.renderSize.width / 4 * 3, this.renderSize.height / 4 * 2, 2).add(this),
-			new DraggablePoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 2, 3).add(this),
+			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 3, 0).add(this),
+			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 3, this.renderSize.height / 4 * 3, 1).add(this),
+			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 3, this.renderSize.height / 4 * 2, 2).add(this),
+			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 2, 3).add(this),
 		]
 
 	}
@@ -63,8 +63,8 @@ export class PlanePointControl {
 
     exportCoordinatesSet() {
 
-        const width = this.width;
-        const height = width / this.aspect;
+        const width = this.rectWidth;
+        const height = width / this.rectAspect;
 
         const coordinatesSet = [];
 
@@ -96,6 +96,7 @@ export class PlanePointControl {
     }
 
     setFromEstimatedCV(estimatedCV) {
+
         this.sceneManager.orbit.enabled = false;
         this.sceneManager.orbit.target.set(0, 0, 0)
 
@@ -134,7 +135,7 @@ export class PlanePointControl {
 /**
  * 2Dfixモードでクリックしたときに、基準点（P1～P4）の画素座標を保持する
  */ 
- class DraggablePoint {
+ class DraggablePlaneEstimationPoint {
 
     constructor(x = 0, y = 0, clickCount = 0) {
 

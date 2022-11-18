@@ -3,6 +3,7 @@ import * as THREE from '/build/three.module.js';
 import { OBJExporter, OBJExporterWithMtl } from '../controls/OBJExporter.js';
 
 import { ModelPresets } from '../models/ModelPresets.js'
+import { PlaneControlTab } from './PlaneControlTab.js'
 
 import * as gradientDescent from '../tests/gradientDescent.js'
 
@@ -39,11 +40,11 @@ export class Tab {
                 break;
 
             case "PlaneControl":
-                this.content = new planeControlTab(this.sidePanelManager);
+                this.content = new PlaneControlTab(this.sidePanelManager);
                 break;
 
             case "Test":
-                this.content = new testTab(this.sidePanelManager);
+                this.content = new TestTab(this.sidePanelManager);
                 break;
         
             default:
@@ -416,8 +417,9 @@ class CastleEditTab {
     generatePresetModel() {
 
         const name = $("#selectModelPreset").val()
+        const type = $("#selectModelType").val()
 
-        this.modelingManager.createPresetModel(name);
+        this.modelingManager.createPresetModel(name, type);
 
         this.completeAutoModel();
 
@@ -442,217 +444,7 @@ class CastleEditTab {
 
 }
 
-class planeControlTab {
-
-    constructor(sidePanelManager) {
-
-        this.sidePanelManager = sidePanelManager
-        this.operationManager = sidePanelManager.operationManager;
-        this.modelingManager = this.operationManager.modelingManager;
-        this.sceneManager = this.operationManager.sceneManager;
-
-        this.is2DfixEnabled = true;
-        this.clickCount2DFix = 0;
-        this.draggablePoint = new Array(4);
-        
-        $("#start2DFix").on('click', (e) => {
-            this.operationManager.changeCursorMode("2Dfix");
-        })
-
-    }
-
-    onMoveEvent() {
-
-        if (this.is2DfixEnabled) {
-
-            this.modelingManager.createAllLineFrom2D(this.clickCount2DFix);
-
-        }
-
-    }
-
-    onClickEvent(mousePos) {
-
-        if (this.clickCount2DFix < 4)
-        this.addDraggablePoint(mousePos, this.clickCount2DFix);
-
-        switch (this.clickCount2DFix) {
-
-            case 0:
-
-                this.clickCount2DFix++;
-
-                let createAllLineFrom2D = () => {
-                    this.modelingManager.createAllLineFrom2D(4);
-                }
-
-                this.createAllLineFrom2Dbind = createAllLineFrom2D.bind(this);
-                this.sceneManager.orbit.addEventListener('change', this.createAllLineFrom2Dbind)
-                
-                break;
-
-            case 1:
-
-                this.clickCount2DFix++;
-                break;
-
-            case 2:
-
-                this.clickCount2DFix++;
-                break;
-
-            case 3:
-
-                this.clickCount2DFix++;
-                this.operationManager.changeCursorMode("orbit");
-                this.modelingManager.createAllLineFrom2D(this.clickCount2DFix);
-                
-                this.enableConvertTo3DMode();
-
-                break;
-
-        }
-
-    }
-
-    addDraggablePoint(mousePos, count2D) {
-
-        const draggablePoint = new DraggablePoint(mousePos.x, mousePos.y, count2D);
-
-        this.draggablePoint[count2D] = draggablePoint;
-
-        draggablePoint.operationManager = this;
-        draggablePoint.modelingManager = this.modelingManager;
-
-        draggablePoint.add()
-
-        return draggablePoint;
-
-    }
-
-    enableConvertTo3DMode() {
-
-        $("#convertTo3D").attr("disabled", false);
-        $('#convertTo3D').on('click', (e) => { this.convertTo3D(e) });
-
-    }
-
-    disableConvertTo3DMode() {
-
-        $("#convertTo3D").attr("disabled", true);
-
-    }
-
-    convertTo3D() {
-
-        this.modelingManager.createAllModel();
-        this.operationManager.controlPanel.castleEditTab.content.completeAutoModel();
-        this.finish2DFixMode();
-
-    }
-
-    enable2DFixMode() {
-
-        $("#start2DFix").attr("disabled", true); 
-
-    }
-
-    disable2DFixMode() {
-
-        this.is2DfixEnabled = false;
-        $("#start2DFix").attr("disabled", false); 
-
-    }
-
-    finish2DFixMode() {
-        
-        this.disable2DFixMode();
-
-        this.modelingManager.castle.removeAllLine();
-        this.draggablePoint.map((p) => { 
-            p.remove();
-            p = null 
-        });
-
-        this.sceneManager.orbit.removeEventListener('change', this.createAllLineFrom2Dbind);
-
-    }
-
-}
-
-
-/**
- * 2Dfixモードでクリックしたときに、基準点（P1～P4）の画素座標を保持する
- */ 
-export class DraggablePoint {
-
-    constructor(x, y, clickCount) {
-
-		this.mousePos = new THREE.Vector2(x, y);
-        this.clickCount = clickCount ? clickCount : 0;
-        this.isDragging = false;
-
-    }
-
-    add(name = "position2D") {
-
-        this.modelingManager.set2DPosition(this.clickCount, this.mousePos)
-        
-        this.domElement = $("<div id='" + name + "-" + this.clickCount + "' class='" + name + "'></div>");
-        $("#mainView").append(this.domElement);
-        
-        this.changePosition(this.mousePos.x, this.mousePos.y)
-
-        this.domElement.on('mousedown', e => { 
-
-            this.isDragging = true;
-                
-            this.mousePos.x = e.pageX - $("#mainCanvas").offset().left;
-            this.mousePos.y = e.pageY - $("#mainCanvas").offset().top;
-            
-        });
-
-        $("#mainView").on('mousemove', e => {
-
-            if (this.isDragging) {
-                
-                this.mousePos.x = e.pageX - $("#mainCanvas").offset().left;
-                this.mousePos.y = e.pageY - $("#mainCanvas").offset().top;
-                this.changePosition(this.mousePos.x, this.mousePos.y)
-                
-                this.modelingManager.set2DPosition(this.clickCount, this.mousePos)
-                this.modelingManager.createAllLineFrom2D(4);
-
-            }
-
-        });
-          
-        this.domElement.on('mouseup', e => {
-            if (this.isDragging) {
-                this.isDragging = false;
-            }
-        });
-
-    }
-
-    changePosition(x, y) {
-
-        const viewPos = $("#mainCanvas").offset()
-
-        $(this.domElement).offset({ top: viewPos.top + y, left: viewPos.left + x });
-        $(this.domElement).css( { transform: 'translate(-50%, -50%)' } );
-
-    }
-
-    remove() {
-
-        this.domElement.remove();
-
-    }
-    
-}
-
-class testTab {
+class TestTab {
 
     constructor(sidePanelManager) {
 
@@ -686,6 +478,41 @@ class testTab {
 
         $("#gradientDescentPrototype2").on('click', (e) => {
             gradientDescent.gradientDescentPrototype2();
+        })
+
+        $("#generatePixelPNG").on('click', (e) => {
+            gradientDescent.generatePixelPNG(this.sceneManager);
+        })
+
+        $("#raycasterPlane").on('click', (e) => {
+            const raycaster = new THREE.Raycaster();
+            const pointer = new THREE.Vector2(0, 0); // 画面の中心
+
+            const rectangle = generateRectangle(10000, 10000)
+            this.sceneManager.scene.add(rectangle)
+            this.sceneManager.render();
+
+            raycaster.setFromCamera( pointer, this.sceneManager.currentCamera );
+            const intersects = raycaster.intersectObjects(this.sceneManager.raycasterObjects.children);
+
+            const p = intersects[0].point;
+
+            this.sceneManager.orbit.target.set(p.x, p.y, p.z)
+            this.sceneManager.orbit.update();
+
+
+            function generateRectangle(width, height) {
+                
+                const geometry = new THREE.PlaneGeometry( width, height );
+                const material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+
+                const mesh = new THREE.Mesh(geometry, material);
+
+                mesh.rotation.x = Math.PI / 2;
+
+                return mesh
+            }
+
         })
 
     }

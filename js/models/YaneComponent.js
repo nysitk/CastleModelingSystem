@@ -264,7 +264,7 @@ class YaneBody extends THREE.Group {
         if (type == "whole") {
             material = new THREE.MeshPhongMaterial({color: 0x222227, emissive:0x0, side: THREE.DoubleSide, vertexColors: true});
         } else if (type == "black") {
-            material = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+            material = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } );
         }
         this.body = new THREE.Mesh(geometry, material);
 

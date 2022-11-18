@@ -539,8 +539,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
         console.log(this.click2DPosition)
     }
 
-    createAllLineFrom2D(clickCount, type = "polygon") {
-        const polygonType = "black"
+    createAllLineFrom2D(clickCount, type = "polygon", polygonType = "black") {
 
         if (clickCount > 0) {
             this.clickPosition[0] = this.calcPointOnGround(this.click2DPosition[0]);

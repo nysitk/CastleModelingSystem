@@ -187,7 +187,7 @@ export class SceneManager {
 	addOrbit() {
 
 		this.orbit = new OrbitControls( this.currentCamera, this.renderer.domElement );
-		this.orbit.target.set(1.0, 100.0, 1.0)
+		this.orbit.target.set(0,0,0)
 
 	}
 
@@ -204,9 +204,8 @@ export class SceneManager {
 	addGUI() {
 
 		this.gui = new GUI( { autoPlace: false} );
-		this.gui.domElement.id = "gui"
-		$("#SceneGUI").append($(this.gui.domElement))
-		// this.gui.close();
+		this.gui.domElement.id = "SceneGUI"
+		$("#SceneGUIWrapper").append($(this.gui.domElement))
 
 		this.addGUICamera();
 		this.addGUISky();
@@ -223,7 +222,7 @@ export class SceneManager {
 
 		this.cameraFolder = this.gui.addFolder('Camera');
 
-		this.cameraFolder.add(this.cameraPersp, "fov", 0, 90, 1).listen().onChange( () => { this.changeGUI() } );
+		this.cameraFolder.add(this.cameraPersp, "fov", 0, 90, 1).listen().onChange( () => { this.updateScene() } );
 		this.cameraFolder.add(this.cameraPersp.position, "x", -5000, 5000, 1).name("position X").listen().onChange( () => { this.changeGUI() } );
 		this.cameraFolder.add(this.cameraPersp.position, "y", -2000, 2000, 1).name("position Y").listen().onChange( () => { this.changeGUI() } );
 		this.cameraFolder.add(this.cameraPersp.position, "z", -2000, 2000, 1).name("position Z").listen().onChange( () => { this.changeGUI() } );
@@ -289,6 +288,25 @@ export class SceneManager {
 
 	}
 
+	updateScene() {
+		
+		if (this.operationManager?.controlPanel?.planeControlTab?.content?.is2DfixEnabled) {
+
+			const count = this.operationManager.controlPanel.planeControlTab.content.clickCount2DFix
+			this.operationManager.modelingManager.createAllLineFrom2D(count);
+
+		}
+
+		if (this.operationManager?.controlPanel?.planeControlTab?.content?.planeEstimation) {
+
+			this.operationManager.controlPanel.planeControlTab.content.planeEstimation.startSolvePnP();
+
+		}
+
+		this.changeGUI();
+		
+	}
+
 	changeGUI() {
 
 		this.changeGUICamera();
@@ -306,13 +324,19 @@ export class SceneManager {
 
 		this.currentCamera.position.copy( position );
 
-		this.orbit.object = this.currentCamera;
 		this.control.camera = this.currentCamera;
 
-		this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
 		this.cameraPersp.updateProjectionMatrix()
 
-		this.orbit.update();
+        if (this.orbit.enabled) {
+
+            this.orbit.object = this.currentCamera;
+            this.currentCamera.lookAt( this.orbit.target.x, this.orbit.target.y, this.orbit.target.z );
+        
+			this.orbit.update();
+			
+		}
+
 
 	}
 	
@@ -392,6 +416,7 @@ export class SceneManager {
 	
 		this.renderer.setPixelRatio(window.devicePixelRatio)
 		this.renderer.setSize( width, height );
+        this.renderTarget.setSize( width, height );
 	
 		this.render();
 

@@ -28,7 +28,6 @@ import { SidePanelManager } from './SidePanelManager.js';
         // イベントリスナーの登録
         document.getElementById("mainView").addEventListener('click', (e) => { this.onClickEvent(e) }, false);
         document.getElementById("mainView").addEventListener('mousemove', (e) => { this.onMoveEvent(e) }, false);
-        document.getElementById("mainView").addEventListener('keydown', (e) => { this.onKeydownEvent(e) }, false);
     
     }
 
@@ -76,6 +75,11 @@ import { SidePanelManager } from './SidePanelManager.js';
                 this.controlPanel.planeControlTab.content.disable2DFixMode();
                 break;
 
+            case "planeEstimation":
+
+                this.controlPanel.planeControlTab.content.disablePlaneEstimationMode();
+                break;
+
             default:
                 break;
 
@@ -109,6 +113,12 @@ import { SidePanelManager } from './SidePanelManager.js';
                 $(this.sceneManager.renderer.domElement).css('cursor', 'crosshair');
                 break;
 
+            case "planeEstimation":
+
+                this.controlPanel.planeControlTab.content.enablePlaneEstimationMode();
+                $(this.sceneManager.renderer.domElement).css('cursor', 'default');
+                break;
+
         }
 
         this.cursorMode = mode;
@@ -125,17 +135,22 @@ import { SidePanelManager } from './SidePanelManager.js';
 
             this.controlPanel.castleEditTab.content.onMoveEvent(mousePos);       
 
-        } else if (this.cursorMode == "2Dfix") {
-
-            this.controlPanel.planeControlTab.content.onMoveEvent(mousePos); 
-
-
         } else if (this.cursorMode == "addHafu") {
 
             const raycasterMousePos = this.generateRaycasterMousePos(e)
             this.modelingManager.selectYaneComponent(raycasterMousePos);
 
-        }
+        } else if (this.cursorMode == "2Dfix") {
+
+            this.controlPanel.planeControlTab.content.onMove2DFixEvent(mousePos); 
+
+
+        } else if (this.cursorMode == "planeEstimation") {
+
+            // this.controlPanel.planeControlTab.content.onMovePlaneEstimationEvent(mousePos); 
+
+
+    }
 
     }
 
@@ -156,7 +171,11 @@ import { SidePanelManager } from './SidePanelManager.js';
         
         } else if (this.cursorMode == "2Dfix") {
 
-            this.controlPanel.planeControlTab.content.onClickEvent(mousePos);       
+            this.controlPanel.planeControlTab.content.onClick2DFixEvent(mousePos);       
+
+        } else if (this.cursorMode == "planeEstimation") {
+
+            // this.controlPanel.planeControlTab.content.onClickPlaneEstimationEvent(mousePos);       
 
         }
     }

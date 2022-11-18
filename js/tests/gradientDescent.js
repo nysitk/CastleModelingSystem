@@ -324,6 +324,16 @@ export function generatePixelData(sceneManager, type = "buffer") {
 
 }
 
+export function generatePixelPNG(sceneManager, fileName = "scene") {
+    sceneManager.render();
+    const dataURL = sceneManager.renderer.domElement.toDataURL( 'image/png' );
+
+    let a = document.createElement("a");
+    a.href = dataURL;
+    a.download = fileName + ".png";
+    a.click();
+}
+
 export function downloadFile(rawData, fileName) {
     const data = JSON.stringify(rawData);
     const link = document.createElement("a");

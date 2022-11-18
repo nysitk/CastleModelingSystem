@@ -85,12 +85,23 @@ canvas {
 	cursor: pointer;
 }
 
-.position2D {
+.draggablePoint2DFix {
 	cursor: pointer;
 	width: 12px;
 	height: 12px;
 	position: absolute;
 	background-color: aquamarine;
+	top: 50%;
+    left: 50%;
+	transform: translate(-50%, -50%)
+}
+
+.draggablePointPlaneEstimation {
+	cursor: pointer;
+	width: 12px;
+	height: 12px;
+	position: absolute;
+	background-color: orange;
 	top: 50%;
     left: 50%;
 	transform: translate(-50%, -50%)
@@ -255,6 +266,7 @@ input.Number {
 }
 
 input.Text {
+	margin: 0 8px 0 0;
 	padding: 2px;
 	border: 1px solid transparent;
 	width: 128px;
@@ -267,6 +279,7 @@ input.Text {
     border: 0px;
     cursor: pointer;
     outline: none;
+	margin: 0 8px 0 0;
 	padding: 4px;
 	width: 110px;
 }
@@ -298,7 +311,11 @@ input.Text {
 	color: #ddd;
 }
 
-#gui {
+#estimationCanvas {
+	width: 100%;
+}
+
+#SceneGUI, #PlaneControlGUI {
 	width: 100%!important;
 }
 
@@ -316,13 +333,13 @@ input.Text {
 	border: none!important;
 
 }
-#gui .dg {
-	text-shadow: none;
-	color: #888;
+.dg {
+	text-shadow: none!important;
+	color: #888!important;
 }
 
 .dg .c .slider {
-    background: #aaa!important;
+    background: #bbb!important;
 }
 
 .dg .c input[type=text] {
