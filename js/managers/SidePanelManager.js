@@ -30,7 +30,7 @@ import { Tab } from './SidePanelTabManager.js'
         this.openTab(this.sceneTab);
 
         this.orbitButton.addEventListener('click', (e) => {
-            this.operationManager.changeCursorMode("orbit");
+            this.operationManager.propOrbit();
         })
 
         $('#background-Image').on( 'change', (e) => { this.changeBackground(e) } );
@@ -50,11 +50,11 @@ import { Tab } from './SidePanelTabManager.js'
     }
 
     enableOrbitMode() {
-        this.orbitButton.disabled = true;
+        this.orbitButton.classList.add("disabledButton");
     }
 
     disableOrbitMode() {
-        this.orbitButton.disabled = false;
+        this.orbitButton.classList.remove("disabledButton");
     }
 
     clickCursorModeButton(e){

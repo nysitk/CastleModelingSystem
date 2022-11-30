@@ -40,115 +40,53 @@ import { ModelPresets } from '../models/ModelPresets.js'
         const mesh = new THREE.Mesh(new THREE.SphereGeometry(3, 3, 3), new THREE.MeshNormalMaterial());
         mesh.position.set(x, y, z)
         this.sceneManager.scene.add(mesh);
-    }
-
-    /**
-     * カメラ位置からカーソル位置までの方向ベクトルを算出
-     * @param mouseX - マウス位置のx座標
-     * @param mouseY - マウス位置のy座標
-	 * @returns {THREE.Vector3} - 方向ベクトル
-     */
-    calcCameraToMouceRayVec(mouseX, mouseY) {
-        const currentCamera = this.sceneManager.currentCamera;
+    }    
+    
+    calcPointOnPlane(mousePos, plane) {
+        
+        const raycaster = new THREE.Raycaster();
+        
         const rendererSize = this.sceneManager.renderer.getSize(new THREE.Vector2());
-        const orbit = this.sceneManager.orbit;
-
-		// 上向きベクトル算出
-		const t = new THREE.Vector3(0, 1, 0).applyMatrix4(currentCamera.matrixWorld);
-
-		// カメラの位置から注視点位置を引き、正規化
-		const w = new THREE.Vector3().subVectors(currentCamera.position, orbit.target).normalize();
-		// wとカメラの上向きベクトルの外積を計算し、正規化
-		const u = new THREE.Vector3().crossVectors(w, t).normalize();
-		// uとwの外積を計算し、正規化
-		const v = new THREE.Vector3().crossVectors(u, w).normalize();
-
-		// 視点座標系の軸ベクトル
-		const axisVec = new THREE.Vector3(u, v, w);
-
-        const xs = ((mouseX + 0) - rendererSize.x / 2.0) / rendererSize.y;
-        const ys = ((mouseY + 0) - rendererSize.y / 2.0) / rendererSize.y;
-        const delta_y = 2 * Math.tan(currentCamera.fov / 2 * Math.PI / 180);
-
-        const xs_dy_u = new THREE.Vector3().copy(u).multiplyScalar(xs * delta_y);
-        const ys_dy_v = new THREE.Vector3().copy(v).multiplyScalar(ys * delta_y);
-
-		// カメラ位置からカーソル位置までの方向ベクトル
-		return new THREE.Vector3().copy(xs_dy_u).add(ys_dy_v).add(w);
+        const pointer = new THREE.Vector2(
+            ( mousePos.x / rendererSize.x ) * 2 - 1,
+            -( mousePos.y / rendererSize.y ) * 2 + 1
+            );        
+            
+            raycaster.setFromCamera( pointer, this.sceneManager.currentCamera );
+            const intersect = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+            
+        if (intersect === null) console.error("There are no intersections");
+        
+        return intersect;
+        
     }
 
-    /**
-     * 「直線の始点から交点までの線分の長さ」に関する値を算出
-     * @param {THREE.Vector3} startPoint - 開始点（基本的にカメラ位置）
-     * @param {THREE.Vector3} parallelVec - 直線と平行なベクトル
-     * @param {THREE.Vector3} planeNormal - 平面の法線ベクトル
-     * @param {THREE.Vector3} pointOnPlane - 平面上の1点
-	 * @see {@link http://www.etcnotes.info/almath/raycast_heimen.html、http://tau.doshisha.ac.jp/lectures/2008.intro-seminar/html.dir/node29.html}
-	 * @returns {THREE.Vector3} 媒介変数t
-     */
-    calcCameraToPlaneParam(startPoint, parallelVec, planeNormal, pointOnPlane) {
-        const numerator = planeNormal.x * (startPoint.x - pointOnPlane.x) + planeNormal.y * (startPoint.y - pointOnPlane.y) + planeNormal.z * (startPoint.z - pointOnPlane.z);
-        const denominator = planeNormal.x * parallelVec.x + planeNormal.y * parallelVec.y + planeNormal.z * parallelVec.z;
-        return -1 * numerator / denominator; 
-    }
-
-    /**
-     * 平面とレイの交点を算出し、マウス位置に対応する3次元点を取得
-     * @param {THREE.Vector3} startPoint - 開始点（基本的にカメラ位置）
-     * @param {THREE.Vector2} mousePos - スクリーン上のマウス位置
-     * @param {THREE.Vector3} planeNormal - 平面の法線ベクトル
-     * @param {THREE.Vector3} pointOnPlane - 平面上の1点
-     * @returns {THREE.Vector3} レイと平面の交点
-     */
-    calcPointOnRayPlaneIntersection(startPoint, mousePos, planeNormal, pointOnPlane) {
-        const cameraToMouseRayVec = this.calcCameraToMouceRayVec(mousePos.x, mousePos.y);
-        const cameraToPlaneParam = this.calcCameraToPlaneParam(startPoint, cameraToMouseRayVec, planeNormal, pointOnPlane)
-        return new THREE.Vector3(
-            cameraToMouseRayVec.x * cameraToPlaneParam + startPoint.x,
-            cameraToMouseRayVec.y * cameraToPlaneParam + startPoint.y,
-            cameraToMouseRayVec.z * cameraToPlaneParam + startPoint.z
-        )
-    }
-
-    /**
-     * マウス位置に対応する、地面上の点を算出
-     * @param {THREE.Vector2} mousePos - スクリーン上のマウス位置
-     * @returns {THREE.Vector3} マウス位置に対応する地面上の点
-     */
     calcPointOnGround(mousePos) {
-		const planeNormal = new THREE.Vector3(0, 1, 0); //平面の法線ベクトル
-		const pointOnPlane = new THREE.Vector3(0, 0, 0); //平面上の1点
-		const result = this.calcPointOnRayPlaneIntersection(
-            this.sceneManager.currentCamera.position,
-            mousePos,
-            planeNormal,
-            pointOnPlane
-        )
-        return result;
+
+        const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        return this.calcPointOnPlane(mousePos, plane);
+
     }
 
-    /**
-     * マウス位置に対応する、P1とP2を含み、底面に垂直な平面上の点を算出
-     * @param {THREE.Vector2} mousePos - スクリーン上のマウス位置
-     * @returns {THREE.Vector3} マウス位置に対応する点
-     */
-    calcPointOnNormalPlane(mousePos) {
+    calcPointOnNormalPlane(mousePos, P1 = this.clickPosition[0], P2 = this.clickPosition[1]) {
+        
         // 2点間方向ベクトル
-        const directionVector = new THREE.Vector3(
-            this.clickPosition[1].x - this.clickPosition[0].x,
-            0,
-            this.clickPosition[1].z - this.clickPosition[0].z
-        )
-        // 2点間の方向ベクトルの法線ベクトル
-        const normalVector = new THREE.Vector3(-1 * directionVector.z, 0, directionVector.x)
-        return this.calcPointOnRayPlaneIntersection(
-            this.sceneManager.currentCamera.position,
-            mousePos,
-            normalVector,
-            this.clickPosition[0]
-        )
-    }
+        const vecP1P2 = new THREE.Vector3().subVectors(P2, P1);
+        const vecP1O = new THREE.Vector3().subVectors(new THREE.Vector3(0,0,0), P1);
+        
+        // 2点間方向ベクトルの法線ベクトル
+        const normalVecP1P2 = new THREE.Vector3(-1 * vecP1P2.z, 0, vecP1P2.x).normalize();
+        
+        // 2点間を結ぶ直線と原点との距離
+        const constant = ((new THREE.Vector3().crossVectors(vecP1P2, vecP1O).length()) / vecP1P2.length());
 
+        // 2点を含み、地平面に垂直な平面
+        const plane = new THREE.Plane(normalVecP1P2, constant);
+
+        return this.calcPointOnPlane(mousePos, plane);
+
+    }
+    
     /**
      * クリックしたときに、基準点（P1～P4）を保持する
      */ 
@@ -245,6 +183,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
         const A = this.referencePoint.ishigakiBottom[0].clone();
         const B = mousePos ? this.calcPointOnGround(mousePos) : this.referencePoint.ishigakiBottom[1].clone();
 
+        console.log(A, B)
         this.bottomRectangleLine.geometry.vertices = new ModelingSupporter().generateRectangleLine(A, B);
         this.updateObject(this.bottomRectangleLine)
     }

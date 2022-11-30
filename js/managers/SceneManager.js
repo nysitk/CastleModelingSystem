@@ -289,16 +289,31 @@ export class SceneManager {
 	}
 
 	updateScene() {
-		
-		if (this.operationManager?.controlPanel?.planeControlTab?.content?.is2DfixEnabled) {
+
+		const is2DfixEnabled = this.operationManager?.controlPanel?.planeControlTab?.content?.is2DfixEnabled;
+		const isPlaneEstimation = this.operationManager?.controlPanel?.planeControlTab?.content?.planeEstimation;
+
+		if (is2DfixEnabled) {
 
 			const count = this.operationManager.controlPanel.planeControlTab.content.clickCount2DFix
-			this.operationManager.modelingManager.createAllLineFrom2D(count);
+
+			if (isPlaneEstimation && count == 4) {
+
+				console.log("true")
+					
+			} else {
+
+				console.log("false")
+				this.operationManager.modelingManager.createAllLineFrom2D(count);
+
+			}
+				
 
 		}
 
-		if (this.operationManager?.controlPanel?.planeControlTab?.content?.planeEstimation) {
+		if (isPlaneEstimation) {
 
+			console.log("planeEstimation")
 			this.operationManager.controlPanel.planeControlTab.content.planeEstimation.startSolvePnP();
 
 		}

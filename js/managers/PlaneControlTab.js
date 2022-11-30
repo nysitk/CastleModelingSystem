@@ -12,7 +12,7 @@ export class PlaneControlTab {
         this.modelingManager = this.operationManager.modelingManager;
         this.sceneManager = this.operationManager.sceneManager;
 
-        this.is2DfixEnabled = true;
+        this.is2DfixEnabled = false;
         this.clickCount2DFix = 0;
         this.draggablePoint = new Array(4);
         
@@ -118,6 +118,7 @@ export class PlaneControlTab {
 
     enable2DFixMode() {
 
+        this.is2DfixEnabled = true;
         $("#start2DFix").attr("disabled", true); 
 
     }
@@ -144,7 +145,6 @@ export class PlaneControlTab {
     }
 
     enablePlaneEstimationMode() {
-
         
         $("#startPlaneEstiamtion").attr("disabled", true); 
         
@@ -184,21 +184,24 @@ export class DraggablePoint {
 
     constructor(x = 0, y = 0, clickCount = 0, params) {
 
-        this.mousePos = new THREE.Vector2(x, y);
+        this.view = $("#mainView");
+        this.canvas = $("#mainCanvas");
+        this.name = "draggablePoint"
+
+        this.positionInCanvas = new THREE.Vector2(x, y);
+        
         this.clickCount = clickCount;
         this.isDragging = false;
 
-        this.view = $("#mainView");
-        this.name = "draggablePoint"
-
     }
 
-    add() {
+    add(inner = this.clickCount) {
 
-        this.domElement = $("<div id='" + this.name + "-" + this.clickCount + "' class='" + this.name + "'></div>");
+        this.inner = inner;
+        this.domElement = $("<div id='" + this.name + "-" + this.clickCount + "' class='" + this.name + "'>" + this.inner + "</div>");
         this.view.append(this.domElement);
 
-        this.changePosition(this.mousePos.x, this.mousePos.y);
+        this.changePosition(this.positionInCanvas.x, this.positionInCanvas.y);
 
         return this;
 
@@ -208,8 +211,8 @@ export class DraggablePoint {
 
         arg.isDragging = true;
 
-        arg.mousePos.x = e.pageX - arg.view.offset().left;
-        arg.mousePos.y = e.pageY - arg.view.offset().top;
+        arg.positionInCanvas.x = e.pageX - arg.canvas.offset().left;
+        arg.positionInCanvas.y = e.pageY - arg.canvas.offset().top;
 
     }
 
@@ -217,9 +220,9 @@ export class DraggablePoint {
 
         if (!arg.isDragging) return;
 
-        arg.mousePos.x = e.pageX - arg.view.offset().left;
-        arg.mousePos.y = e.pageY - arg.view.offset().top;
-        arg.changePosition(arg.mousePos.x, arg.mousePos.y)
+        arg.positionInCanvas.x = e.pageX - arg.canvas.offset().left;
+        arg.positionInCanvas.y = e.pageY - arg.canvas.offset().top;
+        arg.changePosition(arg.positionInCanvas.x, arg.positionInCanvas.y)
 
     }
 
@@ -258,10 +261,10 @@ export class DraggablePoint {
 
     changePosition(x, y) {
 
-        const viewPos = this.view.offset()
+        const canvasPos = this.canvas.offset()
 
-        $(this.domElement).offset({ top: viewPos.top + y, left: viewPos.left + x });
-        $(this.domElement).css( { transform: 'translate(-50%, -50%)' } );
+        $(this.domElement).offset({ top: canvasPos.top + y, left: canvasPos.left + x });
+        $(this.domElement).css( { transform: 'translate(-150%, -100%)' } );
 
     }
 
@@ -298,7 +301,7 @@ class DraggablePoint2DFix extends DraggablePoint {
             "mouseup": this.mouseup
         })
         
-        this.modelingManager.set2DPosition(this.clickCount, this.mousePos)
+        this.modelingManager.set2DPosition(this.clickCount, this.positionInCanvas)
 
         return this;
 
@@ -316,7 +319,7 @@ class DraggablePoint2DFix extends DraggablePoint {
 
         super.viewMousemove(e, arg);
         
-        arg.modelingManager.set2DPosition(arg.clickCount, arg.mousePos)
+        arg.modelingManager.set2DPosition(arg.clickCount, arg.positionInCanvas)
         arg.modelingManager.createAllLineFrom2D(4);
 
     }

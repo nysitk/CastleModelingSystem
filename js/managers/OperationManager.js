@@ -47,6 +47,40 @@ import { SidePanelManager } from './SidePanelManager.js';
 
     }
 
+    disableOrbit() {
+            
+            this.sceneManager.orbit.enabled = false;
+            this.controlPanel.disableOrbitMode();
+            $(this.sceneManager.renderer.domElement).css('cursor', 'default');
+
+            this.cursorMode = undefined;
+
+    }
+
+    enableOrbit() {
+            
+            this.sceneManager.orbit.enabled = true;
+            this.controlPanel.enableOrbitMode();
+            $(this.sceneManager.renderer.domElement).css('cursor', 'grab');
+
+            this.cursorMode = "orbit";
+
+    }
+
+    propOrbit() {
+
+        if (this.cursorMode == "orbit") {
+
+            this.disableOrbit();
+
+        } else {
+
+            this.enableOrbit();
+
+        }
+
+    }
+
     changeCursorMode(mode = "orbit") {
 
         this.controlPanel.changeCursorModeButtonColor(mode);
@@ -56,8 +90,7 @@ import { SidePanelManager } from './SidePanelManager.js';
 
             case "orbit":
 
-                this.sceneManager.orbit.enabled = false;
-                this.controlPanel.disableOrbitMode();
+                this.disableOrbit();
                 break;
 
             case "construction":
@@ -90,9 +123,7 @@ import { SidePanelManager } from './SidePanelManager.js';
 
             case "orbit":
 
-                this.sceneManager.orbit.enabled = true;
-                this.controlPanel.enableOrbitMode();
-                $(this.sceneManager.renderer.domElement).css('cursor', 'grab');
+                this.enableOrbit();
                 break;
 
             case "construction":

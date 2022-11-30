@@ -20,9 +20,9 @@ export class PlaneEstimation {
 
 		this.vertices2D = [
 			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 3, 0).add(this),
-			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 3, this.renderSize.height / 4 * 3, 1).add(this),
-			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 3, this.renderSize.height / 4 * 2, 2).add(this),
-			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 2, 3).add(this),
+			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 3, this.renderSize.height / 8 * 7, 1).add(this),
+			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 3, this.renderSize.height / 2 * 1, 2).add(this),
+			new DraggablePlaneEstimationPoint(this.renderSize.width / 8 * 3, this.renderSize.height / 2 * 1, 3).add(this),
 		]
 
 	}
@@ -75,7 +75,7 @@ export class PlaneEstimation {
             new THREE.Vector3(-width/2, 0, -height/2),
         ]
 
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < this.vertices2D.length; i++) {
 
             const coordinate = {};
 
@@ -84,7 +84,7 @@ export class PlaneEstimation {
             const worldCoordinate = this.vertices3D[i];
             coordinate.worldCoordinate = [worldCoordinate.x, worldCoordinate.y, worldCoordinate.z];
 
-            const screenCoordinate = this.vertices2D[i].mousePos;
+            const screenCoordinate = this.vertices2D[i].positionInCanvas;
             coordinate.screenCoordinate = [screenCoordinate.x, screenCoordinate.y];
 
             coordinatesSet.push(coordinate);
@@ -97,6 +97,8 @@ export class PlaneEstimation {
 
     setFromEstimatedCV(estimatedCV) {
 
+        this.sceneManager.operationManager.disableOrbit();
+
         const R3 = new THREE.Matrix3().fromArray(estimatedCV.camera.R.matrix).transpose();
         const R4 = setFromMatrix3(R3, new THREE.Matrix4())
         const cameraRotation = new THREE.Euler().setFromRotationMatrix(R4, 'XYZ');
@@ -105,9 +107,9 @@ export class PlaneEstimation {
         const camera_t = estimatedCV.camera.t;
         this.sceneManager.currentCamera.position.set(camera_t.matrix[0], camera_t.matrix[1], camera_t.matrix[2]);
 
-        console.log(this.sceneManager.orbit.target)
-        this.updateOrbit();
-        console.log(this.sceneManager.orbit.target)
+        // console.log(this.sceneManager.orbit.target)
+        // this.updateOrbit();
+        // console.log(this.sceneManager.orbit.target)
         
         function setFromMatrix3( m3, m4 ) {
 
@@ -211,7 +213,7 @@ export class PlaneEstimation {
 		
         super.viewMousemove(e, arg);
         
-        arg.planePointControl.startSolvePnP(arg.clickCount, arg.mousePos);
+        arg.planePointControl.startSolvePnP(arg.clickCount, arg.positionInCanvas);
 
     }
 
@@ -293,7 +295,8 @@ function solvePnPFromJSON(currentData) {
             distCoeffs,
             rvec,
             tvec,
-            false
+            false,
+            cv.SOLVEPNP_P3P
         );
 
         if (!success) {
