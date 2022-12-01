@@ -215,6 +215,8 @@ export class PlaneEstimation {
         
         arg.planePointControl.startSolvePnP(arg.clickCount, arg.positionInCanvas);
 
+        arg.planePointControl.sceneManager.updateScene();
+
     }
 
     mouseup(e, arg) {

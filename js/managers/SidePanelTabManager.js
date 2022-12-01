@@ -370,10 +370,7 @@ class CastleEditTab {
 
         if (model.ishigaki.line) this.addCastleOutlineOption("stonewallLine", "Stone Wall")
         if (model.ishigaki.polygon) this.addCastleOutlineOption("stonewallPolygon", "Stone Wall")
-        if (model.yagura.line) this.addCastleOutlineOption("yaguraLine", "Turret")
-        if (model.yagura.polygon) this.addCastleOutlineOption("yaguraLine", "Turret")
-        if (model.yane.line) this.addCastleOutlineOption("yaneLine", "Roof")
-        if (model.yane.polygon) this.addCastleOutlineOption("yanePolygon", "Roof")
+        if (model.yagura) this.addCastleOutlineOption("yagura", "Turret")
 
     }
 
@@ -410,7 +407,7 @@ class CastleEditTab {
         const val = $("#inputRoofColor").val();
         const color = (val) ? val :"0x638A72";
         
-        this.modelingManager.castle.setYaneColor(color);
+        this.modelingManager.castle.setYaneColor({ modelPreset: {yaneColor: color} });
 
     }
 

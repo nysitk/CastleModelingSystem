@@ -41,7 +41,7 @@ export class YaneComponent extends THREE.Group {
 		this.tarukiNum = Math.ceil(this.getYaneSize().width / this.tarukiInterval)+1;
 		if (this.tarukiNum > 100) this.tarukiNum = 100;
 
-		this.sei = this.tarukiInterval * this.PARAMS.seiRatio;
+		this.sei = this.tarukiInterval * this.PARAMS.yane.seiRatio;
 
         this.kayaoiThick = this.tarukiInterval / 2.0;
         this.kawarabohThick = this.tarukiInterval / 8.0;
@@ -103,7 +103,7 @@ export class YaneComponent extends THREE.Group {
 
     }
 
-    generateBody(MODE, type = "whole") {
+    generateBody(MODE, parameters) {
         switch(MODE) {
             case LINE:
                 this.body = new YaneBody(this.vertices)
@@ -111,7 +111,7 @@ export class YaneComponent extends THREE.Group {
                 break;
             case POLYGON:
                 this.body = new YaneBody(this.vertices)
-                this.add(this.body.generatePolygon(type));
+                this.add(this.body.generatePolygon(parameters));
                 break;
         }
     }
@@ -172,18 +172,33 @@ export class YaneComponent extends THREE.Group {
         return chidoriHafu;
 	}
 
-	createSimpleChidoriHafu(params, MODE) {
+	createSimpleChidoriHafu(MODE, parameters) {
+
+        const hafuParam = parameters.hafu;
+
 		return this.addChidoriHafu(
-			new ModelingSupporter().calcInternalEquinox(this.A, this.B, params.center),
-			this.getYaneSize().width * params.widthrate,
-			this.getYaneSize().height * params.heightrate,
-			this.getYaneSize().depth * params.depthrate,
+
+			new ModelingSupporter().calcInternalEquinox(this.A, this.B, hafuParam.center),
+			this.getYaneSize().width * hafuParam.widthrate,
+			this.getYaneSize().height * hafuParam.heightrate,
+			this.getYaneSize().depth * hafuParam.depthrate,
 			MODE
-		)
+		
+        )
+
 	}
     
-    setBodyColor(color) {
-        this.body.getMesh().material.color.setHex(color);
+    setBodyColor(parameters) {
+
+        if (!parameters.modelPreset.yaneColor) {
+
+            console.info("color is not signed.");
+            return;
+
+        }
+
+        this.body.getMesh().material.color.setHex(parameters.modelPreset.yaneColor);
+    
     }
     
     setHafuColor(color) {
@@ -237,7 +252,7 @@ class YaneBody extends THREE.Group {
 
     }
 
-    generatePolygon(type = "whole") {
+    generatePolygon(parameters) {
 
         const geometry = new THREE.Geometry();
 
@@ -261,15 +276,15 @@ class YaneBody extends THREE.Group {
 
         let material; 
 
-        if (type == "whole") {
-            material = new THREE.MeshPhongMaterial({color: 0x222227, emissive:0x0, side: THREE.DoubleSide, vertexColors: true});
-        } else if (type == "black") {
+        if (parameters.polygonType == "black") {
             material = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } );
+        } else {
+            material = new THREE.MeshPhongMaterial({color: 0x222227, emissive:0x0, side: THREE.DoubleSide, vertexColors: true});
         }
         this.body = new THREE.Mesh(geometry, material);
 
         // this.body.receiveShadow = true;
-        if (type == "whole") this.body.castShadow = true;
+        if (parameters.type == "whole") this.body.castShadow = true;
 
         this.add(this.body);
         

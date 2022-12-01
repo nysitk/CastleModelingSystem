@@ -30,7 +30,7 @@ export class PlaneControlTab {
 
         if (this.is2DfixEnabled) {
 
-            this.modelingManager.createAllLineFrom2D(this.clickCount2DFix);
+            // this.modelingManager.createAllLineFrom2D(this.clickCount2DFix);
 
         }
 
@@ -69,7 +69,11 @@ export class PlaneControlTab {
             case 3:
 
                 this.clickCount2DFix++;
-                this.operationManager.changeCursorMode("orbit");
+
+                if (this.sidePanelManager.PlaneControlTab?.content?.planeEstimation) {
+                    this.operationManager.changeCursorMode("orbit");
+                }
+
                 this.modelingManager.createAllLineFrom2D(this.clickCount2DFix);
                 
                 this.enableConvertTo3DMode();
@@ -146,7 +150,7 @@ export class PlaneControlTab {
 
     enablePlaneEstimationMode() {
         
-        $("#startPlaneEstiamtion").attr("disabled", true); 
+        $("#startPlaneEstimation").attr("disabled", true); 
         
         this.planeEstimation = new PlaneEstimation(this.sceneManager);
         this.addGUIRectangle();
@@ -156,7 +160,7 @@ export class PlaneControlTab {
 
     disablePlaneEstimationMode() {
 
-        $("#startPlaneEstiamtion").attr("disabled", false); 
+        $("#startPlaneEstimation").attr("disabled", false); 
 
     }
 
@@ -171,8 +175,8 @@ export class PlaneControlTab {
 		$("#PlaneControlGUIWrapper").append($(this.gui.domElement))
 
         const planeEstimationFolder = this.gui.addFolder('Plane Estimation');
-        planeEstimationFolder.add(this.planeEstimation, "rectAspect", 0.5, 2, 0.01).name("Rectangle Aspect").listen().onChange( () => this.sceneManager.updateScene() );
-        planeEstimationFolder.add(this.sceneManager.currentCamera, "fov", 0, 90, 1).name("Camera fov").listen().onChange( () => this.sceneManager.updateScene() );
+        planeEstimationFolder.add(this.planeEstimation, "rectAspect", 0.2, 2, 0.01).name("Rectangle Aspect").listen().onChange( () => this.sceneManager.updateScene() );
+        planeEstimationFolder.add(this.sceneManager.currentCamera, "fov", 1, 90, 1).name("Camera fov").listen().onChange( () => this.sceneManager.updateScene() );
         planeEstimationFolder.open();
 
     }
@@ -320,8 +324,9 @@ class DraggablePoint2DFix extends DraggablePoint {
         super.viewMousemove(e, arg);
         
         arg.modelingManager.set2DPosition(arg.clickCount, arg.positionInCanvas)
-        arg.modelingManager.createAllLineFrom2D(4);
 
+        arg.modelingManager.sceneManager.updateScene()
+        
     }
 
     mouseup(e, arg) {

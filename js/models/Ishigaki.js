@@ -10,7 +10,7 @@ export class Ishigaki extends THREE.Group {
         super(); 
 
         this.PARAMS = PARAMS;
-        this.ishigakiSteps = PARAMS.ishigakiSteps;
+        this.ishigakiSteps = PARAMS.ishigaki.steps;
 
 		this.A = P1.clone();
 		this.B = P2.clone();
