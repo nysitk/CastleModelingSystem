@@ -2,50 +2,90 @@ import * as THREE from '/build/three.module.js';
 
 import { ModelingSupporter } from '../managers/ModelingSupporter.js'
 
+import { Yane } from './Yane.js';
+import { HafuPresets } from './HafuPresets.js'
+
 /**
  * 櫓モデル関連のモデルクラス
  */
 export class Yagura extends THREE.Group {
-	constructor(PARAMS, R3, R4, R6) {
+
+	constructor(R3, R4, R6, castleModelManager, parameters = {}) {
+
 		super();
 
-		this.PARAMS = PARAMS;
+		this.castleModelManager = castleModelManager;
+		this.PARAMS = castleModelManager.PARAMS;
+        this.yaguraSteps = this.PARAMS.yagura.steps;
+		
+		this.parameters = parameters;
+        this.type = (parameters.type) ? parameters.type : "whole";
+        this.topFloor = (parameters.topFloor) ? parameters.topFloor : false;
 
 		this.A = R3.clone();
 		this.B = R4.clone();
-		this.D = R6.clone();
-
-        this.yaguraSteps = PARAMS.yaguraSteps;
+		this.D = this.calc_D(R6.clone(), this.topFloor);
 
         this.allVertices = this.calcAllVertices();
 
-        this.line;
-        this.polygon;
+	}
+
+	calc_D(R6, topFloor) {
+
+		if (topFloor) {
+
+			const changeLevel = new THREE.Vector3(
+
+				(R6.x - this.B.x) / (this.yaguraSteps - 2),
+				(R6.y - this.B.y) / (this.yaguraSteps - 1),
+				(R6.z - this.B.z) / (this.yaguraSteps - 2)
+
+			)
+
+			R6.add(changeLevel);
+
+		}
+
+		return R6;
+
 	}
 
     calcAllVertices() {
+
 		this.changeLevel = new THREE.Vector3(
+
 			(this.D.x - this.B.x) / (this.yaguraSteps - 1),
 			(this.D.y - this.B.y) / this.yaguraSteps,
 			(this.D.z - this.B.z) / (this.yaguraSteps - 1)
+
 		)
 
 		const tmpA = this.A.clone();
+
 		const tmpB = this.B.clone();
+
 		const tmpC = new THREE.Vector3(
+
 			this.A.x,
 			this.A.y + this.changeLevel.y,
 			this.A.z,
+
+		
 		)
+
 		const tmpD = new THREE.Vector3(
+
 			this.B.x,
 			this.B.y + this.changeLevel.y,
 			this.B.z,
+
 		)
+
 
 		const vertices = [];
 
 		for (let i = 0; i < this.yaguraSteps; i++) {
+
 			vertices.push({A: tmpA.clone(), B: tmpB.clone(), C: tmpC.clone(), D: tmpD.clone()});
 
 			tmpA.x -= this.changeLevel.x;
@@ -60,213 +100,486 @@ export class Yagura extends THREE.Group {
 			tmpD.x += this.changeLevel.x;
 			tmpD.y += this.changeLevel.y;
 			tmpD.z += this.changeLevel.z;
+
 		}
 
+
 		return vertices;
-    }
 
-    createLine() {
-        this.line = new Line(this.PARAMS, this.A, this.B, this.D).create()
-        return this.line;
-    }
-
-    createPolygon(type = "whole") {
-        this.polygon = new Polygon(this.PARAMS, this.A, this.B, this.D).create(type)
-        return this.polygon;
     }
 
 	getYaguraVertices(layer) {
+
 		return {
+
 			lower: [
+
 				this.allVertices[layer].A.clone(),
 				new THREE.Vector3(this.allVertices[layer].B.x, this.allVertices[layer].A.y, this.allVertices[layer].A.z),
 				this.allVertices[layer].B.clone(),
 				new THREE.Vector3(this.allVertices[layer].A.x, this.allVertices[layer].A.y, this.allVertices[layer].B.z)
+			
 			],
 
 			upper: [
+
 				this.allVertices[layer].C.clone(),
 				new THREE.Vector3(this.allVertices[layer].D.x, this.allVertices[layer].C.y, this.allVertices[layer].C.z),
 				this.allVertices[layer].D.clone(),
 				new THREE.Vector3(this.allVertices[layer].C.x, this.allVertices[layer].C.y, this.allVertices[layer].D.z)
+			
 			]
+
 		}
+
 	}
-}
-
-class Line extends Yagura {
-    constructor(PARAMS, R3, R4, R6) {
-        super(PARAMS, R3, R4, R6);
-    }
     
-    create() {
-		for (const vertices of this.allVertices) {
-            const material = new THREE.LineBasicMaterial({color: 0xFD7E00})
-            const geometry = new ModelingSupporter().generateBoxLineGeometry(
-                vertices.A,
-                vertices.B,
-                vertices.C,
-                vertices.D
-            );
+    createLine() {
 
-            const mesh = new THREE.Line(geometry, material);
+		for (let i = 0; i < this.allVertices.length; i++) {
 
-            this.add(mesh);
+			const isTop = (i == this.allVertices.length - 1);
+
+			const eachLayer = new EachLayer(this, i).createLine(isTop);
+
+            this.add(eachLayer);
+
 		}
+
         return this;
+
     }
 
-	dispose() {
-        this.children.forEach(child => {
-            child.material.dispose();
-            child.geometry.dispose();
+	disposeLine() {
+
+        this.line.group.children.forEach(child => {
+
+			child.disposeLine();
+
         })
+
 	}
-}
-
-class Polygon extends Yagura {
-    constructor(PARAMS, R3, R4, R6) {
-        super(PARAMS, R3, R4, R6);
-    }
     
-    create(type = "whole") {
-		this.allVertices.forEach(function(vertices, i) {
-            const eachLayerPolygon = new EachLayerPolygon(
-				this.PARAMS,
-                vertices.A,
-                vertices.B,
-                vertices.C,
-                vertices.D,
-				this.changeLevel,
-            );
+    createPolygon(parameters) {
 
-            eachLayerPolygon.generate(type);
+		for (let i = 0; i < this.allVertices.length; i++) {
 
-            // 場所に応じて屋根を移動・回転
-            eachLayerPolygon.position.set(vertices.A.x, vertices.A.y, vertices.A.z);
-            eachLayerPolygon.name = "eachLayerPolygon";
-            eachLayerPolygon.layerNum = i;
-            this.add(eachLayerPolygon)
-		}, this)
-        return this;
+			const isTop = (i == this.allVertices.length - 1);
+
+			const eachLayer = new EachLayer(this, i).createPolygon(isTop, parameters);
+			
+            this.add(eachLayer);
+		
+		}
+        
+		return this;
+
     }
 
-	setTexture(name) {
-		let eachLayerPolygon = this.getEachLayerPolygon();
-		eachLayerPolygon.forEach( function(surroundWall, layer) {
-			surroundWall.getWall().forEach(function(wall) {
-				wall.setTexture(name, layer)
-			});
+	setTexture(parameters) {
+
+		this.getEachLayers().forEach( function( eachLayer ) {
+
+			eachLayer.setTexture(parameters)
+
 		})
+
 	}
 
 	removeTexture() {
-		let eachLayerPolygon = this.getEachLayerPolygon();
-		eachLayerPolygon.forEach( function(surroundWall) {
-			surroundWall.getWall().forEach(function(wall) {
-				wall.removeAllTexture()
-			});
+		
+		this.getEachLayers().forEach( function( eachLayer ) {
+
+			eachLayer.removeTexture();
+
 		})
+
 	}
 
-	getEachLayerPolygon() {
+	getEachLayers() {
+
 		return this.children.filter(
-			function(e) {return e.name == "eachLayerPolygon"} 
+		
+			function(e) {return e.isEachLayer} 
+		
 		);
+
+	}
+
+	getEachLayer(layer) {
+
+		return this.getEachLayers()[layer];
+
+	}
+
+	getPolygon() {
+
 	}
 
 	dispose() {
-        this.children.forEach(child => {
-			child.dispose();
-        })
+
+        this.getEachLayers().forEach(eachLayer => {
+		
+			eachLayer.dispose();
+        
+		})
+	
 	}
+
+	removeYaneColor() {
+		
+		this.getEachLayers().forEach( function( eachLayer ) {
+
+			eachLayer.removeYaneColor()
+
+		})
+
+	}
+
+	setYaneColor(parameters) {
+		
+		this.getEachLayers().forEach( function( eachLayer ) {
+
+			eachLayer.setYaneColor(parameters)
+
+		})
+
+	}
+
+	createHafuPreset(MODE, parameters = {}) {
+		
+		if (HafuPresets[parameters.name]) {
+
+			for (const hafu of HafuPresets[parameters.name]) {
+
+				parameters.hafu = hafu
+				this.createSimpleChidoriHafu(MODE, parameters)
+
+			}
+
+		}
+
+	}
+
+    createSimpleChidoriHafu(MODE, parameters) {
+
+		if (!this.getEachLayer(parameters.hafu.layer)?.yane) return;
+    
+		this.getEachLayer(parameters.hafu.layer).yane.createSimpleChidoriHafu(MODE, parameters)
+    
+	}
+
 }
 
-class EachLayerPolygon extends THREE.Group {
-	constructor(PARAMS, A, B, C, D, changeLevel) {
-		super();
+class EachLayer extends THREE.Group {
 
-		this.PARAMS = PARAMS;
+    constructor(yagura, layer) {
+
+        super();
+
+		this.isEachLayer = true;
+
+        this.yagura = yagura;
+        this.layer = layer;
+
+        this.worldVertices = yagura.allVertices[layer];
+
 
 		// 点Aを原点として考える
-		this.A = new THREE.Vector3(0, 0, 0);
-		this.B = new THREE.Vector3().subVectors(B, A);
-		this.C = new THREE.Vector3().subVectors(C, A);
-		this.D = new THREE.Vector3().subVectors(D, A);
+		this.worldPosition = this.worldVertices.A;
+		this.position.set(this.worldPosition.x, this.worldPosition.y, this.worldPosition.z);
+
+
+		this.origin = {
+
+			A: new THREE.Vector3(0, 0, 0),
+			B: new THREE.Vector3().subVectors(this.worldVertices.B, this.worldVertices.A),
+			C: new THREE.Vector3().subVectors(this.worldVertices.C, this.worldVertices.A),
+			D: new THREE.Vector3().subVectors(this.worldVertices.D, this.worldVertices.A)
+		
+		}
+
 
 		this.lower = [
-			this.A.clone(),
-			new THREE.Vector3(this.B.x, this.A.y, this.A.z),
-			this.B.clone(),
-			new THREE.Vector3(this.A.x, this.A.y, this.B.z)
+
+			this.origin.A.clone(),
+			new THREE.Vector3(this.origin.B.x, this.origin.A.y, this.origin.A.z),
+			this.origin.B.clone(),
+			new THREE.Vector3(this.origin.A.x, this.origin.A.y, this.origin.B.z)
+		
 		]
 
 		this.upper = [
-			this.C.clone(),
-			new THREE.Vector3(this.D.x, this.C.y, this.C.z),
-			this.D.clone(),
-			new THREE.Vector3(this.C.x, this.C.y, this.D.z)
+
+			this.origin.C.clone(),
+			new THREE.Vector3(this.origin.D.x, this.origin.C.y, this.origin.C.z),
+			this.origin.D.clone(),
+			new THREE.Vector3(this.origin.C.x, this.origin.C.y, this.origin.D.z)
+		
 		]
 
-		this.wall = new Array(4);
-
-		this.changeLevel = changeLevel;
-	}
-
-	generate(type = "whole") {
-
-		// 4方向分壁を生成
-		for (let direction=0; direction<4; direction++) {
-            this.wall[direction] = this.generateWall(direction, type);
-			this.add(this.wall[direction]);
-		}
-
-		const topFloorPolygon = new FloorPolygon(this.upper).generate(type);
-		topFloorPolygon.position.set(this.lower[0].x, this.lower[0].y, this.lower[0].z)
-		this.add(topFloorPolygon);
-
-		const bottomFloorPolygon = new FloorPolygon(this.lower).generate(type);
-		bottomFloorPolygon.position.set(this.upper[0].x, this.upper[0].y, this.upper[0].z)
-		this.add(bottomFloorPolygon);
-	}
-
-    generateWall(direction, type="whole") {
-        const dd = (direction+1)%4;
-
-        const wallPolygon = new WallPolygon(
-			this.PARAMS,
-			this.lower[direction],
-			this.lower[dd],
-			this.upper[direction],
-			this.upper[dd],
-			direction,
-			this.changeLevel
-		);
-        wallPolygon.generate(type);
-
-        wallPolygon.rotation.y = Math.PI / 2 * direction;
-        wallPolygon.position.set(this.lower[direction].x, this.lower[direction].y, this.lower[direction].z)
-        wallPolygon.name = "WallPolygon"
-
-        return wallPolygon;
     }
 
-	getWall() {
-		return this.children.filter(
-			function(e) {return e.name == "WallPolygon"} 
+    createLine( top = false, parameters = {} ) {
+
+        this.room = new Room(this).createLine(parameters);
+        this.add(this.room);
+
+        this.yane = new Yane(this);
+		
+		if (top) {
+			
+			this.yane.createTopLine(parameters);
+			
+		} else {
+
+			this.yane.createTopLine(parameters);
+
+		}
+		
+		this.add(this.yane);
+        
+		
+		return this;
+
+    }
+
+    dispose() {
+		
+		this.room.dispose();
+		this.yane.dispose();
+
+    }
+
+    createPolygon( top = false, parameters = {} ) {
+
+        this.room = new Room(this).createPolygon(parameters);
+        this.add(this.room);
+
+        this.yane = new Yane(this);
+        
+		if (top) {
+			
+			this.yane.createTopPolygon(parameters);
+			
+		} else {
+
+			this.yane.createPolygon(parameters);
+
+		}
+		
+		this.add(this.yane);
+
+        return this;
+
+    }
+
+    disposePolygon() {
+
+    }
+
+    disposeAll() {
+
+        this.disposeLine();
+        this.disposePolygon();
+
+    }
+
+	getVertices() {
+
+		return {
+		
+			upper: this.upper,
+			lower: this.lower
+		
+		}
+
+	}
+
+	getWalls() {
+		
+		if (!this.room?.polygon?.walls?.children) return [];
+
+		return this.room.polygon.walls.children.filter(
+		
+			function(e) {return e.isWall}
+		
 		);
+
+	}
+
+	setTexture(parameters) {
+
+		this.getWalls().forEach( function( wall ) {
+
+			wall.setTexture(parameters)
+
+		});
+
+	}
+
+	removeTexture() {
+		
+		this.getWalls().forEach( function( wall ) {
+
+			wall.removeTexture();
+
+		});
+	
+	}
+
+	getYanes() {
+
+		if (!this.yane?.polygon?.children) return [];
+
+		return this.yane.polygon.children.filter(
+		
+			function(e) {return e.isSurroundingYane}
+		
+		);
+
+	}
+
+	setYaneColor(parameters) {
+		
+		this.getYanes().forEach( function( yane ) {
+
+			yane.setBodyColor(parameters)
+
+		});
+
+	}
+
+	removeYaneColor() {
+		
+		this.getYanes().forEach( function( yane ) {
+
+			// yane.removeColor();
+
+		});
+	
+	}
+
+}
+
+class Room extends THREE.Group {
+
+    constructor(eachLayer) {
+
+        super();
+
+		this.isRoom = true;
+
+        this.eachLayer = eachLayer;
+        this.worldVertices = eachLayer.worldVertices;
+		this.origin = eachLayer.origin;
+
+
+		this.line = new THREE.Group();
+		this.add(this.line);
+
+		this.polygon = new THREE.Group();
+		this.add(this.polygon)
+
+    }
+
+    createLine() {
+
+        const material = new THREE.LineBasicMaterial({color: 0xFD7E00})
+
+        const geometry = new ModelingSupporter().generateBoxLineGeometry(
+
+            this.origin.A,
+            this.origin.B,
+            this.origin.C,
+            this.origin.D
+
+        );
+
+        const mesh = new THREE.Line(geometry, material);
+
+        this.line.add(mesh);
+
+        return this;
+
+    }
+
+	createPolygon(parameters) {
+		
+		this.polygon.walls = this.generateWalls(parameters);
+		this.polygon.add(this.polygon.walls);
+
+		this.polygon.topFloor = this.generateFloor(this.eachLayer.upper, parameters)
+		this.polygon.add(this.polygon.topFloor);
+
+		this.polygon.bottomFloor = this.generateFloor(this.eachLayer.lower, parameters)
+		this.polygon.add(this.polygon.bottomFloor);
+		
+
+		return this;
+		
 	}
 
 	dispose() {
-        this.children.forEach(child => {
-			child.dispose();
-        })
+
+		this.line.children.forEach(child => {
+			if (child.geometry) child.geometry.dispose();
+			if (child.material) child.material.dispose();
+		});
+	
 	}
+	
+    generateWalls(parameters) {
+		
+		const walls = new THREE.Group();
+		
+		// 4方向分壁を生成
+		for (let dir = 0; dir < 4; dir++) {
+			
+			const dd = (dir + 1) % 4;
+			
+			const wall = new Wall(
+				
+				this.eachLayer.lower[ dir ],
+				this.eachLayer.lower[ dd ],
+				this.eachLayer.upper[ dir ],
+				this.eachLayer.upper[ dd ],
+				dir,
+				this
+				
+			).generate(parameters);
+			
+			wall.rotation.y = Math.PI / 2 * dir;
+			wall.position.set(this.eachLayer.lower[dir].x, this.eachLayer.lower[dir].y, this.eachLayer.lower[dir].z)
+			
+
+			walls.add(wall)
+			
+		}
+		
+		return walls;
+		
+	}
+	
+	generateFloor(vertices, parameters) {
+
+		const floorPolygon = new FloorPolygon(vertices).generate(parameters);
+		
+		floorPolygon.position.set(vertices[0].x, vertices[0].y, vertices[0].z)
+
+		
+		return floorPolygon;
+
+	}
+
 }
 
-class WallPolygon extends THREE.Group {
-	constructor(PARAMS, A, B, C, D, d, changeLevel) {
+class Wall extends THREE.Group {
+
+	constructor(A, B, C, D, dir, room) {
+
 		super();
+
 		// 入力は4点と方向
 		//   C---D
 		//  /     \   
@@ -276,44 +589,58 @@ class WallPolygon extends THREE.Group {
 		// |--> x  3 1 d:direction
 		//          0
 
-		this.PARAMS = PARAMS;
+		this.isWall = true;
 
-		var axis = new THREE.Vector3( 0, 1, 0 );
-		var angle = Math.PI / 2 * -d;
+		this.dir = dir;
+		
+		this.room = room;
+		this.PARAMS = room.eachLayer.yagura.PARAMS;
+		this.changeLevel = room.eachLayer.yagura.changeLevel;
+
+		const axis = new THREE.Vector3( 0, 1, 0 );
+		const angle = Math.PI / 2 * -dir;
 
 		// Aを原点とする
-		this.A = new THREE.Vector3(0, 0, 0);
-		this.B = new THREE.Vector3().subVectors(B, A).applyAxisAngle( axis, angle );
-		this.C = new THREE.Vector3().subVectors(C, A).applyAxisAngle( axis, angle );
-		this.D = new THREE.Vector3().subVectors(D, A).applyAxisAngle( axis, angle );
+		this.A = new THREE.Vector3( 0, 0, 0 );
+		this.B = new THREE.Vector3().subVectors( B, A ).applyAxisAngle( axis, angle );
+		this.C = new THREE.Vector3().subVectors( C, A ).applyAxisAngle( axis, angle );
+		this.D = new THREE.Vector3().subVectors( D, A ).applyAxisAngle( axis, angle );
 
-		this.dir = d;
-		this.changeLevel = changeLevel;
 	}
 
-	generate(type = "whole") {
+	generate(parameters) {
+
+		if (!parameters.type) parameters.type = "whole";
+
 
 		let material;
 
-		if (type == "whole") {
+		if (parameters.type == "whole") {
+
 			material = new THREE.MeshLambertMaterial({color: 0xCBC9D4, side: THREE.DoubleSide});
-		} else if (type == "black") {
+		
+		} else if (parameters.polygonType == "black") {
+
 			material = new THREE.MeshBasicMaterial( { color: 0x000000 } )
+
 		}
 
+
 		const geometry = new ModelingSupporter().generateRectangleGeometry(this.A, this.B, this.C, this.D);
-		// const geometry = new THREE.PlaneGeometry(this.A.distanceTo(this.B), this.A.distanceTo(this.C))
+		
 		this.body = new THREE.Mesh(geometry, material);
 		        
         this.body.receiveShadow = true;
-        // mesh.castShadow = true;
 
 		this.add(this.body);
 
+
         return this;
+
 	}
 
 	generateShitamiitabari() {
+
         const material1 = new THREE.MeshLambertMaterial({color: 0x252529, side: THREE.DoubleSide});
         const material2 = new THREE.MeshLambertMaterial({color: 0x222227, side: THREE.DoubleSide});
 
@@ -325,6 +652,7 @@ class WallPolygon extends THREE.Group {
 		const verticalInterval = Math.abs(this.changeLevel.x / 2);
 		const verticalNum = Math.ceil(width / verticalInterval)
 
+
 		this.shitamiitabari = new THREE.Group();
 
 		this.shitamiitabari.add(generateFoundation());	// 土台
@@ -332,6 +660,7 @@ class WallPolygon extends THREE.Group {
 		this.shitamiitabari.add(generateMainHorizontalBar("bottom"));	// 下にある横棒
 		this.shitamiitabari.add(generateThinVerticalBar());	// 細い縦棒群
 		this.shitamiitabari.add(generateThinHorizontalBar());	// 細い横棒群
+
 
 		this.add(this.shitamiitabari);
 
@@ -412,20 +741,18 @@ class WallPolygon extends THREE.Group {
 
 	generateMultipleWindow(i) {
 
-		const chang = this.changeLevel.x * 1.5 / this.PARAMS.windowNum;
-		// var chang = (d%2==0) ? this.changeLevel.x : this.changeLevel.z
+		const chang = this.changeLevel.x * 1.5 / this.PARAMS.yagura.windowNum;
 
+		const start = this.room.eachLayer.getVertices().lower[this.dir];
+		const end = this.room.eachLayer.getVertices().lower[(this.dir+1)%4];
+		
 		const windowNum = Math.abs(
-			Math.ceil(
-				this.getYaguraVertices(i).lower[this.dir].distanceTo(
-					this.getYaguraVertices(i).lower[(this.dir+1)%4]
-				) / chang
-			)
+			Math.ceil( start.distanceTo( end ) / chang )
 		);
 
 		const num = windowNum;
 		const type = 2;
-		const width = chang / 3 * this.PARAMS.windowWidth;
+		const width = chang / 3 * this.PARAMS.yagura.windowWidth;
 		const height = this.changeLevel.y / 4;
 
 		const windowInterval = this.B.x / (num+1);
@@ -499,20 +826,19 @@ class WallPolygon extends THREE.Group {
 		}
 	}
 
-	getYaguraVertices(layer) {
-		return this.parent.parent.getYaguraVertices(layer);
-	}
+	setTexture(parameters) {
 
-	setTexture(name, layer) {
+		if (!parameters.modelPreset) parameters.modelPreset = {};
+		if (!parameters.modelPreset.wallTexture) parameters.modelPreset.wallTexture = "window";
 
-		switch (name) {
+		switch (parameters.modelPreset.wallTexture) {
 
 			case "shitamiitabari":
 				this.generateShitamiitabari();
 				break;
 
 			case "window":
-				this.generateMultipleWindow(layer);
+				this.generateMultipleWindow();
 				break;
 
 			case "none":
@@ -557,8 +883,11 @@ class WallPolygon extends THREE.Group {
 }
 
 class FloorPolygon extends THREE.Group {
+
 	constructor(vertices) {
+
 		super();
+
 		// 入力は4点と方向
 		//   C---D
 		//  /     \   
@@ -568,19 +897,21 @@ class FloorPolygon extends THREE.Group {
 		// |--> x  3 1 d:direction
 		//          0
 
-		var A = vertices[0].clone();
-		var B = vertices[1].clone();
-		var C = vertices[3].clone();
-		var D = vertices[2].clone();
+		const A = vertices[0].clone();
+		const B = vertices[1].clone();
+		const C = vertices[3].clone();
+		const D = vertices[2].clone();
 
 		// Aを原点とする
 		this.A = new THREE.Vector3(0, 0, 0);
 		this.B = new THREE.Vector3().subVectors(B, A);
 		this.C = new THREE.Vector3().subVectors(C, A);
 		this.D = new THREE.Vector3().subVectors(D, A);
+
 	}
 
 	generate() {
+
 		const material = new THREE.MeshBasicMaterial({color: 0xCBC9D4, side: THREE.DoubleSide});
 		const geometry = new ModelingSupporter().generateRectangleGeometry(this.A, this.B, this.C, this.D);
 
@@ -589,12 +920,17 @@ class FloorPolygon extends THREE.Group {
 		this.add(mesh);
 
         return this;
+
 	}
 
 	dispose() {
+
         this.children.forEach(child => {
+
 			child.material.dispose();
 			child.geometry.dispose();
+
         })
+
 	}
 }
