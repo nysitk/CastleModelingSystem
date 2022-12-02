@@ -14,6 +14,8 @@ export class ChidoriHafu extends THREE.Group {
 
 		super();
 
+		this.isChidoriHafu = true;
+
 		this.PARAMS = PARAMS;
 
 
@@ -69,8 +71,6 @@ export class ChidoriHafu extends THREE.Group {
 
 	create(MODE, parameters = {}) {
 
-		if (!parameters.type) parameters.type = "whole";
-		
 		switch (MODE) {
 
 			case LINE:
@@ -189,7 +189,9 @@ export class ChidoriHafu extends THREE.Group {
 
 	generateSide(MODE, parameters = {}) {
 
-		if (!parameters.type) parameters.type = "whole";
+		if (!parameters.type) parameters.type = "polygon"
+		if (!parameters.polygonType) parameters.polygonType = "whole";
+
 
 		if (MODE==LINE) {
 
@@ -229,11 +231,11 @@ export class ChidoriHafu extends THREE.Group {
 
 			let material;
 
-			if (parameters.type == "whole") {
+			if (parameters.polygonType == "whole") {
 			
 				material = new THREE.MeshLambertMaterial({color: 0xCBC9D4, side: THREE.DoubleSide});
 			
-			} else if (parameters.type == "black") {
+			} else if (parameters.polygonType == "black") {
 			
 				material = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.DoubleSide } );
 			
@@ -241,7 +243,7 @@ export class ChidoriHafu extends THREE.Group {
 
 			const mesh = new THREE.Mesh(geometry, material);
 			
-			if (parameters.type == "whole") {
+			if (parameters.polygonType == "whole") {
 			
 				mesh.castShadow = true;
 				mesh.receiveShadow = true;
@@ -295,7 +297,8 @@ export class ChidoriHafu extends THREE.Group {
 
 	generateTop(MODE, parameters = {}) {
 
-		if (!parameters.type) parameters.type = "whole";
+		if (!parameters.polygonType) parameters.polygonType = "whole";
+
 
 		if (MODE==LINE) {
 
@@ -334,11 +337,11 @@ export class ChidoriHafu extends THREE.Group {
 			
 			let material;
 
-			if (parameters.type == "whole") {
+			if (parameters.polygonType == "whole") {
 			
 				material = new THREE.MeshLambertMaterial({color: 0x222227, side: THREE.DoubleSide});
 			
-			} else if (parameters.type == "black") {
+			} else if (parameters.polygonType == "black") {
 			
 				material = new THREE.MeshBasicMaterial({color: 0x000000, side: THREE.DoubleSide})
 			
@@ -462,11 +465,19 @@ export class ChidoriHafu extends THREE.Group {
 	
 	}
 
-	setColor(color) {
-	
+	setColor(parameters = {}) {
+
+        if (!parameters.modelPreset?.yaneColor) {
+
+            console.info("color is not signed.");
+            
+            return;
+
+        }
+
 		this.getTop().forEach( function (mesh) {
 	
-			mesh.material.color.setHex(color);
+			mesh.material.color.setHex(parameters.modelPreset.yaneColor);
 	
 		})
 	
@@ -485,6 +496,10 @@ export class IrimoyaHafu extends THREE.Group {
 		//   C--------D  --> x
 		//  /       |  \
 		// A------------B
+	
+		this.isIrimoyaHafu = true;
+
+
 		this.PARAMS = PARAMS;
 		this.steps = 5;
 
@@ -497,9 +512,7 @@ export class IrimoyaHafu extends THREE.Group {
 
 	}
 
-	generate(MODE, parameters = {}) {
-
-		if (!parameters.type) parameters.type = "whole"
+	generate(MODE, parameters) {
 
 		this.lower = new SurroundingYane(this.PARAMS, this.A, this.B, this.C, this.D);
 		this.lower.create(MODE, parameters)
@@ -526,10 +539,10 @@ export class IrimoyaHafu extends THREE.Group {
 	
 	}
 
-	setColor(color) {
+	setColor(parameters) {
 
-		this.lower.setBodyColor(color)
-		this.upper.setColor(color)
+		this.lower.setBodyColor(parameters)
+		this.upper.setColor(parameters)
 
 	}
 

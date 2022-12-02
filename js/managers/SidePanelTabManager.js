@@ -368,8 +368,7 @@ class CastleEditTab {
 
         const model = this.modelingManager.castle.model;
 
-        if (model.ishigaki.line) this.addCastleOutlineOption("stonewallLine", "Stone Wall")
-        if (model.ishigaki.polygon) this.addCastleOutlineOption("stonewallPolygon", "Stone Wall")
+        if (model.ishigaki) this.addCastleOutlineOption("stonewall", "Stone Wall")
         if (model.yagura) this.addCastleOutlineOption("yagura", "Turret")
 
     }
@@ -414,9 +413,37 @@ class CastleEditTab {
     generatePresetModel() {
 
         const name = $("#selectModelPreset").val()
-        const type = $("#selectModelType").val()
+        const originalType = $("#selectModelType").val()
 
-        this.modelingManager.createPresetModel(name, type);
+        
+        let type, polygonType;
+
+        switch (originalType) {
+        
+            case "whole":
+            
+                type = "polygon";
+                polygonType = "whole";
+                
+                break;
+        
+            case "black":
+            
+                type = "polygon";
+                polygonType = "black";
+
+                break;
+        
+            case "line":
+            
+                type = "line";
+                polygonType = null;
+
+                break;
+        
+        }
+
+        this.modelingManager.createPresetModel(name, { type: type, polygonType: polygonType });
 
         this.completeAutoModel();
 

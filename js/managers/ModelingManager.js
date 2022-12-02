@@ -274,7 +274,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
-    createIshigakiLine(mousePos) {
+    createIshigakiLine(mousePos, parameters) {
 
         let ishigakiTopPoint = this.referencePoint.ishigakiTop[1];
 
@@ -306,7 +306,9 @@ import { ModelPresets } from '../models/ModelPresets.js'
                 ishigakiTopPoint,
                 this.referencePoint.ishigakiBottom
 
-            )
+            ),
+
+            parameters
 
         );
 
@@ -318,8 +320,8 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
-    createIshigakiPolygon(parameters) {
-
+    createIshigakiPolygon(mousePos, parameters) {
+        
         this.castle.createIshigakiPolygon(
 
             this.referencePoint.ishigakiBottom[0].clone(),
@@ -332,7 +334,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
-    createYaguraLine(mousePos) {
+    createYaguraLine(mousePos, parameters) {
 
         let yaguraTopPoint = this.referencePoint.yaguraTop[1];
 
@@ -362,7 +364,9 @@ import { ModelPresets } from '../models/ModelPresets.js'
                 yaguraTopPoint,
                 this.referencePoint.ishigakiTop
 
-            )
+            ),
+
+            parameters
 
         );
 
@@ -515,10 +519,9 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
-    createPresetModel(name = "osaka", type = "whole", parameters = {}) {
+    createPresetModel(name = "osaka", parameters = {}) {
         
         parameters.name = name;
-        parameters.type = type;
         
         const modelPreset = ModelPresets[name];
         parameters.modelPreset = modelPreset;
@@ -639,7 +642,8 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     createAllModel(parameters = {}) {
 
-        if (!parameters.type) parameters.type = "whole";
+        if (!parameters.type) parameters.type = "polygon"
+        if (!parameters.polygonType) parameters.polygonType = "whole";
 
 
         if (parameters.modelPreset) {
@@ -651,12 +655,12 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
         if (parameters.type === "line") {
 
-            this.createIshigakiLine(parameters);
-            this.createYaguraLine(parameters);
+            this.createIshigakiLine(undefined, parameters);
+            this.createYaguraLine(undefined, parameters);
 
         } else {
 
-            this.createIshigakiPolygon(undefined, parameters);
+            this.createIshigakiPolygon(parameters);
             this.createYaguraPolygon(undefined, parameters);
 
         }
@@ -666,7 +670,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
             this.castle.createHafuPreset(parameters);
 
-            if (parameters.type == "whole") {
+            if (parameters.type == "polygon" && parameters.polygonType == "whole") {
 
                 this.castle.setWallTexture(parameters);
                 this.castle.setYaneColor(parameters);
@@ -698,11 +702,32 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
+    display2DClickPosition() {
+
+        const planeControlOutliner = document.getElementById("planeControlOutliner")
+
+        planeControlOutliner.innerHTML = ""
+
+        for (const point of this.click2DPosition) {
+
+            if (!point?.isVector2) continue;
+
+            const option = document.createElement('div');
+            option.classList.add('option');
+
+            option.innerHTML = point.x + ", " + point.y;
+            
+            planeControlOutliner.appendChild(option)
+
+        }
+
+    }
+
     set2DPosition(clickCount, mousePos) {
 
         this.click2DPosition[clickCount] = mousePos;
 
-        console.log(this.click2DPosition)
+        this.display2DClickPosition();
 
     }
 
@@ -726,7 +751,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
             this.clickPosition[1] = this.calcPointOnGround(this.click2DPosition[1]);
             this.determineReferencePoint(1)
 
-            this.createBottomRectangleLine(this.click2DPosition[1]);
+            this.createBottomRectangleLine(this.click2DPosition[1], parameters);
 
         }
 
@@ -743,7 +768,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
             } else {
 
-                this.createIshigakiLine(this.click2DPosition[2]);
+                this.createIshigakiLine(this.click2DPosition[2], parameters);
 
             }
 

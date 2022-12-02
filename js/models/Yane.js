@@ -403,7 +403,16 @@ export class Yane extends THREE.Group {
     
 	}
 	
-	createSimpleChidoriHafu(MODE, parameters = {}) {
+	createSimpleChidoriHafu(MODE, parameters) {
+
+		if (!this.surroundingYane) {
+
+			console.info("this yane is not have surrounding yane.")
+			console.info("this function is uncompleted. Hafu line is not supported.")
+			
+			return;
+
+		}
 
 		this.surroundingYane.createSimpleChidoriHafu(MODE, parameters)
 
@@ -411,6 +420,70 @@ export class Yane extends THREE.Group {
 	
 	dispose() {
 		
+	}
+
+	setColor(parameters) {
+
+		this.setBodyColor(parameters);
+		this.setTopColor(parameters);
+		this.setHafuColor(parameters);
+	
+	}
+
+	setBodyColor(parameters) {
+		
+		if (!this.surroundingYane?.isSurroundingYane) {
+
+			console.info("this yane is not have surrounding yane.");
+			
+			return;
+
+		}
+
+		this.surroundingYane.setBodyColor(parameters)
+		
+	}
+	
+	setTopColor(parameters) {
+		
+		if (!this.top?.isIrimoyaHafu) {
+		
+			console.info("this yane is not have top irimoya hafu.");
+			
+			return;
+			
+		}
+		
+		this.top.setColor(parameters)
+		
+	}
+	
+	setHafuColor(parameters) {
+		
+		if (!this.surroundingYane?.isSurroundingYane) {
+	
+			console.info("this yane is not have surrounding yane.");
+			
+			return;
+	
+		}
+	
+		this.surroundingYane.setHafuColor(parameters)
+			
+	}
+	
+	getAllBodyMesh() {
+		
+		if (!this.surroundingYane?.isSurroundingYane) {
+	
+			console.info("this yane is not have surrounding yane.");
+			
+			return;
+	
+		}
+	
+		return this.surroundingYane.getAllBodyMesh();
+			
 	}
 
 }
@@ -448,15 +521,15 @@ export class SurroundingYane extends THREE.Group {
 		]
 
 		this.upper = [
+		
 			this.C.clone(),
 			new THREE.Vector3(this.D.x, this.C.y, this.C.z),
 			this.D.clone(),
 			new THREE.Vector3(this.C.x, this.C.y, this.D.z)
+		
 		]
 
 		this.calcParameters();
-
-        this.allYaneComponent = [];
 
 	}
 
@@ -478,7 +551,7 @@ export class SurroundingYane extends THREE.Group {
 			var dd = (dir == 3) ? 0 : (dir + 1);
 			// if (d != 2) continue;
 
-			const eachYaneComponent = new YaneComponent(
+			const yaneComponent = new YaneComponent(
 
 				this.PARAMS,
 				this.lower[ dir ],
@@ -490,22 +563,19 @@ export class SurroundingYane extends THREE.Group {
 
 			);
 
-			eachYaneComponent.generateBody(MODE, parameters);
-			// eachYaneComponent.generateKawara(MODE, parameters);
+			yaneComponent.generateBody(MODE, parameters);
+			// yaneComponent.generateKawara(MODE, parameters);
 
 			if (parameters.type == "whole") {
 
-				eachYaneComponent.generateKayaoi(MODE);
+				yaneComponent.generateKayaoi(MODE);
 
 			}
 
-			eachYaneComponent.rotation.y = Math.PI / 2 * dir;
-			eachYaneComponent.position.set(this.lower[dir].x, this.lower[dir].y, this.lower[dir].z)
-			eachYaneComponent.name = "eachYaneComponent"
+			yaneComponent.rotation.y = Math.PI / 2 * dir;
+			yaneComponent.position.set(this.lower[dir].x, this.lower[dir].y, this.lower[dir].z)
 			
-			this.add(eachYaneComponent);
-
-            this.allYaneComponent.push(eachYaneComponent)
+			this.add(yaneComponent);
 
 		}
 
@@ -514,20 +584,58 @@ export class SurroundingYane extends THREE.Group {
 	}
 
     createLine() {
-        this.create(LINE)
-    }
+
+		this.create(LINE)
+
+	}
 
     createPolygon() {
-        this.create(POLYGON)
-    }
 
-    getAllYaneComponent() {
-        return this.allYaneComponent;
-    }
+		this.create(POLYGON)
+
+	}
+
+    getYaneComponents() {
+
+		return this.children.filter(
+
+			function(e) {return e.isYaneComponent}
+
+		)
+
+	}
 
     getYaneComponent(direction) {
-        return this.allYaneComponent[direction]
+
+		const yaneComponents =  this.getYaneComponents().filter(
+
+			function(e) {return e.direction == direction}
+	
+		)
+
+		if (yaneComponents.length == 1) {
+
+			return yaneComponents[0];
+		
+		}
+
+		return null;
+
     }
+
+	getAllBodyMesh() {
+
+		const allBodyMesh = [];
+
+		for (const yaneComponent of this.getYaneComponents()) {
+
+			allBodyMesh.push( yaneComponent.getBodyMesh() )
+
+		}
+
+		return allBodyMesh;
+
+	}
 
 	getYane() {
 		return this.parent;
@@ -545,11 +653,12 @@ export class SurroundingYane extends THREE.Group {
 			this.getYaneComponent(symmetricDir).createSimpleChidoriHafu(MODE, parameters);
 		
 		}
-    }
+
+	}
 
 	setBodyColor(parameters) {
 
-		this.getAllYaneComponent().forEach( function( yaneComponent ) {
+		this.getYaneComponents().forEach( function( yaneComponent ) {
 		
 			yaneComponent.setBodyColor(parameters);
 		
@@ -557,9 +666,13 @@ export class SurroundingYane extends THREE.Group {
 	
 	}
 
-	setHafuColor(color) {
-		this.getAllYaneComponent().forEach(function(yaneComponent, dir) {
-			yaneComponent.setHafuColor(color);
+	setHafuColor(parameters) {
+		this.getYaneComponents().forEach(function( yaneComponent ) {
+
+			yaneComponent.setHafuColor(parameters);
+		
 		})
+	
 	}
+
 }

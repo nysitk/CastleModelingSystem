@@ -17,10 +17,13 @@ export class YaneComponent extends THREE.Group {
 		// |--> x  3 1 d:direction
 		//          0
 
-        this.PARAMS = PARAMS;
+        this.isYaneComponent = true;
 
+
+        this.PARAMS = PARAMS;
 		this.direction = direction;
-		const axis = new THREE.Vector3( 0, 1, 0 );
+		
+        const axis = new THREE.Vector3( 0, 1, 0 );
 		const angle = Math.PI / 2 * -(this.direction);
 
         this.originVertices = {A:A.clone(), B:B.clone(), C:C.clone(), D:D.clone()};
@@ -190,9 +193,10 @@ export class YaneComponent extends THREE.Group {
     
     setBodyColor(parameters) {
 
-        if (!parameters.modelPreset.yaneColor) {
+        if (!parameters.modelPreset?.yaneColor) {
 
             console.info("color is not signed.");
+
             return;
 
         }
@@ -202,9 +206,13 @@ export class YaneComponent extends THREE.Group {
     }
     
     setHafuColor(color) {
+
         this.getChidoriHafu().forEach(function(chidoriHafu) {
+        
             chidoriHafu.setColor(color);
+        
         })
+    
     }
 
     getSurroundingYane() {
@@ -212,9 +220,13 @@ export class YaneComponent extends THREE.Group {
     }
 
     getChidoriHafu() {
-        return this.children.filter(function (child) {
-            return child.name == "chidoriHafu"
-        })
+    
+        return this.children.filter(
+            
+            function (e) { return e.isChidoriHafu }
+        
+        )
+    
     }
 
     getBodyMesh() {
@@ -307,7 +319,7 @@ class YaneBody extends THREE.Group {
 			depthrate: 1
 		}
         
-        const chidoriHafu = this.parent.createSimpleChidoriHafu(param, POLYGON);
+        const chidoriHafu = this.parent.createSimpleChidoriHafu(POLYGON, {hafu: param});
         // const control = chidoriHafu.addController(sceneManager);
         const chidoriHafuGUI = chidoriHafu.addGUI(sceneManager);
 

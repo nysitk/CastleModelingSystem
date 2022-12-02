@@ -127,28 +127,30 @@ export class SceneManager {
 				const hemisphereLightHelper = new THREE.HemisphereLightHelper( hemisphereLight);
 				this.scene.add( hemisphereLightHelper);
 
-				break;
-
-			case "ambient":
-
-				this.ambientLight = new THREE.AmbientLight(0xc0c0c0, 1.0);
-				this.scene.add(this.ambientLight);
 
 				break;
 
 			case "directional":
 
+				this.ambientLight = new THREE.AmbientLight(0xc0c0c0, 1.0);
+				
+				this.scene.add(this.ambientLight);
+
+				
 				this.directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
 				this.directionalLight.position.set(200, 200, 200);
 				this.directionalLight.target.position.set(-5, 100, 0);
 
 				this.directionalLight.castShadow = true;
+
 				this.directionalLight.shadow.camera.right = 200;
 				this.directionalLight.shadow.camera.left = -200;
 				this.directionalLight.shadow.camera.top = -200;
 				this.directionalLight.shadow.camera.bottom = 300;
+
 				this.directionalLight.shadow.camera.far = 500;
 
+				
 				this.scene.add(this.directionalLight);
 				this.scene.add(this.directionalLight.target);
 
@@ -157,11 +159,9 @@ export class SceneManager {
 				// var directionalLightHelper = new THREE.DirectionalLightHelper( this.directionalLight);
 				// this.scene.add( directionalLightHelper);
 
+
 				break;
 		
-			default:
-				break;
-
 		}
 
 	}

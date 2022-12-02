@@ -171,7 +171,8 @@ export class Yagura extends THREE.Group {
             this.add(eachLayer);
 		
 		}
-        
+    
+		
 		return this;
 
     }
@@ -225,48 +226,68 @@ export class Yagura extends THREE.Group {
 		})
 	
 	}
-
-	removeYaneColor() {
+	
+	setYaneColor(parameters = {}) {
 		
-		this.getEachLayers().forEach( function( eachLayer ) {
+		const eachLayers = this.getEachLayers()
 
-			eachLayer.removeYaneColor()
-
-		})
-
-	}
-
-	setYaneColor(parameters) {
+		for (const eachLayer of eachLayers) {
 		
-		this.getEachLayers().forEach( function( eachLayer ) {
-
-			eachLayer.setYaneColor(parameters)
-
-		})
-
+			if (!eachLayer.yane) continue;
+			
+			eachLayer.yane.setColor(parameters)
+			
+		}
+		
 	}
-
+	
 	createHafuPreset(MODE, parameters = {}) {
 		
 		if (HafuPresets[parameters.name]) {
-
+			
 			for (const hafu of HafuPresets[parameters.name]) {
 
 				parameters.hafu = hafu
 				this.createSimpleChidoriHafu(MODE, parameters)
-
+				
 			}
-
+			
 		}
 
 	}
-
-    createSimpleChidoriHafu(MODE, parameters) {
+	
+	createSimpleChidoriHafu(MODE, parameters) {
 
 		if (!this.getEachLayer(parameters.hafu.layer)?.yane) return;
-    
+		
 		this.getEachLayer(parameters.hafu.layer).yane.createSimpleChidoriHafu(MODE, parameters)
-    
+		
+	}
+	
+	getAllYaneBodyMesh() {
+		
+		const allBodyMesh = [];
+		
+		const eachLayers = this.getEachLayers()
+
+	
+		for (const eachLayer of eachLayers) {
+		
+			if (!eachLayer.yane) continue;
+			
+			const bodyMesh = eachLayer.yane.getAllBodyMesh()
+
+			allBodyMesh.push(bodyMesh);
+			
+		}
+
+
+        return allBodyMesh.flat().filter(
+
+			function (e) { return e?.isMesh }
+
+		);
+
 	}
 
 }
@@ -428,9 +449,10 @@ class EachLayer extends THREE.Group {
 	
 	}
 
-	getYanes() {
+	getSurroundingYanes() {
 
 		if (!this.yane?.polygon?.children) return [];
+
 
 		return this.yane.polygon.children.filter(
 		
@@ -438,26 +460,6 @@ class EachLayer extends THREE.Group {
 		
 		);
 
-	}
-
-	setYaneColor(parameters) {
-		
-		this.getYanes().forEach( function( yane ) {
-
-			yane.setBodyColor(parameters)
-
-		});
-
-	}
-
-	removeYaneColor() {
-		
-		this.getYanes().forEach( function( yane ) {
-
-			// yane.removeColor();
-
-		});
-	
 	}
 
 }
@@ -499,6 +501,7 @@ class Room extends THREE.Group {
         const mesh = new THREE.Line(geometry, material);
 
         this.line.add(mesh);
+
 
         return this;
 
@@ -557,6 +560,7 @@ class Room extends THREE.Group {
 			
 		}
 		
+		
 		return walls;
 		
 	}
@@ -609,13 +613,13 @@ class Wall extends THREE.Group {
 	}
 
 	generate(parameters) {
-
-		if (!parameters.type) parameters.type = "whole";
+		
+		if (!parameters.polygonType) parameters.polygonType = "whole";
 
 
 		let material;
 
-		if (parameters.type == "whole") {
+		if (parameters.polygonType == "whole") {
 
 			material = new THREE.MeshLambertMaterial({color: 0xCBC9D4, side: THREE.DoubleSide});
 		

@@ -4,7 +4,7 @@ import { POLYGON } from './Params.js';
 
 import { Ishigaki } from '../models/Ishigaki.js'
 import { Yagura } from '../models/Yagura.js'
-import { Yane } from '../models/Yane.js'
+
 
 /**
  * 城郭モデル関連のモデルクラス
@@ -46,10 +46,7 @@ export class CastleModelManager {
 
         this.model = {
 
-            ishigaki: {
-                line: null,
-                polygon: null
-            },
+            ishigaki: null,
             yagura: null,
             hafu: null
 
@@ -85,29 +82,31 @@ export class CastleModelManager {
     }
 
 
-    createIshigakiLine(P1, P2, P3) {
+    createIshigakiLine(P1, P2, P3, parameters) {
 
         this.removeIshigakiLine();
 
-        this.model.ishigaki.line = new Ishigaki(this.PARAMS, P1, P2, P3).createLine();
+        this.model.ishigaki = new Ishigaki(this.PARAMS, P1, P2, P3).createLine(parameters);
         
-        this.sceneManager.scene.add(this.model.ishigaki.line)
+        this.sceneManager.scene.add(this.model.ishigaki)
 
     }
 
     removeIshigakiLine() {
 
-        const line = this.model.ishigaki.line
+        this.removeIshigaki();
 
-        if (line) {
+    }
 
-            this.sceneManager.scene.remove(line)
-            
-            line.dispose();
+    removeIshigaki() {
 
-            this.model.ishigaki.line = null;
+        if (!this.model.ishigaki) return;
 
-        }
+        this.sceneManager.scene.remove(this.model.ishigaki);
+
+        this.model.ishigaki.dispose();
+
+        this.model.ishigaki = null;
 
     }
 
@@ -115,23 +114,15 @@ export class CastleModelManager {
 
         this.removeIshigakiPolygon();
 
-        this.model.ishigaki.polygon = new Ishigaki(this.PARAMS, P1, P2, P3).createPolygon(parameters);
+        this.model.ishigaki = new Ishigaki(this.PARAMS, P1, P2, P3).createPolygon(parameters);
         
-        this.sceneManager.scene.add(this.model.ishigaki.polygon)
+        this.sceneManager.scene.add(this.model.ishigaki)
 
     }
 
     removeIshigakiPolygon() {
 
-        let polygon = this.model.ishigaki.polygon
-
-        if (polygon) {
-
-            this.sceneManager.scene.remove(polygon)
-            
-            polygon = null;
-
-        }
+        this.removeIshigaki();
 
     }
 
@@ -157,6 +148,7 @@ export class CastleModelManager {
         
         this.model.yagura = new Yagura(R3, R4, R6, this, parameters).createPolygon(parameters);
 
+
         if (parameters.type == "whole") {
             
             if (!parameters.wallTexture) parameters.wallTexture = "window"
@@ -164,6 +156,7 @@ export class CastleModelManager {
             this.model.yagura.setTexture(parameters)
 
         }
+
 
         this.sceneManager.scene.add(this.model.yagura)
     
@@ -177,11 +170,11 @@ export class CastleModelManager {
 
         if (!this.model.yagura) return;
 
-            this.sceneManager.scene.remove(this.model.yagura);
+        this.sceneManager.scene.remove(this.model.yagura);
 
-            this.model.yagura.dispose();
-            
-            // this.model.yagura.polygon.group = undefined;
+        this.model.yagura.dispose();
+        
+        this.model.yagura = null;
 
     }
 
@@ -236,8 +229,6 @@ export class CastleModelManager {
         if (!yagura) return;
 
 
-        yagura.removeYaneColor();
-
         yagura.setYaneColor(parameters);
 
     }
@@ -266,7 +257,6 @@ export class CastleModelManager {
 
         this.removeIshigakiLine();
         this.removeYaguraLine();
-        this.removeYaneLine();
 
     }
 
@@ -274,17 +264,10 @@ export class CastleModelManager {
 
         this.removeIshigakiPolygon();
         this.removeYaguraPolygon();
-        this.removeYanePolygon();
 
     }
 
     getAllSurroundingYane() {
-
-        if (this.model.yane.polygon) {
-            
-            return this.model.yane.polygon.getAllSurroundingYane();
-
-        }
 
     }
 
@@ -312,37 +295,22 @@ export class CastleModelManager {
 
     getAllYaneBodyMesh() {
 
-        const allBodyMesh = [];
+        if (!this.model.yagura) {
+            
+            console.info("this castle model has no yagura.")
 
-        this.getAllYaneComponent().forEach(yaneComponent => {
+            return [];
+            
+        }
 
-            allBodyMesh.push(yaneComponent.getBodyMesh());
-
-        })
-
-
-        return allBodyMesh;
+        
+        return this.model.yagura.getAllYaneBodyMesh();
 
     }
 
     changeCastleModel() {
 
-        if (this.model.yane.polygon) {
-
-            this.removeYanePolygon();
-
-            this.createYanePolygon(
-
-                this.referencePoint.ishigakiTop[0].clone(),
-                this.referencePoint.ishigakiTop[1].clone(),
-                this.referencePoint.yaguraTop[1].clone()
-
-            );
-
-        }
-
-
-        if (this.model.yagura.polygon) {
+        if (this.model.yagura) {
 
             this.removeYaguraPolygon();
             
