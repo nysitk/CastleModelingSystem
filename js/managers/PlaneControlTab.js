@@ -36,7 +36,7 @@ export class PlaneControlTab {
 
     }
 
-    onClick2DFixEvent(mousePos) {
+    onClick2DFixEvent(mousePos, clickCount2DFix = this.clickCount2DFix) {
 
         if (this.clickCount2DFix < 4)
         this.addDraggablePoint(mousePos, this.clickCount2DFix);
@@ -47,12 +47,12 @@ export class PlaneControlTab {
 
                 this.clickCount2DFix++;
 
-                let createAllLineFrom2D = () => {
-                    this.modelingManager.createAllLineFrom2D(this.clickCount2DFix);
+                let createAllFrom2D = () => {
+                    this.modelingManager.createAllFrom2D(this.clickCount2DFix);
                 }
 
-                this.createAllLineFrom2Dbind = createAllLineFrom2D.bind(this);
-                this.sceneManager.orbit.addEventListener('change', this.createAllLineFrom2Dbind)
+                this.createAllFrom2Dbind = createAllFrom2D.bind(this);
+                this.sceneManager.orbit.addEventListener('change', this.createAllFrom2Dbind)
                 
                 break;
 
@@ -74,7 +74,7 @@ export class PlaneControlTab {
                     this.operationManager.changeCursorMode("orbit");
                 }
 
-                this.modelingManager.createAllLineFrom2D(this.clickCount2DFix);
+                this.modelingManager.createAllFrom2D(this.clickCount2DFix);
                 
                 this.enableConvertTo3DMode();
 
@@ -86,14 +86,10 @@ export class PlaneControlTab {
 
     addDraggablePoint(mousePos, count2D) {
 
-        const draggablePoint = new DraggablePoint2DFix(mousePos.x, mousePos.y, count2D);
+        const draggablePoint = new DraggablePoint2DFix(mousePos.x, mousePos.y, count2D).add(this);
 
         this.draggablePoint[count2D] = draggablePoint;
 
-        draggablePoint.operationManager = this;
-        draggablePoint.modelingManager = this.modelingManager;
-
-        draggablePoint.add()
 
         return draggablePoint;
 
@@ -138,23 +134,30 @@ export class PlaneControlTab {
         
         this.disable2DFixMode();
 
-        this.modelingManager.castle.removeAllLine();
+        // this.modelingManager.castle.removeLine();
         this.draggablePoint.map((p) => { 
             p.remove();
             p = null 
         });
 
-        this.sceneManager.orbit.removeEventListener('change', this.createAllLineFrom2Dbind);
+        this.sceneManager.orbit.removeEventListener('change', this.createAllFrom2Dbind);
 
     }
 
-    enablePlaneEstimationMode() {
+    enablePlaneEstimationMode( isStartSolvePnP = true ) {
         
         $("#startPlaneEstimation").attr("disabled", true); 
         
-        this.planeEstimation = new PlaneEstimation(this.sceneManager);
+        this.planeEstimation = new PlaneEstimation(this);
         this.addGUIRectangle();
-        this.planeEstimation.startSolvePnP();
+
+        if (isStartSolvePnP) {
+    
+            this.planeEstimation.startSolvePnP();
+
+        }
+        
+        return this.planeEstimation;
 
     }
 
@@ -265,7 +268,17 @@ export class DraggablePoint {
 
     changePosition(x, y) {
 
+        if (x.isVector2) {
+            
+            x = x.x;
+            y = x.y;
+        
+        }
+
         const canvasPos = this.canvas.offset()
+
+        this.positionInCanvas.x = x;
+        this.positionInCanvas.y = y;
 
         $(this.domElement).offset({ top: canvasPos.top + y, left: canvasPos.left + x });
         $(this.domElement).css( { transform: 'translate(-150%, -100%)' } );
@@ -291,11 +304,13 @@ class DraggablePoint2DFix extends DraggablePoint {
 
         this.name = "draggablePoint2DFix"
 
+        this.isDraggablePoint2DFix = true;
+
         return this;
 
     }
 
-    add() {
+    add(planeControl) {
 
         super.add();
 
@@ -304,6 +319,11 @@ class DraggablePoint2DFix extends DraggablePoint {
             "viewMousemove": this.viewMousemove,
             "mouseup": this.mouseup
         })
+
+        this.planeControl = planeControl
+        this.operationManager = this.planeControl.operationManager;
+        this.modelingManager = this.planeControl.modelingManager;
+
         
         this.modelingManager.set2DPosition(this.clickCount, this.positionInCanvas)
 
@@ -322,7 +342,7 @@ class DraggablePoint2DFix extends DraggablePoint {
         if (!arg.isDragging) return;
 
         super.viewMousemove(e, arg);
-        
+
         arg.modelingManager.set2DPosition(arg.clickCount, arg.positionInCanvas)
 
         arg.modelingManager.sceneManager.updateScene()

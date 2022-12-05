@@ -134,13 +134,13 @@ export class Yagura extends THREE.Group {
 
 	}
     
-    createLine() {
+    create(parameters) {
 
 		for (let i = 0; i < this.allVertices.length; i++) {
 
 			const isTop = (i == this.allVertices.length - 1);
 
-			const eachLayer = new EachLayer(this, i).createLine(isTop);
+			const eachLayer = new EachLayer(this, i).create(isTop, parameters);
 
             this.add(eachLayer);
 
@@ -159,23 +159,6 @@ export class Yagura extends THREE.Group {
         })
 
 	}
-    
-    createPolygon(parameters) {
-
-		for (let i = 0; i < this.allVertices.length; i++) {
-
-			const isTop = (i == this.allVertices.length - 1);
-
-			const eachLayer = new EachLayer(this, i).createPolygon(isTop, parameters);
-			
-            this.add(eachLayer);
-		
-		}
-    
-		
-		return this;
-
-    }
 
 	setTexture(parameters) {
 
@@ -241,14 +224,14 @@ export class Yagura extends THREE.Group {
 		
 	}
 	
-	createHafuPreset(MODE, parameters = {}) {
+	createHafuPreset(parameters) {
 		
 		if (HafuPresets[parameters.name]) {
 			
 			for (const hafu of HafuPresets[parameters.name]) {
 
 				parameters.hafu = hafu
-				this.createSimpleChidoriHafu(MODE, parameters)
+				this.createSimpleChidoriHafu(parameters)
 				
 			}
 			
@@ -256,11 +239,11 @@ export class Yagura extends THREE.Group {
 
 	}
 	
-	createSimpleChidoriHafu(MODE, parameters) {
+	createSimpleChidoriHafu(parameters) {
 
 		if (!this.getEachLayer(parameters.hafu.layer)?.yane) return;
 		
-		this.getEachLayer(parameters.hafu.layer).yane.createSimpleChidoriHafu(MODE, parameters)
+		this.getEachLayer(parameters.hafu.layer).yane.createSimpleChidoriHafu(parameters)
 		
 	}
 	
@@ -341,20 +324,36 @@ class EachLayer extends THREE.Group {
 
     }
 
-    createLine( top = false, parameters = {} ) {
+	create(isTop, parameters = {}) {
+
+		if (parameters.type == "line") {
+
+			this.createLine(isTop, parameters);
+		
+		} else {
+
+			this.createPolygon(isTop, parameters);
+			
+		}
+
+
+		return this;
+	}
+
+    createLine( isTop = false, parameters ) {
 
         this.room = new Room(this).createLine(parameters);
         this.add(this.room);
 
         this.yane = new Yane(this);
 		
-		if (top) {
+		if (isTop) {
 			
 			this.yane.createTopLine(parameters);
 			
 		} else {
 
-			this.yane.createTopLine(parameters);
+			this.yane.createLine(parameters);
 
 		}
 		
@@ -750,9 +749,10 @@ class Wall extends THREE.Group {
 		const start = this.room.eachLayer.getVertices().lower[this.dir];
 		const end = this.room.eachLayer.getVertices().lower[(this.dir+1)%4];
 		
-		const windowNum = Math.abs(
+		let windowNum = Math.abs(
 			Math.ceil( start.distanceTo( end ) / chang )
 		);
+		if (windowNum > 50) windowNum = 50;
 
 		const num = windowNum;
 		const type = 2;

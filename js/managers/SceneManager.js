@@ -8,6 +8,7 @@ import { OrbitControls } from '../controls/OrbitControls.js';
 import { TransformControls } from '../controls/TransformControls.js';
 
 import { OperationManager } from './OperationManager.js';
+import { Vector2 } from '../../build/three.module.js';
 
 // import { DetectRectangleTest } from '../tests/DetectRectangle.js';
 
@@ -38,7 +39,8 @@ export class SceneManager {
 		this.addGUI();
 
 		this.operationManager = new OperationManager(this);
-
+		
+		
 		return this;
 
 	}
@@ -47,12 +49,6 @@ export class SceneManager {
 
 		this.renderer.setRenderTarget( null );
 		this.renderer.render( this.scene, this.currentCamera );
-
-		if (this.operationManager?.controlPanel?.sceneTab) {
-
-			this.operationManager.controlPanel.sceneTab.content.displayStatus();
-
-		}
 
 	}
 
@@ -222,7 +218,7 @@ export class SceneManager {
 
 		this.cameraFolder = this.gui.addFolder('Camera');
 
-		this.cameraFolder.add(this.cameraPersp, "fov", 0, 90, 1).listen().onChange( () => { this.updateScene() } );
+		this.cameraFolder.add(this.cameraPersp, "fov", 1, 90, 1).listen().onChange( () => { this.updateScene() } );
 		this.cameraFolder.add(this.cameraPersp.position, "x", -5000, 5000, 1).name("position X").listen().onChange( () => { this.changeGUI() } );
 		this.cameraFolder.add(this.cameraPersp.position, "y", -2000, 2000, 1).name("position Y").listen().onChange( () => { this.changeGUI() } );
 		this.cameraFolder.add(this.cameraPersp.position, "z", -2000, 2000, 1).name("position Z").listen().onChange( () => { this.changeGUI() } );
@@ -296,7 +292,7 @@ export class SceneManager {
 		if (isPlaneEstimation) {
 			
 			this.operationManager.controlPanel.planeControlTab.content.planeEstimation.startSolvePnP();
-			console.log("planeEstimation")
+			// console.log("planeEstimation")
 			
 		}
 
@@ -304,8 +300,8 @@ export class SceneManager {
 
 			const count = this.operationManager.controlPanel.planeControlTab.content.clickCount2DFix
 
-			console.log("is2Dfix")
-			this.operationManager.modelingManager.createAllLineFrom2D(count);
+			// console.log("is2Dfix")
+			this.operationManager.modelingManager.createAllFrom2D(count);
 
 		}
 
@@ -369,6 +365,13 @@ export class SceneManager {
 
 	addSphere( x = 0, y = 0, z = 0 ) {
 
+		if (x.isVector3) {
+			y = x.y;
+			z = x.z;
+			
+			x = x.x;
+		}
+
 		const sphereRadius = 3;
 		const sphereWidthDivisions = 32;
 		const sphereHeightDivisions = 16;
@@ -410,6 +413,10 @@ export class SceneManager {
 
 		this.canvasController.width = width;
 		this.canvasController.height = height;
+	
+		this.renderer.setPixelRatio(window.devicePixelRatio)
+		this.renderer.setSize( width, height );
+        this.renderTarget.setSize( width, height );
 
 		this.aspect = width / height;
 	
@@ -419,10 +426,6 @@ export class SceneManager {
 		this.cameraOrtho.left = this.cameraOrtho.bottom * this.aspect;
 		this.cameraOrtho.right = this.cameraOrtho.top * this.aspect;
 		this.cameraOrtho.updateProjectionMatrix();
-	
-		this.renderer.setPixelRatio(window.devicePixelRatio)
-		this.renderer.setSize( width, height );
-        this.renderTarget.setSize( width, height );
 	
 		this.render();
 
@@ -443,6 +446,29 @@ export class SceneManager {
 
 		this.changeRendererSize( width, height );
 	  
+	}
+	
+    // ワールド座標からスクリーン座標に変換
+    worldToScreenCoordinate(vector, camera = this.currentCamera) {
+
+		if (!vector.isVector3) {
+
+			console.error("input vector is not Vector3.");
+
+			return new THREE.Vector2(0, 0);
+
+		}
+
+		camera.updateProjectionMatrix();
+        const projection = vector.clone().project(camera);
+		
+        const sx = (this.canvasController.width / 2) * ( +projection.x + 1.0 );
+        const sy = (this.canvasController.height / 2) * ( -projection.y + 1.0 );
+
+
+        // スクリーン座標
+		return new THREE.Vector2(sx, sy)
+
 	}
 
 }

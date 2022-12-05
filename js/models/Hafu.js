@@ -69,13 +69,17 @@ export class ChidoriHafu extends THREE.Group {
 		
 	}
 
-	create(MODE, parameters = {}) {
+	create(parameters = {}) {
 
-		switch (MODE) {
+		if (!parameters.type) parameters.type = "polygon"
+		if (!parameters.polygonType) parameters.polygonType = "whole"
 
-			case LINE:
+
+		switch (parameters.type) {
+
+			case "line":
 				
-				this.sideLineA = this.generateSide(MODE);
+				this.sideLineA = this.generateSide(parameters);
 				
 				this.sideLineA.position.set(
 					-1 * (this.width) / 2,
@@ -86,7 +90,7 @@ export class ChidoriHafu extends THREE.Group {
 				this.add(this.sideLineA);
 
 				
-				this.sideLineB = this.generateSide(MODE);
+				this.sideLineB = this.generateSide(parameters);
 				
 				this.sideLineB.position.set(
 					-this.width/2,
@@ -99,7 +103,7 @@ export class ChidoriHafu extends THREE.Group {
 		
 				
 
-				this.topLine = this.generateTop(MODE);
+				this.topLine = this.generateTop(parameters);
 				
 				this.topLine.position.set(
 					-this.width/2,
@@ -112,9 +116,9 @@ export class ChidoriHafu extends THREE.Group {
 				
 				break;
 		
-			case POLYGON:
+			case "polygon":
 				
-				this.sidePolygonA = this.generateSide(MODE, parameters);
+				this.sidePolygonA = this.generateSide(parameters);
 
 				this.sidePolygonA.position.set(
 					-1 * (this.width) / 2,
@@ -125,7 +129,7 @@ export class ChidoriHafu extends THREE.Group {
 				this.add(this.sidePolygonA);
 		
 
-				this.sidePolygonB = this.generateSide(MODE, parameters);
+				this.sidePolygonB = this.generateSide(parameters);
 				
 				this.sidePolygonB.position.set(
 					-this.width/2,
@@ -137,7 +141,7 @@ export class ChidoriHafu extends THREE.Group {
 		
 
 
-				this.topPolygon = this.generateTop(MODE, parameters);
+				this.topPolygon = this.generateTop(parameters);
 
 				this.topPolygon.position.set(
 					-this.width / 2,
@@ -187,13 +191,13 @@ export class ChidoriHafu extends THREE.Group {
 
 	}
 
-	generateSide(MODE, parameters = {}) {
+	generateSide(parameters = {}) {
 
 		if (!parameters.type) parameters.type = "polygon"
 		if (!parameters.polygonType) parameters.polygonType = "whole";
 
 
-		if (MODE==LINE) {
+		if (parameters.type == "line") {
 
 			const material = new THREE.LineBasicMaterial({color: 0xFD7E00});
 			const geometry = new THREE.Geometry();
@@ -207,7 +211,7 @@ export class ChidoriHafu extends THREE.Group {
 			
 			return new THREE.Line(geometry, material);
 
-		} else if (MODE==POLYGON) {
+		} else {
 
 			const geometry = new THREE.Geometry();
 
@@ -295,12 +299,13 @@ export class ChidoriHafu extends THREE.Group {
 	
 	}
 
-	generateTop(MODE, parameters = {}) {
+	generateTop(parameters = {}) {
 
+		if (!parameters.type) parameters.type = "polygon"
 		if (!parameters.polygonType) parameters.polygonType = "whole";
 
 
-		if (MODE==LINE) {
+		if (parameters.type == "line") {
 
 			const material = new THREE.LineBasicMaterial({color: 0xFD7E00});
 
@@ -313,7 +318,7 @@ export class ChidoriHafu extends THREE.Group {
 			return new THREE.Line(geometry, material);
 		
 		
-		} else if (MODE==POLYGON) {
+		} else {
 			
 			const geometry = new THREE.Geometry();
 
@@ -512,10 +517,10 @@ export class IrimoyaHafu extends THREE.Group {
 
 	}
 
-	generate(MODE, parameters) {
+	generate(parameters) {
 
 		this.lower = new SurroundingYane(this.PARAMS, this.A, this.B, this.C, this.D);
-		this.lower.create(MODE, parameters)
+		this.lower.create(parameters)
 
 		this.add(this.lower)
 
@@ -527,7 +532,7 @@ export class IrimoyaHafu extends THREE.Group {
 			this.C.x - this.D.x
 		);
 
-		this.upper.create(MODE, parameters)
+		this.upper.create(parameters)
 		
 		this.upper.rotation.y = Math.PI / 2;
 		this.upper.position.set(this.C.x, this.C.y, (this.C.z + this.D.z)/2)

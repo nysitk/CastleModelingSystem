@@ -154,6 +154,7 @@ export function gradientDescentPrototype() {
     const initX = 100;
     const th = 0.0000000001;
     const dx = 0.0001;
+    
     const a = 1.00;
     const b = 2.00;
     const c = 3.00;
@@ -324,22 +325,29 @@ export function generatePixelData(sceneManager, type = "buffer") {
 
 }
 
-export function generatePixelPNG(sceneManager, fileName = "scene") {
+export function generatePixelPNG(sceneManager) {
+
     sceneManager.render();
+    
     const dataURL = sceneManager.renderer.domElement.toDataURL( 'image/png' );
+
+    const fileName = document.getElementById("pngFileName").value;
 
     let a = document.createElement("a");
     a.href = dataURL;
     a.download = fileName + ".png";
+    
     a.click();
+
 }
 
 export function downloadFile(rawData, fileName) {
-    const data = JSON.stringify(rawData);
-    const link = document.createElement("a");
-    link.href = "data:text/plain," + encodeURIComponent(data);
-    link.download = fileName;
-    link.click();
+    console.info("this function is not used.")
+    // const data = JSON.stringify(rawData);
+    // const link = document.createElement("a");
+    // link.href = "data:text/plain," + encodeURIComponent(data);
+    // link.download = fileName;
+    // link.click();
 }
 
 export function calcError(sceneManager, type = "json") {

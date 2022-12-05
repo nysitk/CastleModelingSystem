@@ -81,23 +81,6 @@ export class CastleModelManager {
 
     }
 
-
-    createIshigakiLine(P1, P2, P3, parameters) {
-
-        this.removeIshigakiLine();
-
-        this.model.ishigaki = new Ishigaki(this.PARAMS, P1, P2, P3).createLine(parameters);
-        
-        this.sceneManager.scene.add(this.model.ishigaki)
-
-    }
-
-    removeIshigakiLine() {
-
-        this.removeIshigaki();
-
-    }
-
     removeIshigaki() {
 
         if (!this.model.ishigaki) return;
@@ -110,46 +93,37 @@ export class CastleModelManager {
 
     }
 
-    createIshigakiPolygon(P1, P2, P3, parameters) {
+    createIshigaki(P1, P2, P3, parameters) {
 
-        this.removeIshigakiPolygon();
+        this.removeIshigaki();
 
-        this.model.ishigaki = new Ishigaki(this.PARAMS, P1, P2, P3).createPolygon(parameters);
+        this.model.ishigaki = new Ishigaki(this.PARAMS, P1, P2, P3).create(parameters);
         
+        // this.displayVerticesInfo(this.model.ishigaki);
+
         this.sceneManager.scene.add(this.model.ishigaki)
 
     }
 
-    removeIshigakiPolygon() {
+    displayVerticesInfo(ishigaki) {
 
-        this.removeIshigaki();
+        for (const point of this.modelingManager.getCornerPoints(ishigaki.A, ishigaki.B)) {
+            
+            console.log(point);
+            console.log(this.sceneManager.worldToScreenCoordinate(point, this.sceneManager.currentCamera))
+            
+        }
 
     }
 
-    createYaguraLine(R3, R4, R6) {
- 
-        this.removeYaguraLine();
-
-        this.model.yagura = new Yagura(R3, R4, R6, this).createLine();
-
-        this.sceneManager.scene.add(this.model.yagura)
-    
-    }
-
-    removeYaguraLine() {
-
+    createYagura(R3, R4, R6, parameters = {}) {
+        
         this.removeYagura();
-
-    }
-
-    createYaguraPolygon(R3, R4, R6, parameters = {type: "whole"}) {
         
-        this.removeYaguraPolygon();
-        
-        this.model.yagura = new Yagura(R3, R4, R6, this, parameters).createPolygon(parameters);
+        this.model.yagura = new Yagura(R3, R4, R6, this, parameters).create(parameters);
 
 
-        if (parameters.type == "whole") {
+        if (parameters.type == "polygon" && parameters.polygonType == "whole") {
             
             if (!parameters.wallTexture) parameters.wallTexture = "window"
             
@@ -157,13 +131,8 @@ export class CastleModelManager {
 
         }
 
-
         this.sceneManager.scene.add(this.model.yagura)
     
-    }
-
-    removeYaguraPolygon() {
-        this.removeYagura();
     }
 
     removeYagura() {
@@ -194,31 +163,6 @@ export class CastleModelManager {
 
     }
 
-    createYaneLine(R3, R4, R6) {
-        console.info("this function is not used.")
-        // this.removeYaneLine();
-
-        // this.model.yane.line = new Yane(this.PARAMS, R3, R4, R6).createLine();
-        // this.sceneManager.scene.add(this.model.yane.line)
-    }
-
-    removeYaneLine() {
-        console.info("this function is not used.")
-        // if (this.model.yane.line) {
-        //     this.sceneManager.scene.remove(this.model.yane.line)
-        // }
-    }
-
-    createYanePolygon(R3, R4, R6, type = "whole", topFloor = false) {
-        console.info("this function is not used.")
-        // this.removeYanePolygon();
-
-        // this.model.yane.polygon = new Yane(this.PARAMS, R3, R4, R6, topFloor).createPolygon(type);
-        // this.sceneManager.scene.add(this.model.yane.polygon)
-
-        // if (!this.castleGUIFolder) this.addGUICastle();
-    }
-
     setYaneColor(parameters) {
 
         if (!parameters.modelPreset) parameters.modelPreset = {}
@@ -233,40 +177,23 @@ export class CastleModelManager {
 
     }
 
-    removeYanePolygon() {
-        console.info("this function is not used.")
-
-        // let polygon = this.model.yane.polygon
-
-        // if (polygon) {
-        //     this.sceneManager.scene.remove(polygon)
-        // }
-    }
-
     createHafuPreset(parameters) {
 
         if (this.model.yagura) {
 
-            this.model.yagura.createHafuPreset(POLYGON, parameters);
+            this.model.yagura.createHafuPreset(parameters);
 
         }
 
     }
 
-    removeAllLine() {
+    remove() {
 
-        this.removeIshigakiLine();
-        this.removeYaguraLine();
-
-    }
-
-    removeAllPolygon() {
-
-        this.removeIshigakiPolygon();
-        this.removeYaguraPolygon();
+        this.removeIshigaki();
+        this.removeYagura();
 
     }
-
+    
     getAllSurroundingYane() {
 
     }

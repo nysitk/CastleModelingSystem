@@ -6,6 +6,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 import { PlaneControlTab } from './PlaneControlTab.js'
 
 import * as gradientDescent from '../tests/gradientDescent.js'
+import { FovEstimation } from '../tests/fovEstimation.js'
 
 export class Tab {
 
@@ -89,10 +90,11 @@ class SceneTab {
 
     }
 
-    displayStatus() {
+    displayStatus(mousePos) {
 
         document.getElementById('sceneStatus').innerHTML = ""
-        this.addStatusRow("camera info", this.sceneManager.currentCamera.position.x)
+        this.addStatusRow("mouse X: ", mousePos.x)
+        this.addStatusRow("mouse Y: ", mousePos.y)
 
     }
 
@@ -270,7 +272,11 @@ class CastleEditTab {
         $("#addHafu").attr("disabled", false);
     }
 
-    onMoveEvent(mousePos) {
+    onMoveEvent(mousePos, parameters = {}) {
+
+        if (!parameters.type) parameters.type = "line";
+
+        this.modelingManager.determineClickPosition(mousePos, this.clickCount);
         
         switch (this.clickCount) {
 
@@ -278,24 +284,28 @@ class CastleEditTab {
                 break;
 
             case 1:
-                this.modelingManager.createBottomRectangleLine(mousePos);
+                this.modelingManager.createBottomRectangleLine();
                 break;
 
             case 2:
-                this.modelingManager.createIshigakiLine(mousePos);
+                this.modelingManager.createIshigaki(parameters);
                 break;
 
             case 3:
-                // this.modelingManager.createYaguraPolygon(mousePos);
-                this.modelingManager.createYaguraLine(mousePos);
-                this.modelingManager.createYaneLine(mousePos);
+                this.modelingManager.createYagura(parameters);
                 break;
             
         }
 
+        this.modelingManager.adjustModelDirection();
+
+
     }
 
-    onClickEvent(mousePos) {
+    onClickEvent(mousePos, parameters = {}) {
+
+        if (!parameters.type) parameters.type = "polygon";
+        if (!parameters.polygonType) parameters.polygonType = "whole";
 
         this.modelingManager.determineClickPosition(mousePos, this.clickCount);
             
@@ -316,9 +326,9 @@ class CastleEditTab {
             case 2:
                 
                 this.modelingManager.removeBottomRectangleLine();
-                this.modelingManager.removeIshigakiLine();
+                this.modelingManager.removeIshigaki();
 
-                this.modelingManager.createIshigakiPolygon();
+                this.modelingManager.createIshigaki(parameters);
 
                 this.clickCount++;
 
@@ -326,11 +336,9 @@ class CastleEditTab {
 
             case 3:
 
-                this.modelingManager.removeYaguraLine();
-                this.modelingManager.removeYaneLine();
+                this.modelingManager.removeYagura();
 
-                this.modelingManager.createYaguraPolygon();
-                this.modelingManager.createYanePolygon();
+                this.modelingManager.createYagura(parameters);
 
                 this.clickCount++;
 
@@ -338,7 +346,9 @@ class CastleEditTab {
 
         }
 
-        this.setRefPointButton(this.clickCount, this.clickCount+1)
+        this.modelingManager.adjustModelDirection();
+
+        this.setRefPointButton(this.clickCount, this.clickCount + 1)
 
         this.updateCastleOutline();
         this.displayClickPosition(this.clickCount);
@@ -538,6 +548,48 @@ class TestTab {
             }
 
         })
+        
+        // $('#fovEstimationTestBackground').on( 'change', (e) => {
+        $('#fovEstimationTest').on( 'click', (e) => {
+
+            // this.sidePanelManager.changeBackground(e);
+
+            this.fovEstimation = new FovEstimation(this);
+
+        
+        } );
+
+
+    }
+
+    displayStatus(parameters = {}) {
+
+        document.getElementById('testStatus').innerHTML = ""
+
+        for (const parameter of parameters) {
+
+            this.addStatusRow(parameter.name, parameter.value);
+        
+        }
+
+    }
+
+    addStatusRow(name, param) {
+
+        const dom = document.createElement( 'div' );
+        dom.classList.add( 'statusRow' );
+
+        const nameSpan = document.createElement('span');
+        nameSpan.classList.add('name')
+        nameSpan.innerHTML = name
+
+        const paramSpan = document.createElement('span');
+        paramSpan.innerHTML = param;
+
+        dom.appendChild(nameSpan)
+        dom.appendChild(paramSpan)
+
+        document.getElementById('testStatus').appendChild(dom);
 
     }
 

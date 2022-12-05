@@ -53,9 +53,15 @@ import { ModelPresets } from '../models/ModelPresets.js'
             
         raycaster.setFromCamera( pointer, this.sceneManager.currentCamera );
 
-        const intersect = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+        let intersect = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
             
-        if (intersect === null) console.error("There are no intersections");
+        if (intersect === null) {
+            
+            console.error("There are no intersections");
+
+            intersect = new THREE.Vector3(0, 0, 0);
+
+        }
         
         
         return intersect;
@@ -88,7 +94,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
         const normalVecP1P2 = new THREE.Vector3(-1 * vecP1P2.z, 0, vecP1P2.x).normalize();
         
         // 2点間を結ぶ直線と原点との距離
-        const constant = ((new THREE.Vector3().crossVectors(vecP1P2, vecP1O).length()) / vecP1P2.length());
+        const constant = (-(new THREE.Vector3().crossVectors(vecP1P2, vecP1O).y) / vecP1P2.length());
 
         // 2点を含み、地平面に垂直な平面
         const plane = new THREE.Plane(normalVecP1P2, constant);
@@ -172,12 +178,6 @@ import { ModelPresets } from '../models/ModelPresets.js'
      */
     calcDiagonalPoint(top, bottom) {
 
-        top[1] = top[1].clone();
-
-        bottom[0] = bottom[0].clone();
-        bottom[1] = bottom[1].clone();
-
-
         return new THREE.Vector3(
 
             bottom[1].x - (top[1].x - bottom[0].x),
@@ -185,6 +185,17 @@ import { ModelPresets } from '../models/ModelPresets.js'
             bottom[1].z - (top[1].z - bottom[0].z)
 
         );
+
+    }
+
+    getCornerPoints(A, B) {
+
+        return [
+            A.clone(),
+            new THREE.Vector3(B.x, (A.y + B.y) / 2, A.z),
+            B.clone(),
+            new THREE.Vector3(A.x, (A.y + B.y) / 2, B.z),
+        ]
 
     }
 
@@ -211,19 +222,25 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
             case 2:
 
-                p.ishigakiTop[1] = this.adjustUpperPoint(this.clickPosition[2], p.ishigakiBottom);
+                // p.ishigakiTop[1] = this.adjustUpperPoint(this.clickPosition[2], p.ishigakiBottom);
+                p.ishigakiTop[1] = this.clickPosition[2];
                 p.ishigakiTop[0] = this.calcDiagonalPoint(p.ishigakiTop, p.ishigakiBottom);
 
                 break;
 
             case 3:
 
-                p.yaguraTop[1] = this.adjustUpperPoint(this.clickPosition[3], p.ishigakiTop);
+                // p.yaguraTop[1] = this.adjustUpperPoint(this.clickPosition[3], p.ishigakiTop);
+                p.yaguraTop[1] = this.clickPosition[3];
                 p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
 
                 break;
 
         }
+
+    }
+
+    adjustModelDirection() {
 
     }
 
@@ -235,7 +252,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
-    createBottomRectangleLine(mousePos) {
+    createBottomRectangleLine() {
 
         if (!this.bottomRectangleLine) {
 
@@ -245,13 +262,72 @@ import { ModelPresets } from '../models/ModelPresets.js'
         }
 
         const A = this.referencePoint.ishigakiBottom[0].clone();
-        const B = mousePos ? this.calcPointOnGround(mousePos) : this.referencePoint.ishigakiBottom[1].clone();
+        const B = this.referencePoint.ishigakiBottom[1].clone();
 
-        this.bottomRectangleLine.geometry.vertices = new ModelingSupporter().generateRectangleLine(A, B);
+        const adjustVertices = this.adjustDiagonalDirection(A, B);
+
+        this.bottomRectangleLine.geometry.vertices = new ModelingSupporter().generateRectangleLine(adjustVertices.A, adjustVertices.B);
         
-        this.updateObject(this.bottomRectangleLine)
+        this.updateObject(this.bottomRectangleLine);
+
+        this.bottomRectangleLine.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
+        this.bottomRectangleLine.position.set(A.x, A.y, A.z)
 
     }
+
+    adjustDiagonalDirection(A, B, top) {
+
+        A = A.clone();
+        B = B.clone();
+        
+        B.sub(A);
+
+        let angle = 0;
+        
+        if (B.x < 0 && B.z < 0) {
+
+            angle = Math.PI * 3 / 2;
+
+        } else if (B.x < 0 && B.z >= 0) {
+
+            angle = Math.PI * 2 / 2;
+
+        } else if (B.x >= 0 && B.z >= 0) {
+
+            angle = Math.PI * 1 / 2;
+
+        }
+
+        B.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+
+
+        let P3 = new THREE.Vector3(0, 0, 0);
+
+        if (top) {
+
+            top = top.clone()
+
+            P3 = this.adjustUpperPoint(
+            
+                top.sub(A).applyAxisAngle(new THREE.Vector3(0,1,0), angle),
+                [new THREE.Vector3(0,0,0), B]
+            
+            )
+
+        }
+
+        return {
+
+            A: new THREE.Vector3(0,0,0),
+            B: B,
+            angle: angle,
+            top: P3
+
+        }
+
+
+    }
+    
 
     // createFloorLine() {
     //     this.bottomRectangleLine = new THREE.Line(new THREE.Geometry(), new THREE.LineBasicMaterial({color: 0xFD7E00}));
@@ -274,15 +350,9 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
-    createIshigakiLine(mousePos, parameters) {
+    createIshigaki(parameters) {
 
         let ishigakiTopPoint = this.referencePoint.ishigakiTop[1];
-
-        if (mousePos) {
-
-            ishigakiTopPoint = this.calcPointOnNormalPlane(mousePos).clone();
-
-        }
 
         if (!ishigakiTopPoint.isVector3) {
             
@@ -292,57 +362,40 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
         }
 
-        
+
         this.createBottomRectangleLine();
 
-        this.castle.createIshigakiLine(
+        const A = this.referencePoint.ishigakiBottom[0].clone();
+        const B = this.referencePoint.ishigakiBottom[1].clone();
 
-            this.referencePoint.ishigakiBottom[0].clone(),
 
-            this.referencePoint.ishigakiBottom[1].clone(),
+        // 回転した状態の点を指定しても、正しくモデルが生成できるように調整
+        const adjustVertices = this.adjustDiagonalDirection(A, B, ishigakiTopPoint)
 
-            this.adjustUpperPoint(
-
-                ishigakiTopPoint,
-                this.referencePoint.ishigakiBottom
-
-            ),
-
-            parameters
-
-        );
-
-    }
-
-    removeIshigakiLine() {
-
-        this.castle.removeIshigakiLine();
-
-    }
-
-    createIshigakiPolygon(mousePos, parameters) {
         
-        this.castle.createIshigakiPolygon(
-
-            this.referencePoint.ishigakiBottom[0].clone(),
-            this.referencePoint.ishigakiBottom[1].clone(),
-            this.referencePoint.ishigakiTop[1].clone(),
-
+        this.castle.createIshigaki(
+            
+            adjustVertices.A,
+            adjustVertices.B,
+            adjustVertices.top,
             parameters
-
+            
         );
+
+        this.castle.model.ishigaki.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
+        this.castle.model.ishigaki.position.set(A.x, A.y, A.z)
+    
+    }
+
+    removeIshigaki() {
+
+        this.castle.removeIshigaki();
 
     }
 
-    createYaguraLine(mousePos, parameters) {
+    createYagura(parameters) {
 
         let yaguraTopPoint = this.referencePoint.yaguraTop[1];
-
-        if (mousePos) {
-
-            yaguraTopPoint = this.calcPointOnNormalPlane(mousePos).clone();
-
-        }
 
         if (!yaguraTopPoint.isVector3) {
 
@@ -353,109 +406,49 @@ import { ModelPresets } from '../models/ModelPresets.js'
         }
 
 
-        this.castle.createYaguraLine(
+        this.removeYagura();
 
-            this.referencePoint.ishigakiTop[0].clone(),
+        const A = this.referencePoint.ishigakiTop[0].clone();
+        const B = this.referencePoint.ishigakiTop[1].clone();
 
-            this.referencePoint.ishigakiTop[1].clone(),
-
-            this.adjustUpperPoint(
-
-                yaguraTopPoint,
-                this.referencePoint.ishigakiTop
-
-            ),
-
-            parameters
-
-        );
-
-    }
-
-    removeYaguraLine() {
-
-        this.castle.removeYaguraLine();
-
-    }
-
-    createYaguraPolygon(mousePos, parameters) {
+        const adjustVertices = this.adjustDiagonalDirection(A, B, yaguraTopPoint);
         
-        let yaguraRef = undefined;
-
-        if (this.referencePoint.yaguraTop[1]) {
+        this.castle.createYagura(
             
-            yaguraRef = this.referencePoint.yaguraTop[1].clone();
+            adjustVertices.A,
+            adjustVertices.B,
+            adjustVertices.top,
+            parameters
+            
+        );    
+
+        this.castle.model.yagura.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
+        this.castle.model.yagura.position.set(A.x, A.y, A.z)
+        
+
+    }
+
+    removeYagura() {
+
+        this.castle.removeYagura();
+
+    }
+
+    displayYaguraTopInfo(yagura = this.castle.model.yagura) {
+        
+        const topVertices = yagura.getYaguraVertices(this.castle.PARAMS.yagura.steps - 1)
+
+        const point = topVertices.upper[1].clone().add(yagura.position);
+        const screen = this.sceneManager.worldToScreenCoordinate(point, this.sceneManager.currentCamera);
+
+        
+        return {
+
+            world: point,
+            screen: screen
 
         }
 
-
-        if (mousePos) {
-            
-            yaguraRef = this.adjustUpperPoint(
-
-                this.calcPointOnNormalPlane(mousePos).clone(),
-                this.referencePoint.ishigakiTop
-
-            );
-
-        }
-
-
-        if (!yaguraRef) return;
-
-
-
-        this.castle.createYaguraPolygon(
-
-            this.referencePoint.ishigakiTop[0].clone(),
-            this.referencePoint.ishigakiTop[1].clone(),
-            yaguraRef,
-            parameters
-
-        );
-
-    }
- 
-    createYaneLine(mousePos) {
-        // let yaguraTopPoint = this.referencePoint.yaguraTop[1];
-
-        // if (mousePos) {
-        //     yaguraTopPoint = this.calcPointOnNormalPlane(mousePos).clone()
-        // }
-
-        // if (yaguraTopPoint === undefined) {
-        //     console.error("The coordinate of top of yagura is not determined.")
-        //     return;
-        // }
-
-        // this.castle.createYaneLine(
-        //     this.referencePoint.ishigakiTop[0].clone(),
-        //     this.referencePoint.ishigakiTop[1].clone(),
-        //     this.adjustUpperPoint(
-        //         yaguraTopPoint,
-        //         this.referencePoint.ishigakiTop
-        //     )
-        // );        
-    }
-
-    removeYaneLine() {
-
-        this.castle.removeYaneLine();
-
-    }
-
-    createYanePolygon(parameters) {
-        console.info("this function is not used.")
-        // const type = (parameters?.type) ? parameters.type : "whole";
-        // const topFloor = (parameters?.topFloor) ? parameters.topFloor : false;
-        
-        // this.castle.createYanePolygon(
-        //     this.referencePoint.ishigakiTop[0].clone(),
-        //     this.referencePoint.ishigakiTop[1].clone(),
-        //     this.referencePoint.yaguraTop[1].clone(),
-        //     type,
-        //     topFloor
-        // );
     }
 
     selectYaneComponent(mousePos) {
@@ -593,10 +586,10 @@ import { ModelPresets } from '../models/ModelPresets.js'
         }
         
 
-        camera.updateProjectionMatrix();
-
         this.sceneManager.orbit.update();
-
+        
+        camera.updateProjectionMatrix();
+        
 
         // 城モデルのクリック座標情報がない場合は終了
         if (!modelPreset.clickPosition) {
@@ -652,18 +645,8 @@ import { ModelPresets } from '../models/ModelPresets.js'
         
         }
 
-
-        if (parameters.type === "line") {
-
-            this.createIshigakiLine(undefined, parameters);
-            this.createYaguraLine(undefined, parameters);
-
-        } else {
-
-            this.createIshigakiPolygon(parameters);
-            this.createYaguraPolygon(undefined, parameters);
-
-        }
+        this.createIshigaki(parameters);
+        this.createYagura(parameters);
         
         
         if (parameters.modelPreset) {
@@ -678,21 +661,6 @@ import { ModelPresets } from '../models/ModelPresets.js'
             }
 
         }
-
-    }
-
-    createAutoFloor() {
-
-        console.info("this function is not used.")
-        
-        // this.clickPosition[0] = new THREE.Vector3(-200, 0, 125)
-        // this.clickPosition[1] = new THREE.Vector3(200, 0, -125)
-        
-        // const p = this.referencePoint;
-        // p.ishigakiBottom[0] = this.clickPosition[0].clone();
-        // p.ishigakiBottom[1] = this.clickPosition[1].clone();
-
-        // this.createFloorLine();
 
     }
 
@@ -731,9 +699,10 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
-    createAllLineFrom2D(clickCount, parameters = {}) {
+    createAllFrom2D(clickCount, parameters = {}) {
         
-        if (!parameters.type) parameters.type = "polygon";
+        if (!parameters.type) parameters.type = "line";
+        // if (!parameters.type) parameters.type = "polygon";
         if (!parameters.polygonType) parameters.polygonType = "black";
         if (!parameters.topFloor) parameters.topFloor = false;
         
@@ -751,7 +720,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
             this.clickPosition[1] = this.calcPointOnGround(this.click2DPosition[1]);
             this.determineReferencePoint(1)
 
-            this.createBottomRectangleLine(this.click2DPosition[1], parameters);
+            this.createBottomRectangleLine(parameters);
 
         }
 
@@ -761,16 +730,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
             this.clickPosition[2] = this.calcPointOnNormalPlane(this.click2DPosition[2]);
             this.determineReferencePoint(2)
 
-            
-            if (parameters.type == "polygon") {
-
-                this.createIshigakiPolygon(this.click2DPosition[2], parameters);
-
-            } else {
-
-                this.createIshigakiLine(this.click2DPosition[2], parameters);
-
-            }
+            this.createIshigaki(parameters);
 
         }
 
@@ -780,16 +740,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
             this.clickPosition[3] = this.calcPointOnNormalPlane(this.click2DPosition[3]);
             this.determineReferencePoint(3)
 
-
-            if (parameters.type == "polygon") {
-
-                this.createYaguraPolygon(this.click2DPosition[3], parameters);
-
-            } else {
-
-                this.createYaguraLine(this.click2DPosition[3], parameters);
-
-            }
+            this.createYagura(parameters);
 
         }
 

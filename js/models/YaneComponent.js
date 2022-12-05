@@ -106,50 +106,99 @@ export class YaneComponent extends THREE.Group {
 
     }
 
-    generateBody(MODE, parameters) {
-        switch(MODE) {
-            case LINE:
+    generateBody(parameters = {}) {
+
+        if (!parameters.type) parameters.type = "polygon";
+        if (!parameters.polygonType) parameters.polygonType = "whole"
+
+
+        switch(parameters.type) {
+        
+            case "line":
+        
                 this.body = new YaneBody(this.vertices)
-                this.add(this.body.generateLine());
+                this.add(this.body.generateLine(parameters));
+        
                 break;
-            case POLYGON:
+            
+            case "polygon":
+            
                 this.body = new YaneBody(this.vertices)
                 this.add(this.body.generatePolygon(parameters));
+                
                 break;
+        
         }
+    
     }
 
-    generateKawaraboh(MODE) {
-        switch(MODE) {
-            case LINE:
+    generateKawaraboh(parameters = {}) {
+
+        if (!parameters.type) parameters.type = "polygon";
+        if (!parameters.polygonType) parameters.polygonType = "whole"
+
+
+        switch(parameters.type) {
+        
+            case "line":
+
                 break;
-            case POLYGON:
+
+            case "polygon":
+                
                 this.kawarabohGroup = new KawarabohGroup(this.vertices, this.kawarabohThick)
                 this.add(this.kawarabohGroup.generatePolygon());
+                
                 break;
-        }
+        
+            }
+    
     }
 
-    generateKawara(MODE) {
-        switch(MODE) {
-            case LINE:
+    generateKawara(parameters = {}) {
+
+        if (!parameters.type) parameters.type = "polygon";
+        if (!parameters.polygonType) parameters.polygonType = "whole"
+
+
+        switch(parameters.type) {
+        
+            case "line":
+
                 break;
-            case POLYGON:
+
+            case "polygon":
+
                 this.kawaraGroup = new KawaraGroup(this.vertices);
                 this.add(this.kawaraGroup.generatePolygon())
+                
                 break;
-        }
+        
+       }
+    
     }
 
-    generateKayaoi(MODE) {
-        switch(MODE) {
-            case LINE:
+    generateKayaoi(parameters = {}) {
+
+        if (!parameters.type) parameters.type = "polygon";
+        if (!parameters.polygonType) parameters.polygonType = "whole"
+
+
+        switch(parameters.type) {
+        
+            case "line":
+
                 break;
-            case POLYGON:
+                
+            case "polygon":
+
                 this.kayaoi = new Kayaoi(this.vertices, this.kayaoiThick)
                 this.add(this.kayaoi.generatePolygon());
+
                 break;
+
         }
+
     }
 
     getYaneSize() {
@@ -162,10 +211,10 @@ export class YaneComponent extends THREE.Group {
 		}
     }
 
-	addChidoriHafu(lowerCenter, width, height, depth, MODE) {
+	addChidoriHafu(lowerCenter, width, height, depth, parameters) {
 		const chidoriHafu = new ChidoriHafu(this.PARAMS, width, height, depth);
         
-		chidoriHafu.create(MODE);
+		chidoriHafu.create(parameters);
 		chidoriHafu.position.set(lowerCenter.x, lowerCenter.y, lowerCenter.z + depth)
 
         chidoriHafu.name = "chidoriHafu";
@@ -175,7 +224,7 @@ export class YaneComponent extends THREE.Group {
         return chidoriHafu;
 	}
 
-	createSimpleChidoriHafu(MODE, parameters) {
+	createSimpleChidoriHafu(parameters) {
 
         const hafuParam = parameters.hafu;
 
@@ -185,7 +234,7 @@ export class YaneComponent extends THREE.Group {
 			this.getYaneSize().width * hafuParam.widthrate,
 			this.getYaneSize().height * hafuParam.heightrate,
 			this.getYaneSize().depth * hafuParam.depthrate,
-			MODE
+			parameters
 		
         )
 
@@ -319,8 +368,8 @@ class YaneBody extends THREE.Group {
 			depthrate: 1
 		}
         
-        const chidoriHafu = this.parent.createSimpleChidoriHafu(POLYGON, {hafu: param});
-        // const control = chidoriHafu.addController(sceneManager);
+        const chidoriHafu = this.parent.createSimpleChidoriHafu({hafu: param});
+        
         const chidoriHafuGUI = chidoriHafu.addGUI(sceneManager);
 
         return chidoriHafu

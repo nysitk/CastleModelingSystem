@@ -56,6 +56,24 @@ export class Ishigaki extends THREE.Group {
     
     }
 
+    create(parameters = {}) {
+
+        if (!parameters.type) parameters.type = "line";
+
+        if (parameters.type == "line") {
+
+            this.createLine(parameters);
+
+        } else {
+
+            this.createPolygon(parameters);
+        }
+
+        
+        return this;
+
+    }
+
     createLine(parameters) {
 
         new Line(this).create(parameters)

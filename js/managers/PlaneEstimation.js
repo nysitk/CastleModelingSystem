@@ -7,12 +7,13 @@ import { DraggablePoint } from './planeControlTab.js';
  */
 export class PlaneEstimation {
 
-	constructor(sceneManager) {
+	constructor(planeControl) {
 		
-		this.sceneManager = sceneManager;
+        this.planeControl = planeControl
+		this.sceneManager = this.planeControl.sceneManager;
 		this.renderSize = {
-            width: sceneManager.canvasController.width,
-		    height: sceneManager.canvasController.height
+            width: this.sceneManager.canvasController.width,
+		    height: this.sceneManager.canvasController.height
         }
 
         this.rectAspect = 1.0; // aspect of rectangle. ( = width / height);
@@ -24,6 +25,10 @@ export class PlaneEstimation {
 			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 3, this.renderSize.height / 2 * 1, 2).add(this),
 			new DraggablePlaneEstimationPoint(this.renderSize.width / 8 * 3, this.renderSize.height / 2 * 1, 3).add(this),
 		]
+        
+        this.enableCombine2DFixButton();
+
+        return this;
 
 	}
 
@@ -166,6 +171,34 @@ export class PlaneEstimation {
         }
 
     }
+    
+    enableCombine2DFixButton() {
+                   
+        $("#combine2DFix").attr("disabled", false);
+
+        $("#combine2DFix").on('click', (e) => {
+            this.combine2DFix();
+        })
+
+    }
+
+    combine2DFix() {
+
+        this.planeControl.enable2DFixMode();
+
+        this.vertices2D[0].set2DFix(0, true);
+        this.vertices2D[2].set2DFix(1, true);
+
+        this.planeControl.addDraggablePoint(new THREE.Vector2(626, 461), 2);
+        this.planeControl.addDraggablePoint(new THREE.Vector2(466, 127), 3);
+
+        
+        this.planeControl.clickCount2DFix = 4;
+        this.planeControl.modelingManager.createAllFrom2D(4);
+        this.planeControl.enableConvertTo3DMode();
+
+
+    }
 
 }
 
@@ -178,26 +211,32 @@ export class PlaneEstimation {
         
         super(x, y, clickCount);
 
-        this.name = "draggablePointPlaneEstimation"
+        this.name = "draggablePointPlaneEstimation";
+
+        this.isDraggablePointPlaneEstimation = true;
+
+        this.isDraggablePoint2DFix = false;
+
 
 		return this;
 
     }
 
-    add(planePointControl) {
-
-        this.planePointControl = planePointControl;
-        this.sceneManager = planePointControl.sceneManager;
-
+    add(planeEstimation) {
+        
         super.add();
-
+        
         super.setMouseEvent({
             "mousedown": this.mousedown,
             "viewMousemove": this.viewMousemove,
             "mouseup": this.mouseup
         })
+        
+        this.planeEstimation = planeEstimation;
+        this.sceneManager = planeEstimation.sceneManager;
 
-		return this;
+
+        return this;
 
     }
 
@@ -213,15 +252,28 @@ export class PlaneEstimation {
 		
         super.viewMousemove(e, arg);
         
-        arg.planePointControl.startSolvePnP(arg.clickCount, arg.positionInCanvas);
-
-        arg.planePointControl.sceneManager.updateScene();
-
+        if (this.isDraggablePoint2DFix) {
+            
+            arg.modelingManager.set2DPosition(arg.click2DFixCount, arg.positionInCanvas)
+                
+        }
+        
+        arg.planeEstimation.sceneManager.updateScene();
     }
 
     mouseup(e, arg) {
-
+        
         super.mouseup(e, arg);
+        
+    }
+
+    set2DFix(count2DFix = this.click2DFixCount) {
+
+        this.click2DFixCount = count2DFix;
+
+        this.planeEstimation.planeControl.modelingManager.set2DPosition(this.click2DFixCount, this.positionInCanvas)
+
+        this.isDraggablePoint2DFix = true;
 
     }
     

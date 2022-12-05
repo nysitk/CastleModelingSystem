@@ -82,7 +82,7 @@ import { Tab } from './SidePanelTabManager.js'
             image.src = e.target.result;
 
             image.onload = function () {
-                
+
                 canvas.width = image.width;
                 canvas.height = image.height;
                 context.drawImage(image, 0, 0)
@@ -99,10 +99,14 @@ import { Tab } from './SidePanelTabManager.js'
                 sceneManager.skyEffectController.inclination = 0.0;
 
                 sceneManager.changeGUI();
+
+                
+                return true;
                 
             }
         }
         
         reader.readAsDataURL(e.target.files[0]);
+
     }
 }

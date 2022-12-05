@@ -161,6 +161,13 @@ import { SidePanelManager } from './SidePanelManager.js';
         const x = e.pageX - $("#mainCanvas").offset().left;
         const y = e.pageY - $("#mainCanvas").offset().top;
 		const mousePos = new THREE.Vector2(x, y)
+		
+        if (this.controlPanel?.sceneTab) {
+
+			this.controlPanel.sceneTab.content.displayStatus(mousePos);
+
+		}
+
 
         if (this.cursorMode == "construction") {
 
@@ -181,7 +188,7 @@ import { SidePanelManager } from './SidePanelManager.js';
             // this.controlPanel.planeControlTab.content.onMovePlaneEstimationEvent(mousePos); 
 
 
-    }
+        }
 
     }
 
