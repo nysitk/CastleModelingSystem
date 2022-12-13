@@ -155,4 +155,16 @@ export class ModelingSupporter {
         var m = rate, n = 1-rate;
         return new THREE.Vector3().addVectors(A.clone().multiplyScalar(n), B.clone().multiplyScalar(m));
     }
+    
+    getCornerPoints(A, B) {
+        // 対角の2点から長方形の4点を求める
+        return [
+            A.clone(),
+            new THREE.Vector3(B.x, (A.y + B.y) / 2, A.z),
+            B.clone(),
+            new THREE.Vector3(A.x, (A.y + B.y) / 2, B.z),
+        ]
+
+    }
+
 }

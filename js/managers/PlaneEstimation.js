@@ -27,10 +27,25 @@ export class PlaneEstimation {
 		]
         
         this.enableCombine2DFixButton();
+        this.enableClearButton();
 
         return this;
 
 	}
+
+    clear() { 
+ 
+        for (let i = 0; i < this.vertices2D.length; i++) {
+            
+            if (this.vertices2D[i]) this.vertices2D[i].remove();
+
+        }        
+        
+        this.vertices2D = [];
+
+        this.planeControl.planeEstimation = undefined;
+
+    }
 
     startSolvePnP() {
 
@@ -182,21 +197,55 @@ export class PlaneEstimation {
 
     }
 
-    combine2DFix() {
+    combine2DFix(v = []) {
 
         this.planeControl.enable2DFixMode();
 
-        this.vertices2D[0].set2DFix(0, true);
         this.vertices2D[2].set2DFix(1, true);
+        
+        
+        if (v[0]) {
+            
+            this.planeControl.addDraggablePoint(new THREE.Vector2(v[0]["x"], v[0]["y"]), 0);
+            
+        } else {
+            
+            this.vertices2D[0].set2DFix(0, true);
 
-        this.planeControl.addDraggablePoint(new THREE.Vector2(626, 461), 2);
-        this.planeControl.addDraggablePoint(new THREE.Vector2(466, 127), 3);
+        }
+        
+        if (v[1]) {
+            
+            this.planeControl.addDraggablePoint(new THREE.Vector2(v[1]["x"], v[1]["y"]), 1);
+            
+        } else {
+            
+            this.vertices2D[2].set2DFix(1, true);
+
+        }
+
+
+        const P3 = v[2] ? v[2] : {"x":626, "y":461};
+        const P4 = v[3] ? v[3] : {"x":466, "y":127};
+        
+        this.planeControl.addDraggablePoint(new THREE.Vector2(P3["x"], P3["y"]), 2);
+        this.planeControl.addDraggablePoint(new THREE.Vector2(P4["x"], P4["y"]), 3);
 
         
         this.planeControl.clickCount2DFix = 4;
         this.planeControl.modelingManager.createAllFrom2D(4);
         this.planeControl.enableConvertTo3DMode();
 
+
+    }
+
+    enableClearButton() {         
+        
+        $("#clearPlaneEstimation").attr("disabled", false);
+
+        $("#clearPlaneEstimation").on('click', (e) => {
+            this.clear();
+        })
 
     }
 

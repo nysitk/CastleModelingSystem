@@ -56,6 +56,24 @@ export class Ishigaki extends THREE.Group {
     
     }
 
+    getVertex(parameters = {}) {
+
+        let vertices = [];
+
+        if (parameters["side"] == "lower") {
+
+            vertices = new ModelingSupporter().getCornerPoints(this.A, this.B);
+            
+        } else if (parameters["side"] == "upper") {
+            
+            vertices = new ModelingSupporter().getCornerPoints(this.C, this.D);
+            
+        }
+
+        return vertices[parameters.direction]
+
+    }
+
     create(parameters = {}) {
 
         if (!parameters.type) parameters.type = "line";

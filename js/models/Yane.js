@@ -346,18 +346,18 @@ export class Yane extends THREE.Group {
 				this.origin.B.x - this.changeLevel.x * this.yaneSizeRatio.x,
 				this.origin.B.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
 				this.origin.B.z - this.changeLevel.z * this.yaneSizeRatio.z,
-				),
+			),
 				
-				C: new THREE.Vector3(
-					this.origin.A.x,
-					this.origin.A.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
-					this.origin.A.z,
-					),
+			C: new THREE.Vector3(
+				this.origin.A.x,
+				this.origin.A.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
+				this.origin.A.z,
+			),
 					
-		D: new THREE.Vector3(
-			this.origin.B.x,
-			this.origin.B.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
-			this.origin.B.z,
+			D: new THREE.Vector3(
+				this.origin.B.x,
+				this.origin.B.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
+				this.origin.B.z,
 			)
 			
 		}
@@ -385,7 +385,7 @@ export class Yane extends THREE.Group {
 
 	}
 
-    createTop(parameters) {
+    createTop(parameters = {}) {
 
 		this.topYaneVertices = this.calcTopYaneVertices();
 		
@@ -400,8 +400,16 @@ export class Yane extends THREE.Group {
 		).generate(parameters);
 		
 		this.top.position.set(this.topYaneVertices.A.x, this.topYaneVertices.A.y, this.topYaneVertices.A.z);
-		
-		this.line.add(this.top);
+
+		if (parameters.type == "line") {
+	
+			this.line.add(this.top);
+
+		} else {
+
+			this.polygon.add(this.top);
+
+		}
 		
 
 		return top;

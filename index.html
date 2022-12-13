@@ -22,6 +22,7 @@
 			<span id="SceneTab" class="tab">Scene</span>
 			<span id="CastleEditTab" class="tab">CastleEdit</span>
 			<span id="PlaneControlTab" class="tab">PlaneControl</span>
+			<span id="FovEstimationTab" class="tab">Fov Estimation</span>
 			<span id="TestTab" class="tab">Test</span>
 		</div>
 		<div id="contentContainer">
@@ -121,7 +122,7 @@
 					<div class="row">INPUT Background Image</div>
 					<div class="row">
 						<div id="background-change">
-							<input type="file" id="background-Image" accept="image/*">
+							<input type="file" class="background-Image" accept="image/*">
 							<img id="preview">
 						</div>
 					</div>
@@ -139,6 +140,12 @@
 					<div class="row">
 						<button id="convertTo3D" disabled>CONVERT To 3D</button>
 					</div>
+					<div class="row">
+						<button id="clearPlaneEstimation">CLEAR PLANE ESTIMATION</button>
+					</div>
+					<div class="row">
+						<button id="clear2DFix">CLEAR 2DFIX</button>
+					</div>
 					<div style="position: relative;">
 						<canvas id="estimationCanvas" style="border: 1px solid #ccc;"></canvas>
 					</div>
@@ -149,6 +156,41 @@
 				</div>
 				<div class="panel">
 					<div class="row" id="PlaneControlGUIWrapper"></div>
+				</div>
+			</div>
+			<div id="FovEstimationContent" class="tabContent">
+				<div class="panel">
+					<div class="row">INPUT Background Image</div>
+					<div class="row">
+						<div id="background-change">
+							<input type="file" class="background-Image" accept="image/*">
+							<img id="preview">
+						</div>
+					</div>
+				</div>
+				<div class="panel">
+					<div class="row">
+						<select id="selectFovEstimationPreset" class="Select" autocomplete="off"></select>
+					</div>
+					<div class="row">
+						<div id="fovEstimationTest">
+							<!-- <input type="file" id="fovEstimationTestBackground" accept="image/*"> -->
+							<button id="setFovEstimation">SET Fov Estimation</button>
+						</div>
+					</div>
+					<div class="row">
+						<button id="startFovEstimation">START Fov Estimation</button>
+					</div>
+					<div class="row">
+						<button id="clearFovEstimation">CLEAR Fov Estimation</button>
+					</div>
+					<div class="row">
+						<button id="getPresetParameters">GET Preset Parameters</button>
+					</div>
+					<div class="panel">
+						STATUS
+						<div class="displayer" id="fovEstimationStatus"></div>
+					</div>
 				</div>
 			</div>
 			<div id="TestContent" class="tabContent">
@@ -172,12 +214,6 @@
 					<div class="row">
 						<button id="raycasterPlane">raycasterPlane</button>
 					</div>
-					<div class="row">
-						<div id="fovEstimationTest">
-							<!-- <input type="file" id="fovEstimationTestBackground" accept="image/*"> -->
-							<button id="fovEstimationTest">fov Estimation Test</button>
-						</div>
-					</div>
 					<div class="panel">
 						STATUS
 						<div class="displayer" id="testStatus"></div>
@@ -190,6 +226,7 @@
 	<div id="mainView">
 		<canvas id="backgroundCanvas"></canvas>
 		<img id="backgroundImage" style="display:none;">
+		<div id="coverInfo">fov=90</div>
 	</div>
 
     

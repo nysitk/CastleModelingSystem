@@ -110,6 +110,10 @@ export class Yagura extends THREE.Group {
 
 	getYaguraVertices(layer) {
 
+		if (layer == "top") {
+			layer = this.PARAMS.yagura.steps - 1;
+		}
+
 		return {
 
 			lower: [
@@ -131,6 +135,42 @@ export class Yagura extends THREE.Group {
 			]
 
 		}
+
+	}
+
+	getYaguraVertex(parameters = {}) {
+
+		return this.getYaguraVertices(parameters.layer)[parameters.side][parameters.direction]
+
+	}
+
+	getYaneVertex(parameters = {}) {
+		
+		if (parameters.layer == "top") {
+			parameters.layer = this.PARAMS.yagura.steps - 1;
+		}
+
+		const eachLayer = this.getEachLayer(parameters.layer);
+		let yane = eachLayer?.yane?.line?.children[0];
+
+		if (!yane) {
+
+			console.error("polygon is not determined.")
+			return;
+
+		}
+
+		if (yane.top) {
+
+			yane = yane.top;
+
+		}
+
+		const position = new THREE.Vector3().addVectors(yane.position, eachLayer.position)
+		position.add(yane.lower[parameters.side][parameters.direction])
+
+		return position;
+
 
 	}
     

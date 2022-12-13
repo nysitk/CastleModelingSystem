@@ -6,7 +6,7 @@ import { ModelPresets } from '../models/ModelPresets.js'
 import { PlaneControlTab } from './PlaneControlTab.js'
 
 import * as gradientDescent from '../tests/gradientDescent.js'
-import { FovEstimation } from '../tests/fovEstimation.js'
+import { FovEstimationTab } from '../tests/fovEstimationTab.js'
 
 export class Tab {
 
@@ -42,6 +42,10 @@ export class Tab {
 
             case "PlaneControl":
                 this.content = new PlaneControlTab(this.sidePanelManager);
+                break;
+
+            case "FovEstimation":
+                this.content = new FovEstimationTab(this.sidePanelManager);
                 break;
 
             case "Test":
@@ -297,9 +301,6 @@ class CastleEditTab {
             
         }
 
-        this.modelingManager.adjustModelDirection();
-
-
     }
 
     onClickEvent(mousePos, parameters = {}) {
@@ -326,7 +327,6 @@ class CastleEditTab {
             case 2:
                 
                 this.modelingManager.removeBottomRectangleLine();
-                this.modelingManager.removeIshigaki();
 
                 this.modelingManager.createIshigaki(parameters);
 
@@ -336,8 +336,6 @@ class CastleEditTab {
 
             case 3:
 
-                this.modelingManager.removeYagura();
-
                 this.modelingManager.createYagura(parameters);
 
                 this.clickCount++;
@@ -345,8 +343,6 @@ class CastleEditTab {
                 break;
 
         }
-
-        this.modelingManager.adjustModelDirection();
 
         this.setRefPointButton(this.clickCount, this.clickCount + 1)
 
@@ -548,17 +544,6 @@ class TestTab {
             }
 
         })
-        
-        // $('#fovEstimationTestBackground').on( 'change', (e) => {
-        $('#fovEstimationTest').on( 'click', (e) => {
-
-            // this.sidePanelManager.changeBackground(e);
-
-            this.fovEstimation = new FovEstimation(this);
-
-        
-        } );
-
 
     }
 

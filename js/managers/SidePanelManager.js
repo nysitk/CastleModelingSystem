@@ -25,6 +25,7 @@ import { Tab } from './SidePanelTabManager.js'
         this.sceneTab = new Tab(this, "Scene")
         this.castleEditTab = new Tab(this, "CastleEdit");
         this.planeControlTab = new Tab(this, "PlaneControl");
+        this.fovEstimationTab = new Tab(this, "FovEstimation");
         this.testTab = new Tab(this, "Test");
 
         this.openTab(this.sceneTab);
@@ -33,7 +34,7 @@ import { Tab } from './SidePanelTabManager.js'
             this.operationManager.propOrbit();
         })
 
-        $('#background-Image').on( 'change', (e) => { this.changeBackground(e) } );
+        $('.background-Image').on( 'change', (e) => { this.changeBackground(e) } );
 
     }
 

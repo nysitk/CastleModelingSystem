@@ -146,6 +146,14 @@ canvas {
 	-webkit-transform: translateY(-50%) translateX(-50%);
 }
 
+#coverInfo {
+	font-size: 32px;
+    position: absolute;
+    top: 250px;
+    left: 130px;
+	color: #000;
+}
+
 #toolbar {
 	min-width: 32px;
 	background: #eee;

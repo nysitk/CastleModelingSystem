@@ -188,17 +188,6 @@ import { ModelPresets } from '../models/ModelPresets.js'
 
     }
 
-    getCornerPoints(A, B) {
-
-        return [
-            A.clone(),
-            new THREE.Vector3(B.x, (A.y + B.y) / 2, A.z),
-            B.clone(),
-            new THREE.Vector3(A.x, (A.y + B.y) / 2, B.z),
-        ]
-
-    }
-
     /**
      * モデル生成で参照する点を保存
      */
@@ -237,10 +226,6 @@ import { ModelPresets } from '../models/ModelPresets.js'
                 break;
 
         }
-
-    }
-
-    adjustModelDirection() {
 
     }
 
@@ -420,7 +405,8 @@ import { ModelPresets } from '../models/ModelPresets.js'
             adjustVertices.top,
             parameters
             
-        );    
+        );
+        this.displayYaneTopInfo()
 
         this.castle.model.yagura.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
         this.castle.model.yagura.position.set(A.x, A.y, A.z)
@@ -431,6 +417,67 @@ import { ModelPresets } from '../models/ModelPresets.js'
     removeYagura() {
 
         this.castle.removeYagura();
+
+    }
+
+    getVerticesInfo(parameters = {}) {
+
+        switch (parameters.direction) {
+            case "A":
+                parameters.direction = 0
+                break;
+            case "B":
+                parameters.direction = 1
+                break;
+            case "C":
+                parameters.direction = 2
+                break;
+            case "D":
+                parameters.direction = 3
+                break;
+            default:
+                break;
+        }
+
+        const ishigaki = this.castle.model.ishigaki;
+        const yagura = this.castle.model.yagura;
+
+        let world = new THREE.Vector3();
+
+
+        if (parameters["e"] == "ishigaki") {
+
+            const point = ishigaki.getVertex(parameters);
+    
+            if (point) world = point.clone().add(ishigaki.position);
+            
+        }
+
+        if (parameters["e"] == "yagura") {
+
+            const point = yagura.getYaguraVertex(parameters);
+
+            if (point) world = point.clone().add(yagura.position);
+
+        }
+
+        if (parameters["e"] == "yane") {
+
+            const point = yagura.getYaneVertex(parameters);
+
+            if (point) world = point.clone().add(yagura.position);
+
+        }
+        
+        const screen = this.sceneManager.worldToScreenCoordinate(world, this.sceneManager.currentCamera);
+
+        
+        return {
+
+            world: world,
+            screen: screen
+        
+        }
 
     }
 
@@ -448,6 +495,11 @@ import { ModelPresets } from '../models/ModelPresets.js'
             screen: screen
 
         }
+
+    }
+
+    displayYaneTopInfo(yagura = this.castle.model.yagura) {
+        
 
     }
 

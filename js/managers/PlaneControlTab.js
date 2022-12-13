@@ -23,7 +23,27 @@ export class PlaneControlTab {
         $("#startPlaneEstimation").on('click', (e) => {
             this.operationManager.changeCursorMode("planeEstimation");
         })
+        
+        $("#clear2DFix").on('click', (e) => {
+            this.clear();
+        })
 
+    }
+
+    clear() {
+
+        this.is2DfixEnabled = false;
+        this.clickCount2DFix = 0;
+
+        for (let i = 0; i < this.draggablePoint.length; i++) {
+            
+            if (this.draggablePoint[i])
+            this.draggablePoint[i].remove();
+            
+        }
+        
+        this.draggablePoint = new Array(4);
+    
     }
 
     onMove2DFixEvent() {
