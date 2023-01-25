@@ -6,241 +6,31 @@ import { Yagura } from './Yagura.js'
 import { YaneComponent } from './YaneComponent.js'
 import { ChidoriHafu, IrimoyaHafu } from './Hafu.js'
 import { HafuPresets } from './HafuPresets.js'
+import { ModelingSupporter } from '../managers/ModelingSupporter.js';
 
-/**
- * 屋根モデル関連のモデルクラス
- */
-// export class Yane extends Yagura {
-export class YaneOld {
-	constructor(R3, R4, R6, castleModelManager, parameters) {
-		// super(R3, R4, R6, castleModelManager, parameters);
-
-        this.calcParameters();
-
-        this.allSurroundingYaneVertices = this.calcAllSurroundingYaneVertices();
-        this.topYaneVertices = this.calcTopYaneVertices();
-
-        this.allSurroundingYane = [];
-        this.topYane;
-	}
-
-    calcParameters() {
-        // 屋根の大きさの比率
-        this.yaneSizeRatio = this.PARAMS.yane.sizeRatio;
-        // 屋根の上側/下側の位置
-        this.yaneUpperPosition = this.PARAMS.yane.upperPosition;
-        this.yaneLowerPosition = this.PARAMS.yane.lowerPosition;
-    }
-
-    calcAllSurroundingYaneVertices() {
-        const yaneVertices = []
-		for (const vertices of this.allVertices) {
-
-			var tmpA = new THREE.Vector3(
-				vertices.A.x + this.changeLevel.x * this.yaneSizeRatio.x,
-				vertices.A.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
-				vertices.A.z + this.changeLevel.z * this.yaneSizeRatio.z,
-			)
-			var tmpB = new THREE.Vector3(
-				vertices.B.x - this.changeLevel.x * this.yaneSizeRatio.x,
-				vertices.B.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
-				vertices.B.z - this.changeLevel.z * this.yaneSizeRatio.z,
-			)
-			var tmpC = new THREE.Vector3(
-				vertices.A.x - this.changeLevel.x,
-				vertices.A.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 3/6),
-				vertices.A.z - this.changeLevel.z,
-			)
-			var tmpD = new THREE.Vector3(
-				vertices.B.x + this.changeLevel.x,
-				vertices.B.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 3/6),
-				vertices.B.z + this.changeLevel.z,
-			)
-
-			yaneVertices.push({A: tmpA.clone(), B: tmpB.clone(), C: tmpC.clone(), D: tmpD.clone()});
-		}
-        return yaneVertices;
-    }
-
-    calcTopYaneVertices() {
-		const topVertices = this.allVertices[this.allVertices.length - 1];
-		var tmpA = new THREE.Vector3(
-			topVertices.A.x + this.changeLevel.x * this.yaneSizeRatio.x,
-			topVertices.A.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
-			topVertices.A.z + this.changeLevel.z * this.yaneSizeRatio.z,
-		)
-		var tmpB = new THREE.Vector3(
-			topVertices.B.x - this.changeLevel.x * this.yaneSizeRatio.x,
-			topVertices.B.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
-			topVertices.B.z - this.changeLevel.z * this.yaneSizeRatio.z,
-		)
-		var tmpC = new THREE.Vector3(
-			topVertices.A.x,
-			topVertices.A.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
-			topVertices.A.z,
-		)
-		var tmpD = new THREE.Vector3(
-			topVertices.B.x,
-			topVertices.B.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
-			topVertices.B.z,
-		)
-
-		return {A: tmpA.clone(), B: tmpB.clone(), C: tmpC.clone(), D: tmpD.clone()};
-    }
-
-    createLine() {
-        this.line = this.createAll(LINE)
-        return this.line;
-    }
-
-    createPolygon(type = "whole") {
-        this.polygon = this.createAll(POLYGON, type)
-        return this.polygon;
-    }
-    
-    createAll(MODE, type = "whole") {
-        this.allSurroundingYaneVertices.forEach(function (surroundingYaneVertices, i){
-            if (i+1 == this.allSurroundingYaneVertices.length) return false;
-			this.createSurroundingYane(i, MODE, type)
-		},this)
-
-        this.createTopYane(MODE, type)
-
-        return this;
-    }
-
-    createSurroundingYane(layer, MODE, type = "whole") {
-        const surroundingYane = new SurroundingYane(
-			this.PARAMS,
-            this.allSurroundingYaneVertices[layer].A,
-            this.allSurroundingYaneVertices[layer].B,
-            this.allSurroundingYaneVertices[layer].C,
-            this.allSurroundingYaneVertices[layer].D
-        );
-
-        surroundingYane.create(MODE, type);
-
-        // 場所に応じて屋根を移動・回転
-        surroundingYane.position.set(this.allSurroundingYaneVertices[layer].A.x, this.allSurroundingYaneVertices[layer].A.y, this.allSurroundingYaneVertices[layer].A.z);
-        surroundingYane.name = "surroundingYane";
-        surroundingYane.yagura_layer = layer;
-        this.add(surroundingYane)
-
-        this.allSurroundingYane.push(surroundingYane)
-
-        return surroundingYane;
-    }
-
-    createHafuPreset(MODE, name) {
-		if (HafuPresets[name]) {
-			for (const param of HafuPresets[name]) {
-				this.createSimpleChidoriHafu(param, MODE)
-			}
-		}
-    }
-
-	setAllColor(color) {
-		this.setBodyColor(color);
-		this.setChidoriHafuColor(color);
-		this.setIrimoyaHafuColor(color);
-	}
-
-	setBodyColor(color) {
-		this.getAllSurroundingYane().forEach(function(surroundingYane, layer) {
-			surroundingYane.setBodyColor(color);
-		})
-	}
-
-	setChidoriHafuColor(color) {
-		this.getAllSurroundingYane().forEach(function(surroundingYane, layer) {
-			surroundingYane.setHafuColor(color);
-		})
-	}
-
-	setIrimoyaHafuColor(color) {
-		this.getIrimoyaHafu().forEach(function(irimoyaHafu) {
-			irimoyaHafu.setColor(color);
-		})
-	}
-
-	getIrimoyaHafu() {
-		return this.children.filter( function (child) {
-			return child.name == "irimoyaHafu"
-		})
-	}
-
-    getAllSurroundingYane() {
-        return this.allSurroundingYane;
-    }
-
-    getSurroundingYane(layer) {
-        return this.allSurroundingYane[layer];
-    }
-
-    createSimpleChidoriHafu(param, MODE) {
-        this.getSurroundingYane(param.layer).createSimpleChidoriHafu(param, MODE)
-    }
-
-	getYaneVertices(layer) {
-        const vertices = this.getSurroundingYane(param.layer)
-		return {
-			lower: [
-				vertices.A.clone(),
-				new THREE.Vector3(vertices.B.x, vertices.A.y, vertices.A.z),
-				vertices.B.clone(),
-				new THREE.Vector3(vertices.A.x, vertices.A.y, vertices.B.z)
-			],
-
-			upper: [
-				vertices.C.clone(),
-				new THREE.Vector3(vertices.D.x, vertices.C.y, vertices.C.z),
-				vertices.D.clone(),
-				new THREE.Vector3(vertices.C.x, vertices.C.y, vertices.D.z)
-			]
-		}
-	}
-
-    createTopYane(MODE, type = "whole") {
-		this.topYane = new IrimoyaHafu(
-			this.PARAMS,
-			this.topYaneVertices.A,
-			this.topYaneVertices.B,
-			this.topYaneVertices.C,
-			this.topYaneVertices.D
-		);
-		this.topYane.generate(MODE, type);
-		this.topYane.position.set(this.topYaneVertices.A.x, this.topYaneVertices.A.y, this.topYaneVertices.A.z);
-		this.topYane.name = "irimoyaHafu"
-		this.add(this.topYane);
-    }
-
-	getScene() {
-		return this.parent;
-	}
-}
-
+// 各層の屋根
 export class Yane extends THREE.Group {
 
-    constructor(eachLayer) {
+	constructor(eachLayer) {
 
-        super();
+		super();
 
-        this.eachLayer = eachLayer;
-        this.worldVertices = eachLayer.worldVertices;
+		this.eachLayer = eachLayer;
 		this.origin = eachLayer.origin;
 
-        this.changeLevel = this.eachLayer.yagura.changeLevel;
+		this.changeLevel = this.eachLayer.yagura.changeLevel;
 
 		this.PARAMS = this.eachLayer.yagura.PARAMS
 
 		// 屋根の大きさの比率
-        this.yaneSizeRatio = this.PARAMS.yane.sizeRatio;
+		this.yaneSizeRatio = this.PARAMS.yane.sizeRatio;
 
-        // 屋根の上側/下側の位置
-        this.yaneUpperPosition = this.PARAMS.yane.upperPosition;
-        this.yaneLowerPosition = this.PARAMS.yane.lowerPosition;
+		// 屋根の上側/下側の位置
+		this.yaneUpperPosition = this.PARAMS.yane.upperPosition;
+		this.yaneLowerPosition = this.PARAMS.yane.lowerPosition;
 
-        this.yaneVertices = this.calcYaneVertices();
+
+		this.yaneVertices = this.calcYaneVertices();
 
 		
 		this.line = new THREE.Group();
@@ -249,64 +39,65 @@ export class Yane extends THREE.Group {
 		this.polygon = new THREE.Group();
 		this.add(this.polygon);
 
-    }
+	}
 
-    calcYaneVertices() {
+	calcYaneVertices() {
 
-        const origin = this.origin;
+		const origin = this.origin;
 
-        return {
+		const verticalRatio = 5 / 6;
 
-            A: new THREE.Vector3(
-                origin.A.x + this.changeLevel.x * this.yaneSizeRatio.x,
-                origin.A.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
-                origin.A.z + this.changeLevel.z * this.yaneSizeRatio.z,
-            ),
+		return {
 
-            B: new THREE.Vector3(
-                origin.B.x - this.changeLevel.x * this.yaneSizeRatio.x,
-                origin.B.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
-                origin.B.z - this.changeLevel.z * this.yaneSizeRatio.z,
-            ),
+			A: new THREE.Vector3(
+				origin.A.x + this.changeLevel.x * this.yaneSizeRatio.x,
+				origin.A.y + this.changeLevel.y * verticalRatio * this.yaneLowerPosition,
+				origin.A.z + this.changeLevel.z * this.yaneSizeRatio.z,
+			),
 
-            C: new THREE.Vector3(
-                origin.A.x - this.changeLevel.x,
-                origin.A.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 3/6),
-                origin.A.z - this.changeLevel.z,
-            ),
+			B: new THREE.Vector3(
+				origin.B.x - this.changeLevel.x * this.yaneSizeRatio.x,
+				origin.B.y + this.changeLevel.y * verticalRatio * this.yaneLowerPosition,
+				origin.B.z - this.changeLevel.z * this.yaneSizeRatio.z,
+			),
 
-            D: new THREE.Vector3(
-                origin.B.x + this.changeLevel.x,
-                origin.B.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 3/6),
-                origin.B.z + this.changeLevel.z,
-            )
+			C: new THREE.Vector3(
+				origin.A.x - this.changeLevel.x,
+				origin.A.y + this.changeLevel.y * (verticalRatio * this.yaneUpperPosition + 3/6),
+				origin.A.z - this.changeLevel.z,
+			),
 
-        }
+			D: new THREE.Vector3(
+				origin.B.x + this.changeLevel.x,
+				origin.B.y + this.changeLevel.y * (verticalRatio * this.yaneUpperPosition + 3/6),
+				origin.B.z + this.changeLevel.z,
+			)
 
-    }
+		}
+
+	}
 	
 	createSurroundingYane(parameters) {
 		
 		const layer = this.layer;
 		
-        const surroundingYane = new SurroundingYane(
+		const surroundingYane = new SurroundingYane(
 
 			this.PARAMS,
-            this.yaneVertices.A,
-            this.yaneVertices.B,
-            this.yaneVertices.C,
-            this.yaneVertices.D,
+			this.yaneVertices.A,
+			this.yaneVertices.B,
+			this.yaneVertices.C,
+			this.yaneVertices.D,
 
-        );
+		);
 
-        surroundingYane.create(parameters);
+		surroundingYane.create(parameters);
 
-        // 場所に応じて屋根を移動・回転
-        surroundingYane.position.set(this.yaneVertices.A.x, this.yaneVertices.A.y, this.yaneVertices.A.z);
-        surroundingYane.name = "surroundingYane";
-        surroundingYane.yaguraLayer = layer;
+		// 場所に応じて屋根を移動・回転
+		surroundingYane.position.set(this.yaneVertices.A.x, this.yaneVertices.A.y, this.yaneVertices.A.z);
+		surroundingYane.yaguraLayer = layer;
 
-        return surroundingYane;
+		return surroundingYane;
 
 	}
 
@@ -335,57 +126,61 @@ export class Yane extends THREE.Group {
 	
 	calcTopYaneVertices() {
 		
+		let A = this.origin.A;
+		let B = this.origin.B;
+
+		let changeLevelX = this.changeLevel.x;
+		let changeLevelZ = this.changeLevel.z;
+		let yaneSizeRatioX = this.yaneSizeRatio.x;
+		let yaneSizeRatioZ = this.yaneSizeRatio.z;
+
+		if (this.PARAMS.hiraTsumaReverse) {
+
+			const vertices = new ModelingSupporter().getCornerPoints(A, B);
+
+			this.newOrigin = vertices[1].clone();
+			console.log(this.newOrigin)
+
+			A = vertices[1].sub(this.newOrigin).applyAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
+			B = vertices[3].sub(this.newOrigin).applyAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
+
+			changeLevelX = -this.changeLevel.z;
+			changeLevelZ = -this.changeLevel.x;
+			yaneSizeRatioX = this.yaneSizeRatio.z;
+			yaneSizeRatioZ = this.yaneSizeRatio.x;
+
+		}
+
 		return {
 			A: new THREE.Vector3(
-				this.origin.A.x + this.changeLevel.x * this.yaneSizeRatio.x,
-				this.origin.A.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
-				this.origin.A.z + this.changeLevel.z * this.yaneSizeRatio.z,
+				A.x + changeLevelX * yaneSizeRatioX,
+				A.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
+				A.z + changeLevelZ * yaneSizeRatioZ,
 			),
 			
 			B: new THREE.Vector3(
-				this.origin.B.x - this.changeLevel.x * this.yaneSizeRatio.x,
-				this.origin.B.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
-				this.origin.B.z - this.changeLevel.z * this.yaneSizeRatio.z,
+				B.x - changeLevelX * yaneSizeRatioX,
+				B.y + this.changeLevel.y * 5 / 6 * this.yaneLowerPosition,
+				B.z - changeLevelZ * yaneSizeRatioZ,
 			),
 				
 			C: new THREE.Vector3(
-				this.origin.A.x,
-				this.origin.A.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
-				this.origin.A.z,
+				A.x,
+				A.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
+				A.z,
 			),
 					
 			D: new THREE.Vector3(
-				this.origin.B.x,
-				this.origin.B.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
-				this.origin.B.z,
+				B.x,
+				B.y + this.changeLevel.y * (5/6 * this.yaneUpperPosition + 2/6),
+				B.z,
 			)
 			
 		}
 
 	}
-	
-	createTopLine(parameters = {}) {
 
-		if (!parameters.type) parameters.type = "line"
-		
-		this.createTop(parameters)
-		
-		return this;
-		
-	}
-	
-	createTopPolygon(parameters = {}) {
-		
-		if (!parameters.type) parameters.type = "polygon"
-		if (!parameters.polygonType) parameters.polygonType = "whole"
-
-		this.createTop(parameters)
-
-		return this;
-
-	}
-
-    createTop(parameters = {}) {
+	createTop(parameters = {}) {
 
 		this.topYaneVertices = this.calcTopYaneVertices();
 		
@@ -399,7 +194,19 @@ export class Yane extends THREE.Group {
 			
 		).generate(parameters);
 		
-		this.top.position.set(this.topYaneVertices.A.x, this.topYaneVertices.A.y, this.topYaneVertices.A.z);
+		this.top.position.set(0, 0, 0);
+
+		if (this.PARAMS.hiraTsumaReverse) {
+
+			this.top.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 2)
+			this.top.position.add(this.newOrigin)
+			this.top.position.add(this.topYaneVertices.A.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2))
+		
+		} else {
+		
+			this.top.position.add(this.topYaneVertices.A);
+
+		}
 
 		if (parameters.type == "line") {
 	
@@ -597,7 +404,7 @@ export class SurroundingYane extends THREE.Group {
 		
 	}
 
-    getYaneComponents() {
+	getYaneComponents() {
 
 		return this.children.filter(
 
@@ -607,7 +414,7 @@ export class SurroundingYane extends THREE.Group {
 
 	}
 
-    getYaneComponent(direction) {
+	getYaneComponent(direction) {
 
 		const yaneComponents =  this.getYaneComponents().filter(
 
@@ -623,7 +430,7 @@ export class SurroundingYane extends THREE.Group {
 
 		return null;
 
-    }
+	}
 
 	getAllBodyMesh() {
 
@@ -643,12 +450,12 @@ export class SurroundingYane extends THREE.Group {
 		return this.parent;
 	}
 
-    createSimpleChidoriHafu(parameters) {
+	createSimpleChidoriHafu(parameters) {
 
 		const dir = parameters.hafu.dir;
 		const symmetricDir = (dir + 2) % 4;
 
-        this.getYaneComponent(dir).createSimpleChidoriHafu(parameters);
+		this.getYaneComponent(dir).createSimpleChidoriHafu(parameters);
 
 		if (parameters.hafu.symmetric) {
 
@@ -669,6 +476,7 @@ export class SurroundingYane extends THREE.Group {
 	}
 
 	setHafuColor(parameters) {
+
 		this.getYaneComponents().forEach(function( yaneComponent ) {
 
 			yaneComponent.setHafuColor(parameters);

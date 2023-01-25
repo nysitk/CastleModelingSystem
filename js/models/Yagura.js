@@ -389,7 +389,7 @@ class EachLayer extends THREE.Group {
 		
 		if (isTop) {
 			
-			this.yane.createTopLine(parameters);
+			this.yane.createTop(parameters);
 			
 		} else {
 
@@ -420,7 +420,7 @@ class EachLayer extends THREE.Group {
         
 		if (top) {
 			
-			this.yane.createTopPolygon(parameters);
+			this.yane.createTop(parameters);
 			
 		} else {
 
@@ -526,9 +526,7 @@ class Room extends THREE.Group {
 
     createLine() {
 
-        const material = new THREE.LineBasicMaterial({color: 0xFD7E00})
-
-        const geometry = new ModelingSupporter().generateBoxLineGeometry(
+        const points = new ModelingSupporter().generateBoxLinePoints(
 
             this.origin.A,
             this.origin.B,
@@ -536,8 +534,9 @@ class Room extends THREE.Group {
             this.origin.D
 
         );
-
-        const mesh = new THREE.Line(geometry, material);
+		
+		const material = new MeshLineMaterial({color: 0x37A76F, lineWidth: 1})
+		const mesh = new ModelingSupporter().generateLineMesh(points, material);
 
         this.line.add(mesh);
 
@@ -871,6 +870,8 @@ class Wall extends THREE.Group {
 	}
 
 	setTexture(parameters) {
+
+		this.removeAllTexture();
 
 		if (!parameters.modelPreset) parameters.modelPreset = {};
 		if (!parameters.modelPreset.wallTexture) parameters.modelPreset.wallTexture = "window";

@@ -224,16 +224,16 @@ export class PlaneEstimation {
 
         }
 
-
-        const P3 = v[2] ? v[2] : {"x":626, "y":461};
-        const P4 = v[3] ? v[3] : {"x":466, "y":127};
+		console.log(this.renderSize.width)
+        const P3 = v[2] ? v[2] : {"x":this.renderSize.width * 2 / 3, "y":this.renderSize.height / 3};
+        const P4 = v[3] ? v[3] : {"x":this.renderSize.width * 5 / 8, "y":this.renderSize.height / 10};
         
         this.planeControl.addDraggablePoint(new THREE.Vector2(P3["x"], P3["y"]), 2);
         this.planeControl.addDraggablePoint(new THREE.Vector2(P4["x"], P4["y"]), 3);
 
         
         this.planeControl.clickCount2DFix = 4;
-        this.planeControl.modelingManager.createAllFrom2D(4);
+        this.planeControl.modelingManager.createAllFrom2D(3);
         this.planeControl.enableConvertTo3DMode();
 
 

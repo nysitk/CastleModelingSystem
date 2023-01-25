@@ -372,10 +372,10 @@ class CastleEditTab {
 
         this.castleOutliner.innerHTML = ""
 
-        const model = this.modelingManager.castle.model;
+        const castle = this.modelingManager.castle;
 
-        if (model.ishigaki) this.addCastleOutlineOption("stonewall", "Stone Wall")
-        if (model.yagura) this.addCastleOutlineOption("yagura", "Turret")
+        if (castle.ishigaki) this.addCastleOutlineOption("stonewall", "Stone Wall")
+        if (castle.yagura) this.addCastleOutlineOption("yagura", "Turret")
 
     }
 

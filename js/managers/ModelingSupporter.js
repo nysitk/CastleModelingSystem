@@ -4,22 +4,22 @@ import * as THREE from '/build/three.module.js';
  * モデル生成補助
  */
 export class ModelingSupporter {
-    generateBoxLineGeometry(A, B, C, D) {
-        var geometry = new THREE.Geometry();
+    generateBoxLinePoints(A, B, C, D) {
+		const points = [];
     
-        geometry.vertices.push(new THREE.Vector3(A.x, A.y, A.z));
-        geometry.vertices.push(new THREE.Vector3(C.x, C.y, C.z));
-        geometry.vertices.push(new THREE.Vector3(A.x, A.y, B.z));
-        geometry.vertices.push(new THREE.Vector3(C.x, C.y, D.z));
-        geometry.vertices.push(new THREE.Vector3(B.x, B.y, B.z));
-        geometry.vertices.push(new THREE.Vector3(D.x, D.y, D.z));
-        geometry.vertices.push(new THREE.Vector3(B.x, B.y, A.z));
-        geometry.vertices.push(new THREE.Vector3(D.x, D.y, C.z));
-        geometry.vertices.push(new THREE.Vector3(C.x, C.y, C.z));
-        geometry.vertices.push(new THREE.Vector3(D.x, C.y, C.z));
-        geometry.vertices.push(new THREE.Vector3(D.x, C.y, D.z));
-        geometry.vertices.push(new THREE.Vector3(C.x, C.y, D.z));
-        geometry.vertices.push(new THREE.Vector3(C.x, C.y, C.z));
+        points.push(new THREE.Vector3(A.x, A.y, A.z));
+        points.push(new THREE.Vector3(C.x, C.y, C.z));
+        points.push(new THREE.Vector3(A.x, A.y, B.z));
+        points.push(new THREE.Vector3(C.x, C.y, D.z));
+        points.push(new THREE.Vector3(B.x, B.y, B.z));
+        points.push(new THREE.Vector3(D.x, D.y, D.z));
+        points.push(new THREE.Vector3(B.x, B.y, A.z));
+        points.push(new THREE.Vector3(D.x, D.y, C.z));
+        points.push(new THREE.Vector3(C.x, C.y, C.z));
+        points.push(new THREE.Vector3(D.x, C.y, C.z));
+        points.push(new THREE.Vector3(D.x, C.y, D.z));
+        points.push(new THREE.Vector3(C.x, C.y, D.z));
+        points.push(new THREE.Vector3(C.x, C.y, C.z));
     
         // for (let i=0; i<5; i++) {
         // 	geometry.vertices = line_vertices[i];
@@ -27,7 +27,7 @@ export class ModelingSupporter {
         // 	geometry.elementNeedUpdate = true;
         // 	geometry.computeFaceNormals();
         // }
-        return geometry;
+        return points;
     }
 
     generateSimpleBoxPolygonGeometry(width, depth, height) {
@@ -166,5 +166,16 @@ export class ModelingSupporter {
         ]
 
     }
+
+	generateLineMesh(points, material = new MeshLineMaterial({color: 0xFD7E00, lineWidth: 1})) {
+
+		const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+		const line = new MeshLine();
+		line.setGeometry(geometry)
+		
+		return new THREE.Mesh(line, material);
+
+	}
 
 }

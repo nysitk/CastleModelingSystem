@@ -10,791 +10,780 @@ import { ModelPresets } from '../models/ModelPresets.js'
  */
  export class ModelingManager {
 
-    constructor(sceneManager) {
+	constructor(sceneManager) {
 
-        this.sceneManager = sceneManager;
+		this.sceneManager = sceneManager;
 
-        this.clickPosition = new Array(4);
-        this.click2DPosition = new Array(4);
+		this.clickPosition = new Array(4);
+		this.click2DPosition = new Array(4);
 
-        this.referencePoint = {
+		this.referencePoint = {
 
-            ishigakiBottom: new Array(2),
-            ishigakiTop: new Array(2),
-            yaguraTop: new Array(2)
+			ishigakiBottom: new Array(2),
+			ishigakiTop: new Array(2),
+			yaguraTop: new Array(2)
 
-        };
+		};
 
-        this.castle = new CastleModelManager(this);
+		this.castle = new CastleModelManager(this);
 
 
-        return this;
+		return this;
 
-    }
-    
-    calcPointOnPlane(mousePos, plane) {
+	}
+	
+	calcPointOnPlane(mousePos, plane) {
 
-        if (!plane.isPlane) {
+		if (!plane.isPlane) {
 
-            console.error("Plane is not plane.");
+			console.error("Plane is not plane.");
 
-            return;
+			return;
 
-        }
-        
-        const raycaster = new THREE.Raycaster();
-        
-        const rendererSize = this.sceneManager.renderer.getSize(new THREE.Vector2());
+		}
+		
+		const raycaster = new THREE.Raycaster();
+		
+		const rendererSize = this.sceneManager.renderer.getSize(new THREE.Vector2());
 
-        const pointer = new THREE.Vector2(
-            ( mousePos.x / rendererSize.x ) * 2 - 1,
-            -( mousePos.y / rendererSize.y ) * 2 + 1
-        );        
-            
-        raycaster.setFromCamera( pointer, this.sceneManager.currentCamera );
+		const pointer = new THREE.Vector2(
+			( mousePos.x / rendererSize.x ) * 2 - 1,
+			-( mousePos.y / rendererSize.y ) * 2 + 1
+		);        
+			
+		raycaster.setFromCamera( pointer, this.sceneManager.currentCamera );
 
-        let intersect = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
-            
-        if (intersect === null) {
-            
-            console.error("There are no intersections");
+		let intersect = raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+			
+		if (intersect === null) {
+			
+			console.error("There are no intersections");
 
-            intersect = new THREE.Vector3(0, 0, 0);
+			intersect = new THREE.Vector3(0, 0, 0);
 
-        }
-        
-        
-        return intersect;
-        
-    }
+		}
+		
+		
+		return intersect;
+		
+	}
 
-    calcPointOnGround(mousePos) {
+	calcPointOnGround(mousePos) {
 
-        const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+		const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
 
-        return this.calcPointOnPlane(mousePos, plane);
+		return this.calcPointOnPlane(mousePos, plane);
 
-    }
+	}
 
-    calcPointOnNormalPlane(mousePos, P1 = this.clickPosition[0], P2 = this.clickPosition[1]) {
-    
-        if (!P1.isVector3 || !P2.isVector3) {
+	calcPointOnNormalPlane(mousePos, P1 = this.clickPosition[0], P2 = this.clickPosition[1]) {
+	
+		if (!P1.isVector3 || !P2.isVector3) {
 
-            console.error("P1 or P2 is not Vector3.");
-            return;
+			console.error("P1 or P2 is not Vector3.");
+			return;
 
-        }
+		}
 
-        // 2点間方向ベクトル
-        const vecP1P2 = new THREE.Vector3().subVectors(P2, P1);
-        const vecP1O = new THREE.Vector3().subVectors(new THREE.Vector3(0,0,0), P1);
-        
-        // 2点間方向ベクトルの法線ベクトル
-        const normalVecP1P2 = new THREE.Vector3(-1 * vecP1P2.z, 0, vecP1P2.x).normalize();
-        
-        // 2点間を結ぶ直線と原点との距離
-        const constant = (-(new THREE.Vector3().crossVectors(vecP1P2, vecP1O).y) / vecP1P2.length());
+		// 2点間方向ベクトル
+		const vecP1P2 = new THREE.Vector3().subVectors(P2, P1);
+		const vecP1O = new THREE.Vector3().subVectors(new THREE.Vector3(0,0,0), P1);
+		
+		// 2点間方向ベクトルの法線ベクトル
+		const normalVecP1P2 = new THREE.Vector3(-1 * vecP1P2.z, 0, vecP1P2.x).normalize();
+		
+		// 2点間を結ぶ直線と原点との距離
+		const constant = (-(new THREE.Vector3().crossVectors(vecP1P2, vecP1O).y) / vecP1P2.length());
 
-        // 2点を含み、地平面に垂直な平面
-        const plane = new THREE.Plane(normalVecP1P2, constant);
+		// 2点を含み、地平面に垂直な平面
+		const plane = new THREE.Plane(normalVecP1P2, constant);
 
 
-        return this.calcPointOnPlane(mousePos, plane);
+		return this.calcPointOnPlane(mousePos, plane);
 
-    }
-    
-    /**
-     * クリックしたときに、基準点（P1～P4）を保持する
-     */ 
-    determineClickPosition(mousePos, clickCount) {
-        
-        if (clickCount < 2) {
+	}
+	
+	/**
+	 * クリックしたときに、基準点（P1～P4）を保持する
+	 */ 
+	determineClickPosition(mousePos, clickCount) {
+		
+		if (clickCount < 2) {
 
-            // 1,2回目のクリックは、地面上の点
-            this.clickPosition[clickCount] = this.calcPointOnGround(mousePos);
+			// 1,2回目のクリックは、地面上の点
+			this.clickPosition[clickCount] = this.calcPointOnGround(mousePos);
 
-        } else if (clickCount < 4) {
+		} else if (clickCount < 4) {
 
-            // 3,4回目のクリックは、1,2回目の点を通る、地面に垂直な平面上の点
-            this.clickPosition[clickCount] = this.calcPointOnNormalPlane(mousePos);
+			// 3,4回目のクリックは、1,2回目の点を通る、地面に垂直な平面上の点
+			this.clickPosition[clickCount] = this.calcPointOnNormalPlane(mousePos);
 
-        } else {
+		} else {
 
-            return;
+			return;
 
-        }
+		}
 
-        this.determineReferencePoint(clickCount);
+		this.determineReferencePoint(clickCount);
 
-    }
+	}
 
-    /**
-     * 上側の平面が下側の平面より小さくなるように調整
-     * @param {THREE.Vector3} newPos - マウス位置から算出された点の位置
-     * @param {Array} bottom - 下側の平面の対角の2点が入った配列
-     * @returns {THREE.Vector3} 調整された点
-     */
-    adjustUpperPoint(newPos, bottom) {
+	/**
+	 * 上側の平面が下側の平面より小さくなるように調整
+	 * @param {THREE.Vector3} newPos - マウス位置から算出された点の位置
+	 * @param {Array} bottom - 下側の平面の対角の2点が入った配列
+	 * @returns {THREE.Vector3} 調整された点
+	 */
+	adjustUpperPoint(newPos, bottom) {
 
-        newPos = newPos.clone();
+		newPos = newPos.clone();
 
-        bottom[0] = bottom[0].clone();
-        bottom[1] = bottom[1].clone();
+		bottom[0] = bottom[0].clone();
+		bottom[1] = bottom[1].clone();
 
 
-        if (newPos.x > bottom[1].x) newPos.x = bottom[1].x;
+		if (newPos.x > bottom[1].x) newPos.x = bottom[1].x;
 
 
-        if (newPos.x < (bottom[0].x + bottom[1].x) / 2) {
+		if (newPos.x < (bottom[0].x + bottom[1].x) / 2) {
 
-            newPos.x = (bottom[0].x + bottom[1].x) / 2;
+			newPos.x = (bottom[0].x + bottom[1].x) / 2;
 
-        }
+		}
 
 
-        if (newPos.y < 0) newPos.y = 0;
+		if (newPos.y < 0) newPos.y = 0;
 
 
-        if (newPos.z < bottom[1].z) newPos.z = bottom[1].z;
+		if (newPos.z < bottom[1].z) newPos.z = bottom[1].z;
 
 
-        if (newPos.z > (bottom[0].z + bottom[1].z) / 2) {
+		if (newPos.z > (bottom[0].z + bottom[1].z) / 2) {
 
-            newPos.z = (bottom[0].z + bottom[1].z) / 2;
+			newPos.z = (bottom[0].z + bottom[1].z) / 2;
 
-        }
+		}
 
 
-        return newPos;
+		return newPos;
 
-    }
+	}
 
-    /**
-     * 平面の対角の頂点を算出
-     * @param {Array} top - 上側の平面の既に決定している点が1つ入った配列
-     * @param {Array} bottom - 下側の平面の対角の2点が入った配列
-     * @returns {THREE.Vector3} 調整された点
-     */
-    calcDiagonalPoint(top, bottom) {
+	/**
+	 * 平面の対角の頂点を算出
+	 * @param {Array} top - 上側の平面の既に決定している点が1つ入った配列
+	 * @param {Array} bottom - 下側の平面の対角の2点が入った配列
+	 * @returns {THREE.Vector3} 調整された点
+	 */
+	calcDiagonalPoint(top, bottom) {
 
-        return new THREE.Vector3(
+		return new THREE.Vector3(
 
-            bottom[1].x - (top[1].x - bottom[0].x),
-            top[1].y,
-            bottom[1].z - (top[1].z - bottom[0].z)
+			bottom[1].x - (top[1].x - bottom[0].x),
+			top[1].y,
+			bottom[1].z - (top[1].z - bottom[0].z)
 
-        );
+		);
 
-    }
+	}
 
-    /**
-     * モデル生成で参照する点を保存
-     */
-    determineReferencePoint(clickCount) {
+	/**
+	 * モデル生成で参照する点を保存
+	 */
+	determineReferencePoint(clickCount) {
 
-        const p = this.referencePoint;
+		const p = this.referencePoint;
 
-        switch(clickCount) {
+		switch(clickCount) {
 
-            case 0:
+			case 0:
 
-                p.ishigakiBottom[0] = this.clickPosition[0].clone();
+				p.ishigakiBottom[0] = this.clickPosition[0].clone();
 
-                break;
+				break;
 
-            case 1:
+			case 1:
 
-                p.ishigakiBottom[1] = this.clickPosition[1].clone();
+				p.ishigakiBottom[1] = this.clickPosition[1].clone();
 
-                break;
+				break;
 
-            case 2:
+			case 2:
 
-                // p.ishigakiTop[1] = this.adjustUpperPoint(this.clickPosition[2], p.ishigakiBottom);
-                p.ishigakiTop[1] = this.clickPosition[2];
-                p.ishigakiTop[0] = this.calcDiagonalPoint(p.ishigakiTop, p.ishigakiBottom);
+				// p.ishigakiTop[1] = this.adjustUpperPoint(this.clickPosition[2], p.ishigakiBottom);
+				p.ishigakiTop[1] = this.clickPosition[2];
+				p.ishigakiTop[0] = this.calcDiagonalPoint(p.ishigakiTop, p.ishigakiBottom);
 
-                break;
+				break;
 
-            case 3:
+			case 3:
 
-                // p.yaguraTop[1] = this.adjustUpperPoint(this.clickPosition[3], p.ishigakiTop);
-                p.yaguraTop[1] = this.clickPosition[3];
-                p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
+				// p.yaguraTop[1] = this.adjustUpperPoint(this.clickPosition[3], p.ishigakiTop);
+				p.yaguraTop[1] = this.clickPosition[3];
+				p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
 
-                break;
+				break;
 
-        }
+		}
 
-    }
+	}
 
-    updateObject(obj) {
+	updateObject(obj) {
 
-        obj.geometry.verticesNeedUpdate = true;
-        obj.geometry.elementNeedUpdate = true;
-        obj.geometry.computeFaceNormals();
+		obj.geometry.verticesNeedUpdate = true;
+		obj.geometry.elementNeedUpdate = true;
+		obj.geometry.computeFaceNormals();
 
-    }
+	}
 
-    createBottomRectangleLine() {
+	createBottomRectangleLine() {
 
-        if (!this.bottomRectangleLine) {
+		if (this.bottomRectangleLine) {
 
-            this.bottomRectangleLine = new THREE.Line(new THREE.Geometry(), new THREE.LineBasicMaterial({color: 0xFD7E00}));
-            this.sceneManager.scene.add(this.bottomRectangleLine)
+			this.sceneManager.scene.remove(this.bottomRectangleLine)
 
-        }
+		}
+		
+		const A = this.referencePoint.ishigakiBottom[0].clone();
+		const B = this.referencePoint.ishigakiBottom[1].clone();
+		
+		const adjustVertices = this.adjustDiagonalDirection(A, B);
+		
+		const points = new ModelingSupporter().generateRectangleLine(adjustVertices.A, adjustVertices.B);
+		
+		this.bottomRectangleLine = new ModelingSupporter().generateLineMesh(points);
 
-        const A = this.referencePoint.ishigakiBottom[0].clone();
-        const B = this.referencePoint.ishigakiBottom[1].clone();
+		this.bottomRectangleLine.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
+		this.bottomRectangleLine.position.set(A.x, A.y, A.z)
 
-        const adjustVertices = this.adjustDiagonalDirection(A, B);
+		this.sceneManager.scene.add(this.bottomRectangleLine)
 
-        this.bottomRectangleLine.geometry.vertices = new ModelingSupporter().generateRectangleLine(adjustVertices.A, adjustVertices.B);
-        
-        this.updateObject(this.bottomRectangleLine);
+	}
 
-        this.bottomRectangleLine.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
-        this.bottomRectangleLine.position.set(A.x, A.y, A.z)
+	// どの向きでP1～P4を指定しても正常にモデル生成できるように調整
+	adjustDiagonalDirection(A, B, top) {
 
-    }
+		A = A.clone();
+		B = B.clone();
+		
+		B.sub(A);
 
-    adjustDiagonalDirection(A, B, top) {
+		let angle = 0;
+		
+		if (B.x < 0 && B.z < 0) {
 
-        A = A.clone();
-        B = B.clone();
-        
-        B.sub(A);
+			angle = Math.PI * 3 / 2;
 
-        let angle = 0;
-        
-        if (B.x < 0 && B.z < 0) {
+		} else if (B.x < 0 && B.z >= 0) {
 
-            angle = Math.PI * 3 / 2;
+			angle = Math.PI * 2 / 2;
 
-        } else if (B.x < 0 && B.z >= 0) {
+		} else if (B.x >= 0 && B.z >= 0) {
 
-            angle = Math.PI * 2 / 2;
+			angle = Math.PI * 1 / 2;
 
-        } else if (B.x >= 0 && B.z >= 0) {
+		}
 
-            angle = Math.PI * 1 / 2;
+		B.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
 
-        }
 
-        B.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+		let P3 = new THREE.Vector3(0, 0, 0);
 
+		if (top) {
 
-        let P3 = new THREE.Vector3(0, 0, 0);
+			top = top.clone()
 
-        if (top) {
+			P3 = this.adjustUpperPoint(
+			
+				top.sub(A).applyAxisAngle(new THREE.Vector3(0,1,0), angle),
+				[new THREE.Vector3(0,0,0), B]
+			
+			)
 
-            top = top.clone()
+		}
 
-            P3 = this.adjustUpperPoint(
-            
-                top.sub(A).applyAxisAngle(new THREE.Vector3(0,1,0), angle),
-                [new THREE.Vector3(0,0,0), B]
-            
-            )
+		return {
 
-        }
+			A: new THREE.Vector3(0,0,0),
+			B: B,
+			angle: angle,
+			top: P3
 
-        return {
+		}
 
-            A: new THREE.Vector3(0,0,0),
-            B: B,
-            angle: angle,
-            top: P3
 
-        }
+	}
 
+	removeBottomRectangleLine() {
 
-    }
-    
+		if (this.bottomRectangleLine) {
 
-    // createFloorLine() {
-    //     this.bottomRectangleLine = new THREE.Line(new THREE.Geometry(), new THREE.LineBasicMaterial({color: 0xFD7E00}));
-    //     const A = this.referencePoint.ishigakiBottom[0].clone();
-    //     const B = this.referencePoint.ishigakiBottom[1].clone();
+			this.sceneManager.scene.remove(this.bottomRectangleLine)
 
-    //     this.bottomRectangleLine.geometry.vertices = new ModelingSupporter().generateRectangleLine(A, B);
-    //     this.updateObject(this.bottomRectangleLine)
+		}   
 
-    //     this.sceneManager.scene.add(this.bottomRectangleLine)
-    // }
+	}
 
-    removeBottomRectangleLine() {
+	createIshigaki(parameters) {
 
-        if (this.bottomRectangleLine) {
+		let ishigakiTopPoint = this.referencePoint.ishigakiTop[1];
 
-            this.sceneManager.scene.remove(this.bottomRectangleLine)
+		if (!ishigakiTopPoint.isVector3) {
+			
+			console.error("The coordinate of top of ishigaki is not determined.");
 
-        }   
+			return;
 
-    }
+		}
 
-    createIshigaki(parameters) {
 
-        let ishigakiTopPoint = this.referencePoint.ishigakiTop[1];
+		this.createBottomRectangleLine();
 
-        if (!ishigakiTopPoint.isVector3) {
-            
-            console.error("The coordinate of top of ishigaki is not determined.");
+		const A = this.referencePoint.ishigakiBottom[0].clone();
+		const B = this.referencePoint.ishigakiBottom[1].clone();
 
-            return;
 
-        }
+		// 回転した状態の点を指定しても、正しくモデルが生成できるように調整
+		const adjustVertices = this.adjustDiagonalDirection(A, B, ishigakiTopPoint)
 
+		
+		this.castle.createIshigaki(
+			
+			adjustVertices.A,
+			adjustVertices.B,
+			adjustVertices.top,
+			parameters
+			
+		);
 
-        this.createBottomRectangleLine();
+		this.castle.ishigaki.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
+		this.castle.ishigaki.position.set(A.x, A.y, A.z)
+	
+	}
 
-        const A = this.referencePoint.ishigakiBottom[0].clone();
-        const B = this.referencePoint.ishigakiBottom[1].clone();
+	removeIshigaki() {
 
+		this.castle.removeIshigaki();
 
-        // 回転した状態の点を指定しても、正しくモデルが生成できるように調整
-        const adjustVertices = this.adjustDiagonalDirection(A, B, ishigakiTopPoint)
+	}
 
-        
-        this.castle.createIshigaki(
-            
-            adjustVertices.A,
-            adjustVertices.B,
-            adjustVertices.top,
-            parameters
-            
-        );
+	createYagura(parameters) {
 
-        this.castle.model.ishigaki.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
-        this.castle.model.ishigaki.position.set(A.x, A.y, A.z)
-    
-    }
+		let yaguraTopPoint = this.referencePoint.yaguraTop[1];
 
-    removeIshigaki() {
+		if (!yaguraTopPoint.isVector3) {
 
-        this.castle.removeIshigaki();
+			console.error("The coordinate of top of yagura is not determined.");
 
-    }
+			return;
 
-    createYagura(parameters) {
+		}
 
-        let yaguraTopPoint = this.referencePoint.yaguraTop[1];
 
-        if (!yaguraTopPoint.isVector3) {
+		this.removeYagura();
 
-            console.error("The coordinate of top of yagura is not determined.");
+		const A = this.referencePoint.ishigakiTop[0].clone();
+		const B = this.referencePoint.ishigakiTop[1].clone();
 
-            return;
+		const adjustVertices = this.adjustDiagonalDirection(A, B, yaguraTopPoint);
+		
+		this.castle.createYagura(
+			
+			adjustVertices.A,
+			adjustVertices.B,
+			adjustVertices.top,
+			parameters
+			
+		);
+		this.displayYaneTopInfo()
 
-        }
+		this.castle.yagura.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
+		this.castle.yagura.position.set(A.x, A.y, A.z)
+		
+	}
 
+	removeYagura() {
 
-        this.removeYagura();
+		this.castle.removeYagura();
 
-        const A = this.referencePoint.ishigakiTop[0].clone();
-        const B = this.referencePoint.ishigakiTop[1].clone();
+	}
 
-        const adjustVertices = this.adjustDiagonalDirection(A, B, yaguraTopPoint);
-        
-        this.castle.createYagura(
-            
-            adjustVertices.A,
-            adjustVertices.B,
-            adjustVertices.top,
-            parameters
-            
-        );
-        this.displayYaneTopInfo()
+	getVerticesInfo(parameters = {}) {
 
-        this.castle.model.yagura.setRotationFromAxisAngle(new THREE.Vector3(0, 1, 0), -adjustVertices.angle)
-        this.castle.model.yagura.position.set(A.x, A.y, A.z)
-        
+		switch (parameters.direction) {
+			case "A":
+				parameters.direction = 0
+				break;
+			case "B":
+				parameters.direction = 1
+				break;
+			case "C":
+				parameters.direction = 2
+				break;
+			case "D":
+				parameters.direction = 3
+				break;
+			default:
+				break;
+		}
 
-    }
+		const ishigaki = this.castle.ishigaki;
+		const yagura = this.castle.yagura;
 
-    removeYagura() {
+		let world = new THREE.Vector3();
 
-        this.castle.removeYagura();
 
-    }
+		if (parameters["e"] == "ishigaki") {
 
-    getVerticesInfo(parameters = {}) {
+			const point = ishigaki.getVertex(parameters);
+	
+			if (point) world = point.clone().add(ishigaki.position);
+			
+		}
 
-        switch (parameters.direction) {
-            case "A":
-                parameters.direction = 0
-                break;
-            case "B":
-                parameters.direction = 1
-                break;
-            case "C":
-                parameters.direction = 2
-                break;
-            case "D":
-                parameters.direction = 3
-                break;
-            default:
-                break;
-        }
+		if (parameters["e"] == "yagura") {
 
-        const ishigaki = this.castle.model.ishigaki;
-        const yagura = this.castle.model.yagura;
+			const point = yagura.getYaguraVertex(parameters);
 
-        let world = new THREE.Vector3();
+			if (point) world = point.clone().add(yagura.position);
 
+		}
 
-        if (parameters["e"] == "ishigaki") {
+		if (parameters["e"] == "yane") {
 
-            const point = ishigaki.getVertex(parameters);
-    
-            if (point) world = point.clone().add(ishigaki.position);
-            
-        }
+			const point = yagura.getYaneVertex(parameters);
 
-        if (parameters["e"] == "yagura") {
+			if (point) world = point.clone().add(yagura.position);
 
-            const point = yagura.getYaguraVertex(parameters);
+		}
+		
+		const screen = this.sceneManager.worldToScreenCoordinate(world, this.sceneManager.currentCamera);
 
-            if (point) world = point.clone().add(yagura.position);
+		
+		return {
 
-        }
+			world: world,
+			screen: screen
+		
+		}
 
-        if (parameters["e"] == "yane") {
+	}
 
-            const point = yagura.getYaneVertex(parameters);
+	displayYaguraTopInfo(yagura = this.castle.yagura) {
+		
+		const topVertices = yagura.getYaguraVertices(this.castle.PARAMS.yagura.steps - 1)
 
-            if (point) world = point.clone().add(yagura.position);
+		const point = topVertices.upper[1].clone().add(yagura.position);
+		const screen = this.sceneManager.worldToScreenCoordinate(point, this.sceneManager.currentCamera);
 
-        }
-        
-        const screen = this.sceneManager.worldToScreenCoordinate(world, this.sceneManager.currentCamera);
+		
+		return {
 
-        
-        return {
+			world: point,
+			screen: screen
 
-            world: world,
-            screen: screen
-        
-        }
+		}
 
-    }
+	}
 
-    displayYaguraTopInfo(yagura = this.castle.model.yagura) {
-        
-        const topVertices = yagura.getYaguraVertices(this.castle.PARAMS.yagura.steps - 1)
+	displayYaneTopInfo(yagura = this.castle.yagura) {
+		
 
-        const point = topVertices.upper[1].clone().add(yagura.position);
-        const screen = this.sceneManager.worldToScreenCoordinate(point, this.sceneManager.currentCamera);
+	}
 
-        
-        return {
+	selectYaneComponent(mousePos) {
 
-            world: point,
-            screen: screen
+		const raycaster = new THREE.Raycaster()
 
-        }
+		raycaster.setFromCamera(mousePos, this.sceneManager.currentCamera);
 
-    }
+		const allYaneBodyMesh = this.castle.getAllYaneBodyMesh();
 
-    displayYaneTopInfo(yagura = this.castle.model.yagura) {
-        
+		const intersects = raycaster.intersectObjects(allYaneBodyMesh);
 
-    }
 
-    selectYaneComponent(mousePos) {
+		allYaneBodyMesh.map((mesh) => {
 
-        const raycaster = new THREE.Raycaster()
+			if (intersects.length > 0 && mesh === intersects[0].object) {
 
-        raycaster.setFromCamera(mousePos, this.sceneManager.currentCamera);
+				mesh.material.color.setHex(0x774444);
 
-        const allYaneBodyMesh = this.castle.getAllYaneBodyMesh();
+			} else {
 
-        const intersects = raycaster.intersectObjects(allYaneBodyMesh);
+				mesh.material.color.setHex(0x222227);
 
+			}
 
-        allYaneBodyMesh.map((mesh) => {
+		})
 
-            if (intersects.length > 0 && mesh === intersects[0].object) {
 
-                mesh.material.color.setHex(0x774444);
+		if (intersects.length > 0) {
 
-            } else {
+			$('html,body').css('cursor', 'pointer');
 
-                mesh.material.color.setHex(0x222227);
+		} else {
 
-            }
+			$('html,body').css('cursor', 'default');
 
-        })
+		}
 
+	}
 
-        if (intersects.length > 0) {
+	determineYaneComponent(mousePos) {
 
-            $('html,body').css('cursor', 'pointer');
+		const raycaster = new THREE.Raycaster()
 
-        } else {
+		raycaster.setFromCamera(mousePos, this.sceneManager.currentCamera);
 
-            $('html,body').css('cursor', 'default');
+		const allYaneBodyMesh = this.castle.getAllYaneBodyMesh();
 
-        }
+		const intersects = raycaster.intersectObjects(allYaneBodyMesh);
+		
 
-    }
+		allYaneBodyMesh.map((mesh) => {
 
-    determineYaneComponent(mousePos) {
+			if (intersects.length > 0 && mesh === intersects[0].object) {
 
-        const raycaster = new THREE.Raycaster()
+				mesh.parent.createInitialChidoriHafu(this.sceneManager);
 
-        raycaster.setFromCamera(mousePos, this.sceneManager.currentCamera);
+			}
 
-        const allYaneBodyMesh = this.castle.getAllYaneBodyMesh();
+		})
 
-        const intersects = raycaster.intersectObjects(allYaneBodyMesh);
-        
+	}
 
-        allYaneBodyMesh.map((mesh) => {
+	createPresetModel(name = "osaka", parameters = {}) {
+		
+		parameters.name = name;
+		
+		const modelPreset = ModelPresets[name];
+		parameters.modelPreset = modelPreset;
 
-            if (intersects.length > 0 && mesh === intersects[0].object) {
+		const camera = this.sceneManager.cameraPersp;
 
-                mesh.parent.createInitialChidoriHafu(this.sceneManager);
 
-            }
+		// 画面(canvas)のサイズ変更
+		if (modelPreset.rendererSize) {
 
-        })
+			this.sceneManager.changeRendererSize(
 
-    }
+				modelPreset.rendererSize.x,
+				modelPreset.rendererSize.y
 
-    createPresetModel(name = "osaka", parameters = {}) {
-        
-        parameters.name = name;
-        
-        const modelPreset = ModelPresets[name];
-        parameters.modelPreset = modelPreset;
+			);
 
-        const camera = this.sceneManager.cameraPersp;
+			this.sceneManager.removeOnWindowResize();
 
+		} else {
 
-        // 画面(canvas)のサイズ変更
-        if (modelPreset.rendererSize) {
+			this.sceneManager.addOnWindowResize();
 
-            this.sceneManager.changeRendererSize(
+		}
 
-                modelPreset.rendererSize.x,
-                modelPreset.rendererSize.y
 
-            );
+		// カメラの視野角の変更
+		if (modelPreset.fov) camera.fov = modelPreset.fov
 
-            this.sceneManager.removeOnWindowResize();
 
-        } else {
+		// カメラ位置の変更
+		if (modelPreset.cameraPos) {
 
-            this.sceneManager.addOnWindowResize();
+			camera.position.set(
 
-        }
+				modelPreset.cameraPos.x,
+				modelPreset.cameraPos.y,
+				modelPreset.cameraPos.z
 
+			);
 
-        // カメラの視野角の変更
-        if (modelPreset.fov) camera.fov = modelPreset.fov
+		}
 
 
-        // カメラ位置の変更
-        if (modelPreset.cameraPos) {
+		// カメラの回転の変更
+		// if (modelPreset.cameraRot) {
 
-            camera.position.set(
+		//     camera.rotation.set(
 
-                modelPreset.cameraPos.x,
-                modelPreset.cameraPos.y,
-                modelPreset.cameraPos.z
+		//         modelPreset.cameraRot._x,
+		//         modelPreset.cameraRot._y,
+		//         modelPreset.cameraRot._z
 
-            );
+		//     );
+		// }
 
-        }
 
+		// orbitの注視点の変更
+		if (modelPreset.orbitTarget) {
 
-        // カメラの回転の変更
-        // if (modelPreset.cameraRot) {
+			this.sceneManager.orbit.target.set(
 
-        //     camera.rotation.set(
+				modelPreset.orbitTarget.x,
+				modelPreset.orbitTarget.y,
+				modelPreset.orbitTarget.z
 
-        //         modelPreset.cameraRot._x,
-        //         modelPreset.cameraRot._y,
-        //         modelPreset.cameraRot._z
+			);
 
-        //     );
-        // }
+		}
+		
 
+		this.sceneManager.orbit.update();
+		
+		camera.updateProjectionMatrix();
+		
 
-        // orbitの注視点の変更
-        if (modelPreset.orbitTarget) {
+		// 城モデルのクリック座標情報がない場合は終了
+		if (!modelPreset.clickPosition) {
 
-            this.sceneManager.orbit.target.set(
+			this.sceneManager.render();
 
-                modelPreset.orbitTarget.x,
-                modelPreset.orbitTarget.y,
-                modelPreset.orbitTarget.z
+			return false;
 
-            );
+		}
 
-        }
-        
 
-        this.sceneManager.orbit.update();
-        
-        camera.updateProjectionMatrix();
-        
+		//クリック座標情報を登録
+		modelPreset.clickPosition.forEach((e, i) => {
 
-        // 城モデルのクリック座標情報がない場合は終了
-        if (!modelPreset.clickPosition) {
+			this.clickPosition[i] = new THREE.Vector3(e.x, e.y, e.z);
 
-            this.sceneManager.render();
+		});
 
-            return false;
+		this.registerReferencePoint();
 
-        }
 
+		this.createAllModel(parameters);
 
-        //クリック座標情報を登録
-        modelPreset.clickPosition.forEach((e, i) => {
+		
+		return true;
 
-            this.clickPosition[i] = new THREE.Vector3(e.x, e.y, e.z);
+	}
 
-        });
+	registerReferencePoint() {
 
-        this.registerReferencePoint();
+		const p = this.referencePoint;
 
+		p.ishigakiBottom[0] = this.clickPosition[0].clone();
+		p.ishigakiBottom[1] = this.clickPosition[1].clone();
 
-        this.createAllModel(parameters);
+		p.ishigakiTop[1] = this.adjustUpperPoint(this.clickPosition[2], p.ishigakiBottom);
+		p.ishigakiTop[0] = this.calcDiagonalPoint(p.ishigakiTop, p.ishigakiBottom);
+		
+		p.yaguraTop[1] = this.adjustUpperPoint(this.clickPosition[3], p.ishigakiTop);
+		p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
 
-        
-        return true;
+	}
 
-    }
+	createAllModel(parameters = {}) {
 
-    registerReferencePoint() {
+		if (!parameters.type) parameters.type = "polygon"
+		if (!parameters.polygonType) parameters.polygonType = "whole";
 
-        const p = this.referencePoint;
 
-        p.ishigakiBottom[0] = this.clickPosition[0].clone();
-        p.ishigakiBottom[1] = this.clickPosition[1].clone();
+		if (parameters.modelPreset) {
 
-        p.ishigakiTop[1] = this.adjustUpperPoint(this.clickPosition[2], p.ishigakiBottom);
-        p.ishigakiTop[0] = this.calcDiagonalPoint(p.ishigakiTop, p.ishigakiBottom);
-        
-        p.yaguraTop[1] = this.adjustUpperPoint(this.clickPosition[3], p.ishigakiTop);
-        p.yaguraTop[0] = this.calcDiagonalPoint(p.yaguraTop, p.ishigakiTop)
+			this.castle.PARAMS.yagura.steps = parameters.modelPreset.yaguraSteps;
+		
+		}
 
-    }
+		this.createIshigaki(parameters);
+		this.createYagura(parameters);
+		
+		
+		if (parameters.modelPreset) {
 
-    createAllModel(parameters = {}) {
+			this.castle.createHafuPreset(parameters);
 
-        if (!parameters.type) parameters.type = "polygon"
-        if (!parameters.polygonType) parameters.polygonType = "whole";
+			if (parameters.type == "polygon" && parameters.polygonType == "whole") {
 
+				this.castle.setWallTexture(parameters);
+				this.castle.setYaneColor(parameters);
 
-        if (parameters.modelPreset) {
+			}
 
-            this.castle.PARAMS.yagura.steps = parameters.modelPreset.yaguraSteps;
-        
-        }
+		}
 
-        this.createIshigaki(parameters);
-        this.createYagura(parameters);
-        
-        
-        if (parameters.modelPreset) {
+	}
 
-            this.castle.createHafuPreset(parameters);
+	displayClickPosition() {
 
-            if (parameters.type == "polygon" && parameters.polygonType == "whole") {
+		console.log(this.clickPosition);
 
-                this.castle.setWallTexture(parameters);
-                this.castle.setYaneColor(parameters);
+	}
 
-            }
+	display2DClickPosition() {
 
-        }
+		const planeControlOutliner = document.getElementById("planeControlOutliner")
 
-    }
+		planeControlOutliner.innerHTML = ""
 
-    displayClickPosition() {
+		for (const point of this.click2DPosition) {
 
-        console.log(this.clickPosition);
+			if (!point?.isVector2) continue;
 
-    }
+			const option = document.createElement('div');
+			option.classList.add('option');
 
-    display2DClickPosition() {
+			option.innerHTML = point.x + ", " + point.y;
+			
+			planeControlOutliner.appendChild(option)
 
-        const planeControlOutliner = document.getElementById("planeControlOutliner")
+		}
 
-        planeControlOutliner.innerHTML = ""
+	}
 
-        for (const point of this.click2DPosition) {
+	set2DPosition(clickCount, mousePos) {
 
-            if (!point?.isVector2) continue;
+		this.click2DPosition[clickCount] = mousePos;
 
-            const option = document.createElement('div');
-            option.classList.add('option');
+		this.display2DClickPosition();
 
-            option.innerHTML = point.x + ", " + point.y;
-            
-            planeControlOutliner.appendChild(option)
+	}
 
-        }
+	createAllFrom2D(clickCount, parameters = {}) {
+		
+		if (!parameters.type) parameters.type = "line";
+		// if (!parameters.type) parameters.type = "polygon";
+		if (!parameters.polygonType) parameters.polygonType = "black";
+		if (!parameters.topFloor) parameters.topFloor = false;
+		
 
-    }
+		if (clickCount > 0) {
 
-    set2DPosition(clickCount, mousePos) {
+			this.clickPosition[0] = this.calcPointOnGround(this.click2DPosition[0]);
+			this.determineReferencePoint(0)
 
-        this.click2DPosition[clickCount] = mousePos;
+		}
 
-        this.display2DClickPosition();
 
-    }
+		if (clickCount > 1) {
 
-    createAllFrom2D(clickCount, parameters = {}) {
-        
-        if (!parameters.type) parameters.type = "line";
-        // if (!parameters.type) parameters.type = "polygon";
-        if (!parameters.polygonType) parameters.polygonType = "black";
-        if (!parameters.topFloor) parameters.topFloor = false;
-        
+			this.clickPosition[1] = this.calcPointOnGround(this.click2DPosition[1]);
+			this.determineReferencePoint(1)
 
-        if (clickCount > 0) {
+			this.createBottomRectangleLine(parameters);
 
-            this.clickPosition[0] = this.calcPointOnGround(this.click2DPosition[0]);
-            this.determineReferencePoint(0)
+		}
 
-        }
 
+		if (clickCount > 2) {
 
-        if (clickCount > 1) {
+			this.clickPosition[2] = this.calcPointOnNormalPlane(this.click2DPosition[2]);
+			this.determineReferencePoint(2)
 
-            this.clickPosition[1] = this.calcPointOnGround(this.click2DPosition[1]);
-            this.determineReferencePoint(1)
+			this.createIshigaki(parameters);
 
-            this.createBottomRectangleLine(parameters);
+		}
 
-        }
 
+		if (clickCount > 3) {
 
-        if (clickCount > 2) {
+			this.clickPosition[3] = this.calcPointOnNormalPlane(this.click2DPosition[3]);
+			this.determineReferencePoint(3)
 
-            this.clickPosition[2] = this.calcPointOnNormalPlane(this.click2DPosition[2]);
-            this.determineReferencePoint(2)
+			this.createYagura(parameters);
 
-            this.createIshigaki(parameters);
+		}
 
-        }
-
-
-        if (clickCount > 3) {
-
-            this.clickPosition[3] = this.calcPointOnNormalPlane(this.click2DPosition[3]);
-            this.determineReferencePoint(3)
-
-            this.createYagura(parameters);
-
-        }
-
-    }
+	}
 }

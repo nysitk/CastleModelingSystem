@@ -1,0 +1,19 @@
+<html>
+	<head>
+		<style>
+			#box {
+				width: 100px;
+				height: 200px;
+				background-color: black;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box"></div>
+	</body>
+	<script>
+		document.getElementById("box").addEventListener('click', (e) => {
+			console.log(e)
+		}, false);
+	</script>
+</html>

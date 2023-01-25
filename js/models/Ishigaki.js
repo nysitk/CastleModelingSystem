@@ -79,33 +79,17 @@ export class Ishigaki extends THREE.Group {
         if (!parameters.type) parameters.type = "line";
 
         if (parameters.type == "line") {
-
-            this.createLine(parameters);
+            
+            new Line(this).create(parameters)
 
         } else {
+            
+            new Polygon(this).create(parameters)
 
-            this.createPolygon(parameters);
         }
-
         
         return this;
 
-    }
-
-    createLine(parameters) {
-
-        new Line(this).create(parameters)
-        
-        return this;
-    
-    }
-
-    createPolygon(parameters) {
-        
-        new Polygon(this).create(parameters)
-        
-        return this;
-    
     }
 
 	calc_r(axis, sub) {
@@ -158,6 +142,7 @@ export class Ishigaki extends THREE.Group {
 }
 
 class Line {
+    
     constructor(ishigaki) {
 
         this.ishigaki = ishigaki;
@@ -186,12 +171,11 @@ class Line {
 			tmpD.y += this.ishigaki.changeLevel('y', (this.ishigaki.steps - 1) - i);
 			tmpD.z += this.ishigaki.changeLevel('z', (this.ishigaki.steps - 1) - i);
 
-        
-            const material = new THREE.LineBasicMaterial({color: 0xFD7E00, linewidth: 20})
-            const geometry = new ModelingSupporter().generateBoxLineGeometry(tmpA, tmpB, tmpC, tmpD);
+            const points = new ModelingSupporter().generateBoxLinePoints(tmpA, tmpB, tmpC, tmpD);
 
-        
-            this.ishigaki.line.add(new THREE.Line(geometry, material));
+			// const material = new MeshLineMaterial({color: 0x37A76F, lineWidth: 1})
+            this.ishigaki.line.add(new ModelingSupporter().generateLineMesh(points));
+			
         }
 
         
@@ -253,6 +237,7 @@ class Polygon {
             
             if (parameters.polygonType == "whole") {
             
+				// material = new THREE.MeshBasicMaterial({color: 0xb4a294})
                 material = this.addTexture(geometry, i);
             
             } else if (parameters.polygonType == "black") {
@@ -261,7 +246,6 @@ class Polygon {
             
             }
             
-            // var material = new THREE.MeshLambertMaterial({color: 0xb4a294})
 
             
             const mesh = new THREE.Mesh(geometry, material);

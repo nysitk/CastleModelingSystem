@@ -135,7 +135,7 @@ export class SceneManager {
 				
 				this.directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
 				this.directionalLight.position.set(200, 200, 200);
-				this.directionalLight.target.position.set(-5, 100, 0);
+				this.directionalLight.target.position.set(250, 100, 0);
 
 				this.directionalLight.castShadow = true;
 

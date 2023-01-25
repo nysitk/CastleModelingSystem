@@ -199,17 +199,16 @@ export class ChidoriHafu extends THREE.Group {
 
 		if (parameters.type == "line") {
 
-			const material = new THREE.LineBasicMaterial({color: 0xFD7E00});
-			const geometry = new THREE.Geometry();
+			const points = [];
 
 			for (let i = 0; i < this.originCurveVertices.length; i++) {
 
-				geometry.vertices.push(this.originCurveVertices[i]);
+				points.push(this.originCurveVertices[i]);
 
 			}
-
 			
-			return new THREE.Line(geometry, material);
+			return new ModelingSupporter().generateLineMesh(points);
+
 
 		} else {
 
@@ -307,16 +306,12 @@ export class ChidoriHafu extends THREE.Group {
 
 		if (parameters.type == "line") {
 
-			const material = new THREE.LineBasicMaterial({color: 0xFD7E00});
+			const points = [];
 
-			const geometry = new THREE.Geometry();
+			points.push(new THREE.Vector3(this.width / 2, this.height, 0));
+			points.push(new THREE.Vector3(this.width / 2, this.height, -this.depth))
 
-			geometry.vertices.push(new THREE.Vector3(this.width / 2, this.height, 0));
-			geometry.vertices.push(new THREE.Vector3(this.width / 2, this.height, -this.depth));
-
-
-			return new THREE.Line(geometry, material);
-		
+			return new ModelingSupporter().generateLineMesh(points);
 		
 		} else {
 			
