@@ -281,7 +281,10 @@ export class Yagura extends THREE.Group {
 	
 	createSimpleChidoriHafu(parameters) {
 
-		if (!this.getEachLayer(parameters.hafu.layer)?.yane) return;
+		if (!this.getEachLayer(parameters.hafu.layer)?.yane) {
+			console.warn("this layer has no roofs.")
+			return;
+		}
 		
 		this.getEachLayer(parameters.hafu.layer).yane.createSimpleChidoriHafu(parameters)
 		

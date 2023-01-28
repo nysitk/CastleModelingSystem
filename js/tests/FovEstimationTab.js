@@ -29,6 +29,10 @@ export class FovEstimationTab {
         $('#getPresetParameters').on( 'click', (e) => {
             console.log(this.getPresetParameters());
         } );
+
+		$('#getModelData').on('click', (e) => {
+			this.getModelData();
+		})
         
         for (let name in FovEstimationPresets) {
             $("#selectFovEstimationPreset").append("<option value='" + name + "'>" + name + "</option>")
@@ -110,9 +114,9 @@ export class FovEstimationTab {
 
 
         const parameters = {
-            "e": "ishigaki",
-            // "layer": "top",
-            "side": "upper",
+            "e": "yane",
+            "layer": "top",
+            "side": "lower",
             "direction": "B"
         }
         let info = this.modelingManager.getVerticesInfo(parameters)
@@ -190,6 +194,7 @@ export class FovEstimationTab {
     calc(initFov) {
 
         this.gradientDescent(initFov);
+		// this.animateFov();
 
     }
 
@@ -325,6 +330,94 @@ export class FovEstimationTab {
         return preset;
     
     }
+
+	getModelData() {
+		// lineモデルのみ対応
+		
+		const C1 = this.modelingManager.getVerticesInfo({
+			"e": "ishigaki",
+			"side": "lower",
+			"direction": "A"
+		})
+		
+		const C2 = this.modelingManager.getVerticesInfo({
+			"e": "ishigaki",
+			"side": "lower",
+			"direction": "B"
+		})
+		
+		const C3 = this.modelingManager.getVerticesInfo({
+			"e": "ishigaki",
+			"side": "lower",
+			"direction": "C"
+		})
+		
+		const ishigakiBackSide = this.modelingManager.getVerticesInfo({
+			"e": "ishigaki",
+			"side": "lower",
+			"direction": "D"
+		})
+		
+		const C4 = this.modelingManager.getVerticesInfo({
+			"e": "ishigaki",
+			"side": "upper",
+			"direction": "C"
+		})
+	
+		const C5 = this.modelingManager.getVerticesInfo({
+			"e": "yagura",
+			"layer": "top",
+			"side": "upper",
+			"direction": "C"
+		})
+
+		const yaguraTop = this.modelingManager.getVerticesInfo({
+			"e": "yagura",
+			"layer": "top",
+			"side": "upper",
+			"direction": "B"
+		})
+
+		const yaneTop = this.modelingManager.getVerticesInfo({
+			"e": "yane",
+			"layer": "top",
+			"side": "lower",
+			"direction": "B"
+		})
+
+		console.log("C1", C1)
+		console.log("C2", C2)
+		console.log("C3", C3)
+		console.log("C4", C4)
+		console.log("C5", C5)
+		console.log("ishigakiBackSide", ishigakiBackSide)
+		console.log("yaguraTop", yaguraTop)
+		console.log("yaneTop", yaneTop)
+
+		const preset = {}
+
+		preset["planeEstimation"] = [
+			{"x": C1.screen.x, "y": C1.screen.y},
+			{"x": C2.screen.x, "y": C2.screen.y},
+			{"x": C3.screen.x, "y": C3.screen.y},
+			{"x": ishigakiBackSide.screen.x, "y": ishigakiBackSide.screen.y},
+		]
+
+		preset["2DFix"] = [
+			null,
+			null,
+			{"x": C4.screen.x, "y": C4.screen.y},
+			{"x": C5.screen.x, "y": C5.screen.y},
+		]
+
+		preset["target"] = [
+			{"type": "yaguraTop", "x": yaguraTop.screen.x, "y": yaguraTop.screen.y},
+			{"type": "yaneTop", "x": yaneTop.screen.x, "y": yaneTop.screen.y},
+		]
+
+		console.log(preset)
+		
+	}
 
 }
 

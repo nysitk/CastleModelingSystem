@@ -219,9 +219,9 @@ export class YaneComponent extends THREE.Group {
 		}
 	}
 
-	addChidoriHafu(lowerCenter, width, height, depth, parameters) {
+	addChidoriHafu(lowerCenter, width, height, depth, parameters = {}) {
 		const chidoriHafu = new ChidoriHafu(this.PARAMS, width, height, depth);
-		
+
 		chidoriHafu.create(parameters);
 		chidoriHafu.position.set(lowerCenter.x, lowerCenter.y, lowerCenter.z + depth)
 
@@ -232,17 +232,16 @@ export class YaneComponent extends THREE.Group {
 		return chidoriHafu;
 	}
 
-	createSimpleChidoriHafu(parameters) {
+	createSimpleChidoriHafu(hafuParam) {
 
-		const hafuParam = parameters.hafu;
+		// const hafuParam = parameters.hafu;
 
 		return this.addChidoriHafu(
 
-			new ModelingSupporter().calcInternalEquinox(this.A, this.B, hafuParam.center),
+			new ModelingSupporter().calcInternalEquinox(this.A, this.B, hafuParam.centerrate),
 			this.getYaneSize().width * hafuParam.widthrate,
 			this.getYaneSize().height * hafuParam.heightrate,
-			this.getYaneSize().depth * hafuParam.depthrate,
-			parameters
+			this.getYaneSize().depth * hafuParam.depthrate
 		
 		)
 
@@ -370,15 +369,15 @@ class YaneBody extends THREE.Group {
 
 	createInitialChidoriHafu(sceneManager) {
 		const param = {
-			center: 1/2,
+			centerrate: 1/2,
 			widthrate: 1/2,
 			heightrate: 2,
 			depthrate: 1
 		}
 		
-		const chidoriHafu = this.parent.createSimpleChidoriHafu({hafu: param});
+		const chidoriHafu = this.parent.createSimpleChidoriHafu(param);
 		
-		const chidoriHafuGUI = chidoriHafu.addGUI(sceneManager);
+		chidoriHafu.addGUI(sceneManager);
 
 		return chidoriHafu
 	}

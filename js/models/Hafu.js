@@ -432,23 +432,8 @@ export class ChidoriHafu extends THREE.Group {
 	
 		this.removeChildren();
 		this.calcParameter();
-		// this.create(POLYGON);
-	
-		this.symmetricParams = {
-	 
-			layer: this.layer,
-			dir: (this.dir + 2) % 4,
-			alpha: this.params.alpha,
-			centerrate: this.params.centerrate,
-			widthrate: this.params.widthrate,
-			heightrate: this.params.heightrate,
-			depthrate: this.params.depthrate,
 		
-		}
-		
-		console.log(this.symmetricParams)
-		
-		this.getYaneComponent().createSimpleChidoriHafu(this.symmetricParams).create(POLYGON)
+		this.create()
 
 		
 		sceneManager.render();

@@ -410,6 +410,11 @@ import { ModelPresets } from '../models/ModelPresets.js'
 	}
 
 	getVerticesInfo(parameters = {}) {
+		// parameters
+		// e: 種類（ishigaki, yagura, yane）
+		// layer: top
+		// side: lower, upper
+		// direction: A, B, C, D
 
 		switch (parameters.direction) {
 			case "A":

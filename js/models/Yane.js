@@ -227,7 +227,7 @@ export class Yane extends THREE.Group {
 
 		if (!this.surroundingYane) {
 
-			console.info("this yane is not have surrounding yane.")
+			console.info("this yane does not have surrounding yane.")
 			console.info("this function is uncompleted. Hafu line is not supported.")
 			
 			return;
@@ -294,9 +294,9 @@ export class Yane extends THREE.Group {
 	
 	getAllBodyMesh() {
 		
-		if (!this.surroundingYane?.isSurroundingYane) {
+		if (!(this.surroundingYane?.isSurroundingYane)) {
 	
-			console.info("this yane is not have surrounding yane.");
+			// console.info("this yane is not have surrounding yane.");
 			
 			return;
 	
