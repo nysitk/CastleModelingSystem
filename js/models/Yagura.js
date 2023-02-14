@@ -167,8 +167,12 @@ export class Yagura extends THREE.Group {
 		}
 
 		const position = new THREE.Vector3().addVectors(yane.position, eachLayer.position)
-		position.add(yane.lower[parameters.side][parameters.direction])
 
+		if (this.PARAMS.hiraTsumaReverse) {
+			position.add(yane.lower[parameters.side][parameters.direction-1].applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2))
+		} else {
+			position.add(yane.lower[parameters.side][parameters.direction])
+		}
 		return position;
 
 

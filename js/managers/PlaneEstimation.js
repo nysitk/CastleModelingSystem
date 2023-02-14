@@ -17,7 +17,7 @@ export class PlaneEstimation {
         }
 
         this.rectAspect = 1.0; // aspect of rectangle. ( = width / height);
-        this.rectWidth = 200;
+        this.rectWidth = 100;
 
 		this.vertices2D = [
 			new DraggablePlaneEstimationPoint(this.renderSize.width / 4 * 1, this.renderSize.height / 4 * 3, 0).add(this),

@@ -139,7 +139,6 @@ export class Yane extends THREE.Group {
 			const vertices = new ModelingSupporter().getCornerPoints(A, B);
 
 			this.newOrigin = vertices[1].clone();
-			console.log(this.newOrigin)
 
 			A = vertices[1].sub(this.newOrigin).applyAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
 			B = vertices[3].sub(this.newOrigin).applyAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);

@@ -7,6 +7,8 @@ export class FovEstimationTab {
 
     constructor(sidePanelManager) {
 
+		this.isEnabled = false;
+
         this.sidePanelManager = sidePanelManager;
         this.sceneManager = sidePanelManager.sceneManager;
         this.planeControl = sidePanelManager.planeControlTab.content;
@@ -62,6 +64,8 @@ export class FovEstimationTab {
         
         this.verifyPoints();
 
+		this.isEnabled = true;
+
     }
 
     clear() {
@@ -85,7 +89,12 @@ export class FovEstimationTab {
         this.planeEstimation.rectAspect = preset["rectAspect"];
         this.planeEstimation.rectWidth = preset["rectWidth"];
 
-        // preset["yaguraSteps"]
+		if (preset["hiraTsumaReverse"]) {
+			this.modelingManager.castle.PARAMS.hiraTsumaReverse = preset["hiraTsumaReverse"]
+		}
+		if (preset["yaguraSteps"]) {
+			this.modelingManager.castle.PARAMS.yagura.steps = preset["yaguraSteps"]
+		}
 
         const v = preset["planeEstimation"]
         this.planeEstimation.vertices2D[0].changePosition(v[0]["x"], v[0]["y"]);
@@ -106,17 +115,22 @@ export class FovEstimationTab {
         
     }
 
-    verifyPoints(fov = this.sceneManager.currentCamera.fov, type = "yaneTop") {
+    verifyPoints(fov = this.sceneManager.currentCamera.fov) {
     
         this.sceneManager.currentCamera.fov = fov;
         
         this.sceneManager.updateScene();
 
+		return this.setEstimatedPoint()
+    
+    }
+
+	setEstimatedPoint() {
 
         const parameters = {
-            "e": "yane",
+            "e": "ishigaki",
             "layer": "top",
-            "side": "lower",
+            "side": "upper",
             "direction": "B"
         }
         let info = this.modelingManager.getVerticesInfo(parameters)
@@ -126,11 +140,11 @@ export class FovEstimationTab {
 
         const error = this.vertexMatchEstimation(this.verificationPoints[0], this.fovEstimationEstimatedPoint);
 
-        this.displayStatus(
+		this.displayStatus(
             [
                 {
                     name: "fov:\t",
-                    value: fov
+                    value: this.sceneManager.currentCamera.fov
                 },
                 {
                     name: "target:\t",
@@ -138,7 +152,7 @@ export class FovEstimationTab {
                 },
                 {
                     name: "estimated:\t",
-                    value: this.fovEstimationEstimatedPoint.positionInCanvas.x.toFixed(2) + "\t" + this.fovEstimationEstimatedPoint.positionInCanvas.y.toFixed(2)
+                    value: this.fovEstimationEstimatedPoint.positionInCanvas.x + "\t" + this.fovEstimationEstimatedPoint.positionInCanvas.y
                 },
                 {
                     name: "error:\t",
@@ -148,14 +162,18 @@ export class FovEstimationTab {
         )
 
         return error;
-    
-    }
+		// return [
+		// 	this.fovEstimationEstimatedPoint.positionInCanvas.x,
+		// 	this.fovEstimationEstimatedPoint.positionInCanvas.y
+		// ]
+
+	}
 
     animateFov() {
 
         const arg = this;
 
-        for (let i = 2; i <= 90; i++) {
+        for (let i = 25; i <= 35; i = i + 0.01) {
             
             (function(i) { //追加
 
@@ -163,9 +181,9 @@ export class FovEstimationTab {
 
                     let error = arg.verifyPoints(i);
 
-                    console.log(i, arg.verifyPoints(i));
+                    console.log(i, error);
 
-                    $("#coverInfo").html("fov: " + i + "<br>" + "error: " + error.toFixed(4))
+                    // $("#coverInfo").html("fov: " + i + "<br>" + "error: " + error.toFixed(4))
                     
                 }, (i-2) * 50);
 
@@ -193,18 +211,24 @@ export class FovEstimationTab {
 
     calc(initFov) {
 
-        this.gradientDescent(initFov);
-		// this.animateFov();
+		const startTime = Date.now(); // 開始時間
+
+        // this.gradientDescent(initFov);
+		this.animateFov();
+
+		const endTime = Date.now(); // 終了時間
+		
+		console.log("time", endTime - startTime);
 
     }
 
     gradientDescent(initX = this.sceneManager.currentCamera.fov) {
         
-        const alpha = 0.01;
-        const th = 0.000001;
+        const alpha = 0.001;
+        const th = 0.00000001;
         const dx = 1;
 
-        const loopMax = 1000;
+        const loopMax = 10000;
         let i = 0;
 
         const arg = this;
@@ -218,7 +242,11 @@ export class FovEstimationTab {
         }
 
         function diff(x) {
-            return ( f(x+dx) - f(x-dx) ) / (2.0*dx);
+			const pp = x+dx;
+			const mm = x-dx;
+			const m = f(mm);
+			const p = f(pp);
+            return ( p - m ) / (2.0*dx);
         }
 
         let x = initX;
@@ -227,16 +255,18 @@ export class FovEstimationTab {
 
         console.log(x, f(x));
 
+		const res = [];
+
         while(loopFlag) {
             difference = diff(x);
-            x += alpha * difference;
+            x -= alpha * difference;
             if ( -th < difference && difference < th) loopFlag = false;
-            console.log(x, f(x));
-
+			// console.log(i, x, f(x))
             i++;
             if (i > loopMax) break;
         }
 
+		console.log(i)
         console.log("x: " + x + " extremum: " + f(x));
 
     }
@@ -385,6 +415,13 @@ export class FovEstimationTab {
 			"direction": "B"
 		})
 
+		const ishigakiTop = this.modelingManager.getVerticesInfo({
+			"e": "ishigaki",
+			"layer": "top",
+			"side": "upper",
+			"direction": "B"
+		})
+
 		console.log("C1", C1)
 		console.log("C2", C2)
 		console.log("C3", C3)
@@ -411,8 +448,9 @@ export class FovEstimationTab {
 		]
 
 		preset["target"] = [
-			{"type": "yaguraTop", "x": yaguraTop.screen.x, "y": yaguraTop.screen.y},
 			{"type": "yaneTop", "x": yaneTop.screen.x, "y": yaneTop.screen.y},
+			{"type": "yaguraTop", "x": yaguraTop.screen.x, "y": yaguraTop.screen.y},
+			{"type": "ishigakiTop", "x": ishigakiTop.screen.x, "y": ishigakiTop.screen.y},
 		]
 
 		console.log(preset)

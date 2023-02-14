@@ -288,7 +288,8 @@ export class SceneManager {
 		
 		const is2DfixEnabled = this.operationManager?.controlPanel?.planeControlTab?.content?.is2DfixEnabled;
 		const isPlaneEstimation = this.operationManager?.controlPanel?.planeControlTab?.content?.planeEstimation;
-		
+		const isFovEstimation = this.operationManager?.controlPanel?.fovEstimationTab?.content?.isEnabled;
+
 		if (isPlaneEstimation) {
 			
 			this.operationManager.controlPanel.planeControlTab.content.planeEstimation.startSolvePnP();
@@ -302,6 +303,12 @@ export class SceneManager {
 
 			// console.log("is2Dfix")
 			this.operationManager.modelingManager.createAllFrom2D(count);
+
+		}
+		
+		if (isFovEstimation) {
+
+			this.operationManager.controlPanel.fovEstimationTab.content.setEstimatedPoint();
 
 		}
 
